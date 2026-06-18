@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? '/Feedback-Intelligence-Futuristic-Version/' : '/',
+  base: process.env.GITHUB_ACTIONS ? '/MVP-Feedback-Intelligence--30th-May/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
