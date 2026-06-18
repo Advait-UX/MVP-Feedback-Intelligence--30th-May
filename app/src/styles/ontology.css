@@ -1,0 +1,171 @@
+/* ==========================================================================
+ * Ontology Studio — Lyra Slider + Weight Input CSS
+ * Mirrors prototype.html lines 4135–4180 (slider) and supporting input styles.
+ * ========================================================================== */
+
+/* ── Lyra Slider (node 16926:21325) ──────────────────────────────────────────
+   Track: 4px, rounded. Fill: brand-600. Handle: 20px white circle.
+   Ticks + labels at every step, 12px body-sm.                               */
+.lyra-slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--lyra-brand-600) 0%,
+    var(--lyra-brand-600) var(--lyra-slider-pct, 0%),
+    rgba(0, 0, 0, 0.12) var(--lyra-slider-pct, 0%),
+    rgba(0, 0, 0, 0.12) 100%
+  );
+}
+
+.lyra-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--lyra-white, #fff);
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+
+.lyra-slider-input::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 6px rgba(22, 108, 202, 0.12), 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+.lyra-slider-input::-webkit-slider-thumb:active {
+  box-shadow: 0 0 0 8px rgba(22, 108, 202, 0.18), 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+.lyra-slider-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--lyra-white, #fff);
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+}
+
+.lyra-slider-input::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.lyra-slider-input::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lyra-brand-600);
+}
+
+/* Tick marks row below the slider track */
+.lyra-slider-marks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 0 10px;
+}
+
+.lyra-slider-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.lyra-slider-tick {
+  width: 2px;
+  height: 4px;
+  border-radius: 1px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.lyra-slider-tick-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  color: var(--color-fg-secondary, rgba(0, 0, 0, 0.60));
+}
+
+/* ── Weight numeric input ────────────────────────────────────────────────── */
+.lyra-weight-input {
+  width: 56px;
+  height: 36px;
+  padding: 0 12px;
+  font: 400 14px/20px var(--font-sans);
+  color: var(--color-fg-default);
+  background: var(--lyra-white, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.46);
+  border-radius: var(--radius-md);
+  outline: none;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.lyra-weight-input::-webkit-inner-spin-button,
+.lyra-weight-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.lyra-weight-input:focus {
+  border-color: var(--lyra-brand-600);
+  box-shadow: 0 0 0 2px rgba(22, 108, 202, 0.15);
+}
+
+.lyra-weight-input.has-error {
+  border-color: var(--lyra-color-status-critical-strong);
+}
+
+.lyra-weight-input.has-error:focus {
+  box-shadow: 0 0 0 2px rgba(189, 42, 42, 0.15);
+}
+
+/* Error message below the weight input */
+.lyra-stepper-error {
+  margin-top: 2px;
+  font: 400 11px/14px var(--font-sans);
+  color: var(--lyra-color-status-critical-strong);
+  white-space: nowrap;
+}
+
+/* ── Model select dropdown ───────────────────────────────────────────────── */
+.ont-model-select {
+  appearance: none;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  height: 36px;
+  width: 100%;
+  max-width: 420px;
+  font: 400 14px/20px var(--font-sans);
+  color: var(--color-fg-default);
+  background: var(--lyra-white, #fff)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23526b7a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  background-size: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.ont-model-select:hover {
+  border-color: var(--color-border-strong);
+}
+
+.ont-model-select:focus {
+  border-color: var(--color-border-active);
+  box-shadow: 0 0 0 3px rgba(22, 108, 202, 0.12);
+}

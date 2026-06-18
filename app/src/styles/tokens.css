@@ -1,0 +1,422 @@
+/* =================================================================
+   Lyra Design System — CSS Custom Properties
+   Source of truth: app/public/prototype.html :root block (lines 2549–2860)
+   DO NOT edit values here manually — sync from prototype.html.
+   ================================================================= */
+
+:root {
+  /* ============================================================
+     BASE COLORS
+     "Equal perceptual luminosity" scale; 50–950 ramps.
+     ============================================================ */
+
+  /* Brand — CXone blue.  500 is the primary brand value. */
+  --lyra-brand-50:  #e9f1fc;
+  --lyra-brand-100: #cfe0f8;
+  --lyra-brand-200: #a6c6f0;
+  --lyra-brand-300: #72a6e8;
+  --lyra-brand-400: #4896ec;
+  --lyra-brand-500: #3d81e7; /* primary */
+  --lyra-brand-600: #166cca; /* primary-pressed */
+  --lyra-brand-700: #185ba4;
+  --lyra-brand-800: #164479;
+  --lyra-brand-900: #0c2459;
+  --lyra-brand-950: #11375f;
+
+  /* Slate — primary neutral for surfaces, text, borders */
+  --lyra-slate-50:  #fbfcfe;
+  --lyra-slate-100: #f5f7f9;
+  --lyra-slate-200: #eef0f2;
+  --lyra-slate-300: #d2d8db;
+  --lyra-slate-400: #a8b3bb;
+  --lyra-slate-500: #82959e;
+  --lyra-slate-600: #526b7a;
+  --lyra-slate-700: #3f5e69;
+  --lyra-slate-800: #3f4e5d;
+  --lyra-slate-900: #1d2630;
+  --lyra-slate-950: #05131a;
+
+  /* Gray — true gray, used sparingly for dividers / placeholders */
+  --lyra-gray-50:  #fafafa;
+  --lyra-gray-100: #f5f5f5;
+  --lyra-gray-200: #ededed;
+  --lyra-gray-300: #e5e5e5;
+  --lyra-gray-400: #cfcfcf;
+  --lyra-gray-500: #a3a3a3;
+  --lyra-gray-600: #737373;
+  --lyra-gray-700: #525252;
+  --lyra-gray-800: #2e2e2e;
+  --lyra-gray-900: #141414;
+
+  /* Status: Red (destructive / error) */
+  --lyra-red-50:  #ffecec;
+  --lyra-red-100: #ffdbdb;
+  --lyra-red-300: #ff9b9b;
+  --lyra-red-500: #d83434;
+  --lyra-red-600: #bf2323;
+  --lyra-red-700: #8a1c1c;
+  --lyra-red-900: #331a1a;
+
+  /* Status: Orange / Warning */
+  --lyra-orange-50:  #fff2e2;
+  --lyra-orange-300: #ffc285;
+  --lyra-orange-500: #ec7000;
+  --lyra-orange-600: #c45d00;
+  --lyra-orange-700: #a64f00;
+
+  /* Status: Yellow */
+  --lyra-yellow-50:  #fff8d4;
+  --lyra-yellow-500: #f8a10a;
+  --lyra-yellow-700: #8e6800;
+
+  /* Status: Green / Success */
+  --lyra-green-50:  #e6f7e8;
+  --lyra-green-100: #c2ecc6;
+  --lyra-green-300: #95dd9b;
+  --lyra-green-500: #278a33;
+  --lyra-green-700: #1c5e25;
+
+  /* Teal */
+  --lyra-teal-500: #006889;
+
+  /* Purple — used for AI surfaces */
+  --lyra-purple-300: #b59cd9;
+  --lyra-purple-500: #7856ba;
+  --lyra-purple-700: #4d3a7a;
+
+  /* Pink */
+  --lyra-pink-500: #b53389;
+
+  --lyra-black: #000000;
+  --lyra-white: #ffffff;
+
+  /* ============================================================
+     SEMANTIC TOKENS (themeable; Lyra prescribes these names)
+     ============================================================ */
+
+  /* --- Surfaces (page / panel backgrounds) --- */
+  --color-bg-surface-base:             var(--lyra-white);
+  --color-bg-surface-container:        var(--lyra-white);
+  --color-bg-surface-container-subtle: var(--lyra-slate-100);
+  --color-bg-surface-overlay:          var(--lyra-white);
+  --color-bg-surface-canvas:           var(--lyra-slate-50);
+  --color-bg-surface-shell:            var(--lyra-slate-100);
+  --color-bg-surface-backdrop:         rgba(0,0,0,0.40);
+  --color-bg-surface-inverse:          var(--lyra-slate-900);
+
+  /* --- Content fills (controls on a surface) --- */
+  --color-bg-primary:        var(--lyra-brand-600);   /* Lyra: bg/primary = #166cca */
+  --color-bg-primary-hover:  var(--lyra-brand-700);
+  --color-bg-destructive:    var(--lyra-red-600);
+  --color-bg-secondary:      var(--lyra-slate-200);
+  --color-bg-field:          var(--lyra-white);
+  --color-bg-ai:             #f4eefb; /* lavender wash */
+  --color-bg-control:        var(--lyra-slate-300);
+  --color-bg-control-subtle: rgba(0,0,0,0.08);
+  --color-bg-disabled:       rgba(0,0,0,0.06);
+  --color-bg-none:           transparent;
+
+  /* --- Active / selected backgrounds --- */
+  --color-bg-active-strong:   var(--lyra-brand-600);
+  --color-bg-active-moderate: #d3e6fd;                   /* Lyra: bg/active/moderate */
+  --color-bg-active-subtle:   var(--lyra-brand-50);
+
+  /* Interactive state opacities (Lyra state tokens) */
+  --color-state-bg-hover:    rgba(0,0,0,0.04);          /* Lyra: state/bg/hover-opacity */
+  --color-state-bg-pressed:  rgba(0,0,0,0.08);          /* Lyra: state/bg/pressed-opacity */
+
+  /* --- Foregrounds (text / icons) --- */
+  --color-fg-default:          rgba(0,0,0,0.80);   /* Lyra: fg/default — 80% black */
+  --color-fg-secondary:        rgba(0,0,0,0.64);   /* muted but legible */
+  --color-fg-action:           var(--lyra-brand-600);
+  --color-fg-disabled:         rgba(0,0,0,0.36);
+  --color-fg-link:             var(--lyra-brand-600);
+  --color-fg-on-primary:       var(--lyra-white);
+  --color-fg-on-destructive:   var(--lyra-white);
+  --color-fg-inverse:          var(--lyra-white);
+  --color-fg-inverse-disabled: rgba(255,255,255,0.45);
+  --color-fg-active-strong:    var(--lyra-brand-700);
+  --color-fg-active-subtle:    var(--lyra-white);
+
+  /* --- Status foregrounds --- */
+  --color-fg-success:    var(--lyra-green-700);
+  --color-fg-warning:    var(--lyra-orange-700);
+  --color-fg-destructive:var(--lyra-red-600);
+  --color-fg-ai:         var(--lyra-purple-700);
+
+  /* --- Status backgrounds (subtle / medium / strong) --- */
+  --lyra-color-status-success-subtle:  #EBFAED;
+  --lyra-color-status-success-medium:  #64B96F;
+  --lyra-color-status-success-strong:  #23722D;
+  --lyra-color-status-warning-subtle:  #FFFAE0;
+  --lyra-color-status-warning-medium:  #FACB33;
+  --lyra-color-status-warning-strong:  #8E6800;
+  --lyra-color-status-critical-subtle: #FFF0F0;
+  --lyra-color-status-critical-medium: #FA7F7F;
+  --lyra-color-status-critical-strong: #BD2A2A;
+  --lyra-color-status-info-subtle:     #F0F5FF;
+  --lyra-color-status-info-medium:     #789FED;
+  --lyra-color-status-info-strong:     #2D5BB9;
+
+  /* --- Lyra semantic aliases (CLAUDE.md names) --- */
+  --lyra-color-fg-default:               rgba(0,0,0,0.80);
+  --lyra-color-fg-secondary:             rgba(0,0,0,0.64);
+  --lyra-color-fg-disabled:              rgba(0,0,0,0.36);
+  --lyra-color-fg-inverse:               #FFFFFF;
+  --lyra-color-fg-on-primary:            #FFFFFF;
+  --lyra-color-fg-on-desctructive:       #FFFFFF;
+  --lyra-color-fg-link:                  #185BA4;
+  --lyra-color-fg-active-strong:         #185BA4;
+  --lyra-color-fg-action:                #5D6A79;
+  --lyra-color-bg-surface-base:          #FFFFFF;
+  --lyra-color-bg-surface-canvas:        #FBFCFE;
+  --lyra-color-bg-surface-shell:         #F5F7F9;
+  --lyra-color-bg-surface-overlay:       #FFFFFF;
+  --lyra-color-bg-surface-inverse:       #2A2D32;
+  --lyra-color-bg-primary:               #166CCA;
+  --lyra-color-bg-field:                 #FFFFFF;
+  --lyra-color-bg-disabled:              rgba(0,0,0,0.06);
+  --lyra-color-bg-active-subtle:         #F1F7FE;
+  --lyra-color-bg-active-moderate:       #D3E6FD;
+  --lyra-color-bg-active-strong:         #166CCA;
+  --lyra-color-bg-destructive:           #BD2A2A;
+  --lyra-color-bg-ai:                    rgba(143,115,227,0.04);
+  --lyra-color-border-subtle:            rgba(0,0,0,0.10);
+  --lyra-color-border-soft:              rgba(0,0,0,0.16);
+  --lyra-color-border-medium:            rgba(0,0,0,0.32);
+  --lyra-color-border-strong:            rgba(0,0,0,0.46);
+  --lyra-color-border-active:            #185BA4;
+  --lyra-color-border-focus-default:     #185BA4;
+  --lyra-color-border-disabled:          rgba(0,0,0,0.10);
+  --lyra-color-state-bg-hover-opacity:   rgba(0,0,0,0.04);
+  --lyra-color-state-bg-pressed-opacity: rgba(0,0,0,0.08);
+  --lyra-color-state-bg-hover-primary:   #185BA4;
+  --lyra-color-state-bg-pressed-primary: #164479;
+  --lyra-color-state-bg-hover-secondary: #FBFCFE;
+  --lyra-color-state-bg-hover-active-subtle:   #E8F1FC;
+  --lyra-color-state-bg-pressed-active-subtle: #D3E6FD;
+
+  /* --- Borders --- */
+  --color-border-subtle:        rgba(0,0,0,0.10);   /* Lyra: border/subtle */
+  --color-border-soft:          rgba(0,0,0,0.16);   /* Lyra: border/soft */
+  --color-border-medium:        rgba(0,0,0,0.16);
+  --color-border-strong:        rgba(0,0,0,0.28);
+  --color-border-disabled:      rgba(0,0,0,0.10);
+  --color-border-none:          transparent;
+  --color-border-active:        var(--lyra-brand-600);
+  --color-border-inverse:       rgba(255,255,255,0.20);
+  --color-border-focus-default: var(--lyra-brand-500);
+  --color-border-focus-inverse: var(--lyra-white);
+
+  /* ============================================================
+     RADII (Lyra's "Sizes" scale)
+     ============================================================ */
+  --radius-xs:    4px;   /* 0.25 rem */
+  --radius-sm:    6px;   /* 0.375 rem */
+  --radius-md:    8px;   /* 0.5 rem  */
+  --radius-lg:    12px;  /* 0.75 rem */
+  --radius-xl:    16px;  /* 1 rem    */
+  --radius-full:  9999px;
+  --radius-round: 9999px;
+
+  /* ============================================================
+     SPACING (4px base scale)
+     ============================================================ */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ============================================================
+     ELEVATION (5 named tiers from /Effects)
+     ============================================================ */
+  --elev-1: 0px 1px 2px 0px rgba(16,24,40,0.06);
+  --elev-2: 0px 1px 2px 0px rgba(16,24,40,0.15), 0px 1px 3px 0px rgba(16,24,40,0.30);
+  --elev-3: 0px 4px 6px -2px rgba(16,24,40,0.05), 0px 12px 16px -4px rgba(16,24,40,0.12);
+  --elev-4: 0px 8px 8px -4px rgba(16,24,40,0.04), 0px 20px 24px -4px rgba(16,24,40,0.14);
+  --elev-5: 0px 24px 48px -12px rgba(16,24,40,0.32);
+
+  /* Lyra-named shadows (used by overlays/menus per Figma effect styles) */
+  --shadow-sm: 0px 1px 2px 0px rgba(0,0,0,0.08);
+  --shadow-md: 0px 4px 8px 0px rgba(0,0,0,0.08);
+  --shadow-lg: 0px 12px 24px 0px rgba(0,0,0,0.08);   /* Lyra: Shadow lg */
+
+  /* Lyra Storybook sol-effect aliases */
+  --sol-effect-shadowsm: 0px 2px 6px 0px rgba(0,0,0,0.04);
+  --sol-effect-shadowmd: 0px 4px 12px 0px rgba(0,0,0,0.06);
+  --sol-effect-shadowlg: 0px 12px 24px 0px rgba(0,0,0,0.08);
+  --sol-effect-shadowxl: 0px 20px 40px 0px rgba(0,0,0,0.12);
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 2px var(--color-bg-surface-base), 0 0 0 4px var(--color-border-focus-default);
+  --sol-effect-activering: 0px 0px 1px 3px rgba(44,138,242,0.25);
+
+  /* ============================================================
+     STATUS / ACCENT TOKENS (Feedback Intelligence product tokens)
+     ============================================================ */
+
+  /* FI accent — Lyra teal-500 for primary UI accents in FI product */
+  --fi-accent:        var(--lyra-teal-500);          /* #006889 */
+  --fi-accent-strong: #005570;                        /* teal pressed / focus ring */
+  --fi-accent-bg:     rgba(0,104,137,0.08);           /* teal wash */
+
+  /* Status semantic shorthands used across FI styles */
+  --fi-red:       var(--lyra-red-600);                /* #bf2323 */
+  --fi-red-bg:    var(--lyra-red-50);                 /* #ffecec */
+  --fi-green:     var(--lyra-green-700);              /* #1c5e25 */
+  --fi-green-bg:  var(--lyra-green-50);               /* #e6f7e8 */
+  --fi-purple:    var(--lyra-purple-500);             /* #7856ba */
+  --fi-purple-bg: rgba(120,86,186,0.08);              /* purple wash */
+  --fi-amber:     var(--lyra-orange-700);             /* #a64f00 */
+  --fi-amber-bg:  var(--lyra-orange-50);              /* #fff2e2 */
+
+  /* Additional alias for the active/strong fg (convenience) */
+  --color-fg-active-strong: var(--lyra-brand-700);   /* = #185ba4 */
+
+  /* Custom status token */
+  --color-status-error: #b62c2c;                      /* Lyra: status/critical-strong */
+
+  /* Star-rating color */
+  --color-rating-star: #efb840;
+
+  /* ============================================================
+     OPACITY TOKENS
+     ============================================================ */
+  --opacity-hover:         0.04;
+  --opacity-pressed:       0.08;
+  --opacity-disabled:      0.36;
+  --opacity-border-subtle: 0.10;
+  --opacity-border-soft:   0.16;
+  --opacity-border-strong: 0.28;
+
+  /* Font-feature-settings for Inter */
+  --font-features: "ss01", "cv11";
+
+  /* ============================================================
+     TYPOGRAPHY
+     Family: Inter for everything.
+     Lyra Typography table:
+       Heading XL  24/28  600  -0.02em
+       Heading LG  20/24  600  -0.01em
+       Heading MD  16/24  500  -0.01em
+       Heading SM  14/20  500   0
+       Heading XS  12/16  500   0.01em
+       Body LG     16/24  400  -0.01em
+       Body MD     14/20  400   0
+       Body SM     12/16  400   0.01em
+       Label       14/20  500   0
+     ============================================================ */
+  --font-sans:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter", sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+  /* Composite text tokens (font shorthand + line-height) */
+  --text-h-xl:     600 24px/28px var(--font-sans);
+  --text-h-lg:     600 20px/24px var(--font-sans);
+  --text-h-md:     500 16px/24px var(--font-sans);
+  --text-h-sm:     500 14px/20px var(--font-sans);
+  --text-h-xs:     500 12px/16px var(--font-sans);
+  --text-body-lg:  400 16px/24px var(--font-sans);
+  --text-body-md:  400 14px/20px var(--font-sans);
+  --text-body-sm:  400 12px/16px var(--font-sans);
+  --text-label:    500 14px/20px var(--font-sans);
+}
+
+/* =================================================================
+   GLOBAL BASE RESETS & TYPOGRAPHY DEFAULTS
+   Mirrors the base styles from prototype.html
+   ================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--lyra-slate-900);
+  background: var(--lyra-slate-100);
+}
+
+/* Force form controls and table elements to inherit font — browsers don't do this by default */
+button,
+input,
+select,
+textarea,
+table,
+th,
+td {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+/* =================================================================
+   LYRA TYPOGRAPHY UTILITY CLASSES
+   Apply .lyra to the root element; children inherit these styles.
+   ================================================================= */
+
+.lyra,
+.lyra * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.lyra {
+  font: var(--text-body-md);
+  color: var(--color-fg-default);
+  background: var(--color-bg-surface-shell);
+  font-feature-settings: "ss01", "cv11"; /* Inter contextual alternates */
+}
+
+.lyra h1, .lyra .h-xl { font: var(--text-h-xl); letter-spacing: -0.02rem; margin: 0; }
+.lyra h2, .lyra .h-lg { font: var(--text-h-lg); letter-spacing: -0.01rem; margin: 0; }
+.lyra h3, .lyra .h-md { font: var(--text-h-md); letter-spacing: -0.01rem; margin: 0; }
+.lyra h4, .lyra .h-sm { font: var(--text-h-sm); margin: 0; }
+.lyra h5, .lyra .h-xs { font: var(--text-h-xs); letter-spacing: 0.01rem; text-transform: uppercase; margin: 0; color: var(--color-fg-secondary); }
+.lyra p,  .lyra .body  { font: var(--text-body-md); margin: 0; }
+.lyra .body-lg { font: var(--text-body-lg); letter-spacing: -0.01rem; }
+.lyra .body-sm { font: var(--text-body-sm); letter-spacing: 0.01rem; }
+.lyra .label   { font: var(--text-label); }
+
+.lyra a { color: var(--color-fg-link); text-decoration: none; }
+.lyra a:hover { text-decoration: underline; }
+
+.lyra code,
+.lyra .mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--lyra-slate-100);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.lyra .wordmark {
+  font-family: var(--font-display);
+  font-size: 100px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
