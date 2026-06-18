@@ -11305,7 +11305,13 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
           >
             ← Back to ontologies
           </button>
-          <h1 style={{ margin: 0 }}>{isEdit ? "Edit Ontology" : "Configure New Ontology"}</h1>
+          <h1 style={{ margin: 0 }}>
+            {isEdit
+              ? `Edit Ontology — ${ontology.modelName}`
+              : selectedModel
+                ? `Configure New Ontology — ${(TOPIC_MODELS.find(m => m.id === selectedModel) || {}).name || selectedModel}`
+                : "Configure New Ontology"}
+          </h1>
         </div>
         {!refreshDone && (
           <button
