@@ -10923,6 +10923,7 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
                     <OntologyRowActions
                       onEdit={() => onEdit(o.id)}
                       onRemove={() => onRemove(o.id)}
+                      hasCampaigns={o.mappedCampaigns && o.mappedCampaigns.length > 0}
                     />
                   </td>
                 </tr>
@@ -10942,7 +10943,7 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
   );
 }
 
-function OntologyRowActions({ onEdit, onRemove }) {
+function OntologyRowActions({ onEdit, onRemove, hasCampaigns }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
   React.useEffect(() => {
@@ -10967,7 +10968,13 @@ function OntologyRowActions({ onEdit, onRemove }) {
             Edit
           </button>
           <div className="row-action-divider"/>
-          <button className="row-action-item danger" onClick={() => { onRemove(); setOpen(false); }}>
+          <button
+            className="row-action-item danger"
+            onClick={() => { if (!hasCampaigns) { onRemove(); setOpen(false); } }}
+            disabled={hasCampaigns}
+            title={hasCampaigns ? "Cannot remove — this model has mapped campaigns" : "Remove"}
+            style={hasCampaigns ? { opacity: 0.4, cursor: "not-allowed" } : {}}
+          >
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
             </svg>
