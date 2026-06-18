@@ -6665,8 +6665,9 @@ function InfoTooltip({ children }) {
 }
 
 function StatusPill({ s }) {
-  const label = { active: "Active", inactive: "Inactive", expired: "Expired", working: "Working Copy" }[s] || s;
-  return <span className={`fi-pill ${s}`}><span className="dot"/>{label}</span>;
+  const label = { active: "Active", inactive: "Inactive", draft: "Inactive", expired: "Expired", working: "Working Copy" }[s] || s;
+  const cls = s === "draft" ? "inactive" : s;
+  return <span className={`fi-pill ${cls}`}><span className="dot"/>{label}</span>;
 }
 
 function WorkingCopyChip() {
@@ -6681,7 +6682,7 @@ function WorkingCopyChip() {
 function CampaignStateInline({ status, hasWorkingCopy }) {
   if (status === "expired") return null;
   let dotClass, label, color;
-  if (status === "inactive") {
+  if (status === "inactive" || status === "draft") {
     dotClass = "draft"; label = "Draft"; color = "var(--lyra-slate-600)";
   } else if (hasWorkingCopy) {
     dotClass = "working"; label = "Working Copy"; color = "var(--lyra-purple-700)";
