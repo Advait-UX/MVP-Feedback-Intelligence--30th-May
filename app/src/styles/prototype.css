@@ -1,0 +1,144 @@
+/* =================================================================
+   Feedback Intelligence — Prototype utility classes
+   Ported from app/public/prototype.html CSS block.
+   These are used by WFMPlaceholder and any content that references
+   the prototype's .pane / .pane-head / .btn / .toast patterns.
+   ================================================================= */
+
+/* ---- Toast (fixed notification) ---- */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--lyra-color-bg-surface-inverse, #2A2D32);
+  color: var(--lyra-color-fg-inverse, #fff);
+  border-radius: var(--radius-lg, 12px);
+  font: 500 14px/20px var(--font-sans, "Inter", sans-serif);
+  box-shadow: 0px 12px 24px 0px rgba(0,0,0,0.18);
+  z-index: 9999;
+  display: flex; align-items: center; gap: var(--space-3, 12px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  min-width: 300px; max-width: 480px;
+  animation: toast-in 0.22s cubic-bezier(0.22,1,0.36,1);
+}
+.toast-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(100,185,111,0.18);
+  border-radius: 50%;
+  color: #64b96f;
+}
+.toast-icon svg {
+  width: 11px; height: 11px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+}
+.toast-msg { color: var(--lyra-color-fg-inverse, #fff); flex: 1; }
+.toast-close {
+  width: 24px; height: 24px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-xs, 4px);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer; border: none; background: transparent;
+  margin-left: var(--space-1, 4px);
+}
+.toast-close:hover { background: rgba(255,255,255,0.08); color: var(--lyra-color-fg-inverse, #fff); }
+.toast-close svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+/* ---- Pane — white floating content card ---- */
+.pane {
+  background: var(--lyra-color-bg-surface-base, #fff);
+  border: 1px solid var(--lyra-color-border-subtle, rgba(0,0,0,0.1));
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0px 2px 6px 0px rgba(0,0,0,0.04);
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---- Pane header ---- */
+.pane-head {
+  display: flex; align-items: center;
+  min-height: 80px;
+  padding: var(--space-4, 16px) var(--space-6, 24px);
+  gap: 40px;
+  border-bottom: 1px solid var(--lyra-color-border-subtle, rgba(0,0,0,0.1));
+}
+.pane-head h1 {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.01rem;
+  margin: 0;
+  color: var(--lyra-color-fg-default, rgba(0,0,0,0.8));
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pane-head .head-actions { display: flex; gap: var(--space-2, 8px); align-items: center; }
+
+/* ---- Breadcrumbs ---- */
+.crumbs {
+  display: flex; align-items: center;
+  gap: var(--space-2, 8px);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 12px; font-weight: 400;
+  line-height: 16px; letter-spacing: 0.01rem;
+  color: var(--lyra-color-fg-secondary, rgba(0,0,0,0.6));
+  padding: var(--space-5, 20px) var(--space-6, 24px) 0;
+}
+.crumbs .sep { opacity: 0.4; margin: 0 2px; }
+.crumbs .last { color: var(--lyra-color-fg-default, rgba(0,0,0,0.8)); font-weight: 500; }
+.crumbs a { color: inherit; text-decoration: none; }
+.crumbs a:hover { color: var(--lyra-color-fg-default, rgba(0,0,0,0.8)); }
+.crumbs + .pane-head { min-height: unset; padding-top: var(--space-2, 8px); padding-bottom: var(--space-5, 20px); }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 10px;
+  height: 36px;
+  min-width: 80px;
+  padding: 0 var(--space-4, 16px);
+  background: var(--lyra-color-bg-surface-base, #fff);
+  border: 1px solid var(--lyra-color-border-soft, rgba(0,0,0,0.16));
+  border-radius: var(--radius-md, 8px);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+  color: var(--lyra-slate-600, #526b7a);
+  cursor: pointer;
+}
+.btn:hover  { background: var(--lyra-color-state-bg-hover-opacity, rgba(0,0,0,0.04)); }
+.btn:active { background: var(--lyra-color-state-bg-pressed-opacity, rgba(0,0,0,0.08)); }
+.btn:disabled, .btn[disabled] { opacity: 0.4; cursor: not-allowed; pointer-events: auto; }
+.btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+.btn.primary {
+  background: var(--lyra-color-bg-primary, #166cca);
+  color: var(--lyra-color-fg-on-primary, #fff);
+  border-color: var(--lyra-color-bg-primary, #166cca);
+}
+.btn.primary:hover {
+  background: var(--lyra-color-state-bg-hover-primary, #185BA4);
+  border-color: var(--lyra-color-state-bg-hover-primary, #185BA4);
+}
+.btn.primary:disabled, .btn.primary[disabled] { opacity: 0.4; cursor: not-allowed; pointer-events: auto; }
+
+.btn.destructive {
+  background: var(--lyra-color-bg-destructive, #BD2A2A);
+  color: var(--lyra-color-fg-on-destructive, #fff);
+  border-color: var(--lyra-color-bg-destructive, #BD2A2A);
+}
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--lyra-slate-600, #526b7a);
+}
+.btn.ghost:hover { background: var(--lyra-color-state-bg-hover-opacity, rgba(0,0,0,0.04)); }
