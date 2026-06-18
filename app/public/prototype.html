@@ -10680,7 +10680,17 @@ const ONTOLOGIES_STORAGE_KEY = "fi-ontologies-v1";
 function loadOntologies() {
   try {
     const raw = localStorage.getItem(ONTOLOGIES_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Merge mappedCampaigns from seed if missing (handles stale localStorage)
+      return parsed.map(o => {
+        if (!o.mappedCampaigns || o.mappedCampaigns.length === 0) {
+          const seed = SEED_ONTOLOGIES.find(s => s.id === o.id);
+          return seed ? { ...o, mappedCampaigns: seed.mappedCampaigns } : o;
+        }
+        return o;
+      });
+    }
   } catch (_) {}
   return SEED_ONTOLOGIES.map(o => ({ ...o, categories: o.categories.map(c => ({ ...c })) }));
 }
