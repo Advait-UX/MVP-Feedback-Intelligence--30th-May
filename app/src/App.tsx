@@ -382,10 +382,10 @@ function RecommendationsSection() {
 
 /* -------------------- App -------------------- */
 export default function App() {
-  const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('admin')
+  const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'campaigns' | 'designs' | 'ontology'>('dashboard')
+  const [fiSection, setFiSection] = useState<'dashboard' | 'campaigns' | 'designs' | 'ontology'>('campaigns')
   const protoIframeRef = useRef<HTMLIFrameElement>(null)
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
