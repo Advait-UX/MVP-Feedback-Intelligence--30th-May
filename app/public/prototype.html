@@ -11586,7 +11586,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
                             <div key={c.id} style={{
                               display: "flex", alignItems: "center", gap: "var(--space-3)",
                               background: "var(--lyra-white)",
-                              border: "1px solid rgba(0,0,0,0.16)",
+                              border: "1px solid var(--lyra-color-border-subtle)",
                               borderRadius: "var(--radius-md)",
                               padding: "7px var(--space-4)",
                               minHeight: 44,
@@ -11594,7 +11594,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
                               transition: "border-color 0.15s, box-shadow 0.15s",
                             }}
                             onMouseEnter={e => { if (!isRemoved) { e.currentTarget.style.borderColor = "var(--lyra-brand-300)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)"; } }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(0,0,0,0.16)"; e.currentTarget.style.boxShadow = "none"; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--lyra-color-border-subtle)"; e.currentTarget.style.boxShadow = "none"; }}
                             >
                               {/* Category name + badge */}
                               <div style={{ flex: 1, minWidth: 0 }}>
