@@ -11456,13 +11456,10 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
                 </tr>
               );
             })}
-            {filtered.length === 0 && (
+            {display.length === 0 && (
               <tr>
                 <td colSpan={4} style={{ padding: "var(--space-6)", textAlign: "center", font: "400 14px/20px var(--font-sans)", color: "var(--color-fg-secondary)" }}>
-                  {hasAnyFilter
-                    ? <React.Fragment>No models match your filters. <button className="clear-link" onClick={clearAllFilters}>Clear filters</button></React.Fragment>
-                    : <React.Fragment>No ontology configurations yet. Click <strong>Configure New Model</strong> to create one.</React.Fragment>
-                  }
+                  <React.Fragment>No ontology configurations yet. Click <strong>Configure New Model</strong> to create one.</React.Fragment>
                 </td>
               </tr>
             )}
