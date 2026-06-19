@@ -11295,13 +11295,15 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
         const newCats     = REFRESHED_CATEGORIES.filter(c => c.isNew);
         const removedCats = REFRESHED_CATEGORIES.filter(c => c.isRemoved);
         const normalCats  = REFRESHED_CATEGORIES.filter(c => !c.isNew && !c.isRemoved);
-        // Preserve existing weights — only new categories get default weight 1
-        const weightMap = {};
-        categories.forEach(c => { weightMap[c.id] = c.weight; });
-        const merged = [...newCats, ...removedCats, ...normalCats].map(c => ({
-          ...c,
-          weight: c.isNew ? (c.weight || 1) : (weightMap[c.id] !== undefined ? weightMap[c.id] : c.weight),
-        }));
+        // Preserve existing weights and _originalWeight through refresh
+        const prevMap = {};
+        categories.forEach(c => { prevMap[c.id] = c; });
+        const merged = [...newCats, ...removedCats, ...normalCats].map(c => {
+          const prev = prevMap[c.id];
+          const weight = c.isNew ? (c.weight || 1) : (prev ? prev.weight : c.weight);
+          const _originalWeight = prev ? prev._originalWeight : weight;
+          return { ...c, weight, _originalWeight };
+        });
         setCategories(merged);
         setNewlyAddedIds(newCats.map(c => c.id));
         setRemovedIds(removedCats.map(c => c.id));
