@@ -10752,7 +10752,7 @@ function VUScoreModel({ onPublishSuccess }) {
     setConfirmRemoveId(null);
   };
   const handleCancel = () => { setView("list"); setEditingId(null); };
-  const handlePublish = (modelId, categories) => {
+  const handlePublish = (modelId, categories, refreshDone) => {
     if (!modelId) return;
     const now = new Date().toISOString();
     const model = TOPIC_MODELS.find(m => m.id === modelId);
@@ -10763,8 +10763,8 @@ function VUScoreModel({ onPublishSuccess }) {
     if (view === "edit" && editing) {
       next = ontologies.map(o =>
         o.id === editing.id
-          // Publish clears any upstream-changes flag — user has acknowledged them
-          ? { ...o, categories: clean, updatedAt: now, updatedBy: "You", hasUpstreamChanges: false }
+          // Only clear upstream flag if user actually refreshed the model
+          ? { ...o, categories: clean, updatedAt: now, updatedBy: "You", hasUpstreamChanges: refreshDone ? false : o.hasUpstreamChanges }
           : o
       );
     } else {
@@ -10772,7 +10772,7 @@ function VUScoreModel({ onPublishSuccess }) {
       if (existing) {
         next = ontologies.map(o =>
           o.id === existing.id
-            ? { ...o, modelName, categories: clean, updatedAt: now, updatedBy: "You", hasUpstreamChanges: false }
+            ? { ...o, modelName, categories: clean, updatedAt: now, updatedBy: "You", hasUpstreamChanges: refreshDone ? false : o.hasUpstreamChanges }
             : o
         );
       } else {
@@ -11784,7 +11784,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
         <button
           className="btn primary"
           disabled={!canPublish}
-          onClick={() => onPublish(selectedModel, categories)}
+          onClick={() => onPublish(selectedModel, categories, refreshDone)}
         >
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 13 10 19 20 5"/></svg>
           Publish changes
