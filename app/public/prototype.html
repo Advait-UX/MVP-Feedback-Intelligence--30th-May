@@ -10689,7 +10689,7 @@ function loadOntologies() {
         return {
           ...o,
           mappedCampaigns: (o.mappedCampaigns && o.mappedCampaigns.length > 0) ? o.mappedCampaigns : seed.mappedCampaigns,
-          hasUpstreamChanges: o.hasUpstreamChanges !== undefined ? o.hasUpstreamChanges : seed.hasUpstreamChanges,
+          hasUpstreamChanges: seed.hasUpstreamChanges,
         };
       });
     }
