@@ -11324,37 +11324,20 @@ function OntSortIcon({ active, dir }) {
 }
 
 function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
-  const [search, setSearch] = React.useState("");
-  const [campaignFilter, setCampaignFilter] = React.useState(null);
   const [sortKey, setSortKey] = React.useState(null);
   const [sortDir, setSortDir] = React.useState("desc");
-
-  const hasAnyFilter = search || campaignFilter;
-  const clearAllFilters = () => { setSearch(""); setCampaignFilter(null); };
 
   function toggleSort(key) {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortKey(key); setSortDir("desc"); }
   }
 
-  // Counts for filter chips
-  const countWith = ontologies.filter(o => o.mappedCampaigns && o.mappedCampaigns.length > 0).length;
-  const countWithout = ontologies.filter(o => !o.mappedCampaigns || o.mappedCampaigns.length === 0).length;
-  const countUpdates = ontologies.filter(o => o.hasUpstreamChanges).length;
-
-  const filtered = ontologies.filter(o => {
-    if (campaignFilter === "with" && (!o.mappedCampaigns || o.mappedCampaigns.length === 0)) return false;
-    if (campaignFilter === "without" && o.mappedCampaigns && o.mappedCampaigns.length > 0) return false;
-    if (campaignFilter === "updates" && !o.hasUpstreamChanges) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      const inModel = o.modelName.toLowerCase().includes(q);
-      const inCampaigns = (o.mappedCampaigns || []).some(c => c.toLowerCase().includes(q));
-      const inUpdatedBy = (o.updatedBy || "").toLowerCase().includes(q);
-      if (!inModel && !inCampaigns && !inUpdatedBy) return false;
-    }
-    return true;
-  }).sort((a, b) => {
+  // Always show max 10, but keep any "Updates available" rows visible
+  const withUpdates = ontologies.filter(o => o.hasUpstreamChanges);
+  const withUpdatesIds = new Set(withUpdates.map(o => o.id));
+  const rest = ontologies.filter(o => !withUpdatesIds.has(o.id));
+  const slots = Math.max(0, 10 - withUpdates.length);
+  const display = [...withUpdates, ...rest.slice(0, slots)].sort((a, b) => {
     if (!sortKey) return 0;
     let av, bv;
     if (sortKey === "campaigns") {
@@ -11388,30 +11371,6 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
             Configure New Model
           </button>
         </div>
-      </div>
-
-      {/* Filter toolbar */}
-      <div className="toolbar">
-        <div className="search">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input placeholder="Search by model, campaign or updated by…"
-            value={search} onChange={e => setSearch(e.target.value)}
-            style={search ? { paddingRight: 28 } : {}}/>
-          {search && (
-            <button onClick={() => setSearch("")} aria-label="Clear search" className="search-clear">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <button className={`tmpl-filter-pill ${!campaignFilter ? "on" : ""}`} onClick={() => setCampaignFilter(null)}>All <span style={{ opacity: 0.65 }}>{ontologies.length}</span></button>
-          <button className={`tmpl-filter-pill ${campaignFilter === "with" ? "on" : ""}`} onClick={() => setCampaignFilter(f => f === "with" ? null : "with")}>With campaigns <span style={{ opacity: 0.65 }}>{countWith}</span></button>
-          <button className={`tmpl-filter-pill ${campaignFilter === "without" ? "on" : ""}`} onClick={() => setCampaignFilter(f => f === "without" ? null : "without")}>Without campaigns <span style={{ opacity: 0.65 }}>{countWithout}</span></button>
-          <button className={`tmpl-filter-pill ${campaignFilter === "updates" ? "on" : ""}`} onClick={() => setCampaignFilter(f => f === "updates" ? null : "updates")}>Updates available <span style={{ opacity: 0.65 }}>{countUpdates}</span></button>
-        </div>
-        {hasAnyFilter && (
-          <button className="clear-link" onClick={clearAllFilters}>Clear</button>
-        )}
       </div>
 
       <div className="table-wrap">
@@ -11450,7 +11409,7 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(o => {
+            {display.map(o => {
               const mapped = o.mappedCampaigns || [];
               return (
                 <tr key={o.id} onClick={() => onEdit(o.id)} style={{ cursor: "pointer" }} className={o.id === publishedId ? "new-campaign-row" : ""}>
@@ -11473,15 +11432,9 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
                     {mapped.length === 0 ? (
                       <span style={{ font: "400 14px/20px var(--font-sans)", color: "var(--color-fg-secondary)", fontStyle: "italic" }}>None</span>
                     ) : (
-                      <React.Fragment>
-                        <div style={{ font: "500 14px/20px var(--font-sans)", color: "var(--color-fg-default)" }}>
-                          {mapped.length} {mapped.length === 1 ? "campaign" : "campaigns"}
-                        </div>
-                        <div style={{ font: "400 12px/16px var(--font-sans)", color: "var(--color-fg-secondary)", marginTop: "var(--space-1)" }}>
-                          {mapped.slice(0, 2).join(", ")}
-                          {mapped.length > 2 && <>, <span style={{ color: "var(--color-fg-link)", fontWeight: 500 }}>+{mapped.length - 2} more</span></>}
-                        </div>
-                      </React.Fragment>
+                      <span style={{ font: "500 14px/20px var(--font-sans)", color: "var(--color-fg-default)" }}>
+                        {mapped.length} {mapped.length === 1 ? "campaign" : "campaigns"}
+                      </span>
                     )}
                   </td>
                   <td>
