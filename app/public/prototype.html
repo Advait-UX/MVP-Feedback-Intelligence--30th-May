@@ -10684,11 +10684,13 @@ function loadOntologies() {
       const parsed = JSON.parse(raw);
       // Merge mappedCampaigns from seed if missing (handles stale localStorage)
       return parsed.map(o => {
-        if (!o.mappedCampaigns || o.mappedCampaigns.length === 0) {
-          const seed = SEED_ONTOLOGIES.find(s => s.id === o.id);
-          return seed ? { ...o, mappedCampaigns: seed.mappedCampaigns } : o;
-        }
-        return o;
+        const seed = SEED_ONTOLOGIES.find(s => s.id === o.id);
+        if (!seed) return o;
+        return {
+          ...o,
+          mappedCampaigns: (o.mappedCampaigns && o.mappedCampaigns.length > 0) ? o.mappedCampaigns : seed.mappedCampaigns,
+          hasUpstreamChanges: o.hasUpstreamChanges !== undefined ? o.hasUpstreamChanges : seed.hasUpstreamChanges,
+        };
       });
     }
   } catch (_) {}
@@ -11293,8 +11295,14 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
         const newCats     = REFRESHED_CATEGORIES.filter(c => c.isNew);
         const removedCats = REFRESHED_CATEGORIES.filter(c => c.isRemoved);
         const normalCats  = REFRESHED_CATEGORIES.filter(c => !c.isNew && !c.isRemoved);
-        // Order: new → removed → rest (recently updated first)
-        setCategories([...newCats, ...removedCats, ...normalCats].map(c => ({ ...c })));
+        // Preserve existing weights — only new categories get default weight 1
+        const weightMap = {};
+        categories.forEach(c => { weightMap[c.id] = c.weight; });
+        const merged = [...newCats, ...removedCats, ...normalCats].map(c => ({
+          ...c,
+          weight: c.isNew ? (c.weight || 1) : (weightMap[c.id] !== undefined ? weightMap[c.id] : c.weight),
+        }));
+        setCategories(merged);
         setNewlyAddedIds(newCats.map(c => c.id));
         setRemovedIds(removedCats.map(c => c.id));
         setDirty(true);
