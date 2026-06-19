@@ -11399,9 +11399,9 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
         <table>
           <thead>
             <tr>
-              <th>Topic AI Model</th>
+              <th style={{ width: 400 }}>Topic AI Model</th>
               <th>Mapped campaigns</th>
-              <th style={{ width: 200, whiteSpace: "nowrap" }}>Last updated</th>
+              <th style={{ width: 180, whiteSpace: "nowrap" }}>Last updated</th>
               <th style={{ width: 52, textAlign: "center" }}>Actions</th>
             </tr>
           </thead>
@@ -11410,13 +11410,13 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
               const mapped = o.mappedCampaigns || [];
               return (
                 <tr key={o.id} onClick={() => onEdit(o.id)} style={{ cursor: "pointer" }} className={o.id === publishedId ? "new-campaign-row" : ""}>
-                  <td style={{ width: 340 }}>
-                    <div style={{ lineHeight: "20px" }}>
-                      <a className="agent-link" href="#" style={{ fontWeight: 500 }} onClick={e => { e.preventDefault(); onEdit(o.id); }}>
+                  <td style={{ width: 400 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "nowrap", minWidth: 0 }}>
+                      <a className="agent-link" href="#" style={{ fontWeight: 500, flexShrink: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} onClick={e => { e.preventDefault(); onEdit(o.id); }}>
                         {o.modelName}
                       </a>
                       {o.hasUpstreamChanges ? (
-                        <span className="fi-pill warning" style={{ marginLeft: 6, verticalAlign: "middle" }} title="Topic AI has new updates for this model">
+                        <span className="fi-pill warning" style={{ flexShrink: 0, whiteSpace: "nowrap" }} title="Topic AI has new updates for this model">
                           <span className="dot"/>Updates available
                         </span>
                       ) : null}
