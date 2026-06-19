@@ -10757,8 +10757,8 @@ function VUScoreModel({ onPublishSuccess }) {
     const now = new Date().toISOString();
     const model = TOPIC_MODELS.find(m => m.id === modelId);
     const modelName = model ? model.name : modelId;
-    // Drop transient flags like isNew before persisting
-    const clean = categories.map(({ isNew, ...rest }) => rest);
+    // Drop transient flags before persisting
+    const clean = categories.map(({ isNew, _originalWeight, _rawInput, ...rest }) => rest);
     let next;
     if (view === "edit" && editing) {
       next = ontologies.map(o =>
@@ -11236,7 +11236,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
   ];
   const [selectedModel, setSelectedModel] = React.useState(ontology ? ontology.modelId : "");
   const [categories, setCategories] = React.useState(
-    ontology ? ontology.categories.map(c => ({ ...c })) : []
+    ontology ? ontology.categories.map(c => ({ ...c, _originalWeight: c.weight })) : []
   );
   const [dirty, setDirty] = React.useState(false);
   const [refreshState, setRefreshState] = React.useState("idle");
@@ -11690,6 +11690,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
                                   const raw = c._rawInput !== undefined ? c._rawInput : String(c.weight);
                                   const parsed = parseInt(raw);
                                   const hasError = raw !== "" && (isNaN(parsed) || parsed < 1 || parsed > 10);
+                                  const weightChanged = c._originalWeight !== undefined && c.weight !== c._originalWeight;
                                   return (
                                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
                                       <input
@@ -11718,8 +11719,8 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
                                           padding: "0 12px",
                                           font: "400 14px/20px var(--font-sans)",
                                           color: "var(--color-fg-default)",
-                                          background: "var(--lyra-white)",
-                                          border: "1px solid " + (hasError ? "var(--lyra-color-status-critical-strong)" : "rgba(0,0,0,0.46)"),
+                                          background: hasError ? "var(--lyra-white)" : weightChanged ? "var(--lyra-color-bg-active-subtle)" : "var(--lyra-white)",
+                                          border: "1px solid " + (hasError ? "var(--lyra-color-status-critical-strong)" : weightChanged ? "var(--lyra-color-border-active)" : "rgba(0,0,0,0.46)"),
                                           borderRadius: "var(--radius-md)",
                                           outline: "none",
                                           boxSizing: "border-box",
