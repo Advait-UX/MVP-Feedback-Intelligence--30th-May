@@ -10725,8 +10725,10 @@ const SEED_SENTIMENT = [
 
 const CATEGORIES = ["Outcome", "Experience", "Channel", "Loyalty"];
 
-function VUScoreModel({ onPublishSuccess }) {
-  const [ontologies, setOntologies] = React.useState(loadOntologies);
+function VUScoreModel({ onPublishSuccess, ontologies: ontologiesProp, setOntologies: setOntologiesProp }) {
+  const [ontologiesLocal, setOntologiesLocal] = React.useState(loadOntologies);
+  const ontologies = ontologiesProp !== undefined ? ontologiesProp : ontologiesLocal;
+  const setOntologies = setOntologiesProp || setOntologiesLocal;
   // 'list' | 'edit' | 'new'
   const [view, setView] = React.useState("list");
   const [editingId, setEditingId] = React.useState(null);
@@ -12710,6 +12712,7 @@ function App() {
   const [toast, setToast] = React.useState(null);
   const [newCampaigns, setNewCampaigns] = React.useState([]);
   const [newDesigns, setNewDesigns] = React.useState([]);
+  const [ontologies, setOntologies] = React.useState(loadOntologies);
   React.useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), toast.duration || 3000);
@@ -12740,8 +12743,8 @@ function App() {
         const anyActive = children.some(c => c.active);
         return { ...n, children, expanded: anyActive || n.expanded };
       }
-      const extra = n.key === "ontology" ? { hasUpdates: true } : {};
-      return { ...n, active: n.key === route.section, ...extra };
+      const ontologyHasUpdates = n.key === "ontology" && ontologies.some(o => o.hasUpstreamChanges);
+      return { ...n, active: n.key === route.section, ...(ontologyHasUpdates ? { hasUpdates: true } : {}) };
     });
     if (route.section === "dashboard") {
       content = (
@@ -12780,7 +12783,7 @@ function App() {
           newCampaigns={newCampaigns}/>;
       }
     } else if (route.section === "ontology") {
-      content = <VUScoreModel onPublishSuccess={(modelName) => setToast({ msg: `Ontology for "${modelName}" published successfully.`, duration: 5000 })}/>;
+      content = <VUScoreModel ontologies={ontologies} setOntologies={setOntologies} onPublishSuccess={(modelName) => setToast({ msg: `Ontology for "${modelName}" published successfully.`, duration: 5000 })}/>;
 
     } else if (route.section === "designs") {
       if (route.view === "create" || route.view === "edit") {
