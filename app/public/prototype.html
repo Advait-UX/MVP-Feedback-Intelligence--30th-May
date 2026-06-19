@@ -10912,10 +10912,6 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
                         <div style={{ font: "500 14px/20px var(--font-sans)", color: "var(--color-fg-default)" }}>
                           {mapped.length} {mapped.length === 1 ? "campaign" : "campaigns"}
                         </div>
-                        <div style={{ font: "400 12px/16px var(--font-sans)", color: "var(--color-fg-secondary)", marginTop: "var(--space-1)" }}>
-                          {mapped.slice(0, 2).join(", ")}
-                          {mapped.length > 2 && <>, <span style={{ color: "var(--color-fg-link)", fontWeight: 500 }}>+{mapped.length - 2} more</span></>}
-                        </div>
                       </React.Fragment>
                     )}
                   </td>
