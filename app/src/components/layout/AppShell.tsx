@@ -101,7 +101,7 @@ export function AppShell({
               border: '1px solid var(--lyra-color-border-soft)',
               color: 'var(--lyra-color-fg-secondary)',
               left: panelOpen ? '244px' : '48px',
-              top: '20px',
+              top: '38px',
             }}
             onMouseEnter={e => {
               e.currentTarget.style.color = 'var(--lyra-color-fg-default)'

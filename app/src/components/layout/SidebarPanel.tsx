@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import { LayoutGrid, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type SidebarNavItem = { id: string; label: string; icon: LucideIcon }
+export type SidebarNavItem = { id: string; label: string; icon: LucideIcon; badge?: boolean }
 
 const DEFAULT_NAV_ITEMS: SidebarNavItem[] = [
   { id: 'dashboard', label: 'Dashboard',        icon: LayoutGrid },
@@ -139,10 +139,7 @@ function NavItem({
       title={!open ? item.label : undefined}
       className={cn(
         'relative flex w-full items-center transition-colors duration-100 outline-none focus:outline-none rounded-lg',
-        // Height 36px (row-height/md), px-10px
-        open
-          ? 'gap-2'
-          : 'justify-center',
+        open ? 'gap-2' : 'justify-center',
       )}
       style={{
         height: 36,
@@ -175,30 +172,71 @@ function NavItem({
           }}
         />
       )}
-      <Icon
-        className="flex-shrink-0"
-        style={{
-          width: 16,
-          height: 16,
-          color: isSelected
-            ? 'var(--lyra-color-fg-active-strong)'
-            : 'var(--lyra-color-fg-default)',
-        }}
-      />
-      {open && (
-        <span
-          className="flex-1 text-left truncate"
+
+      {/* Icon wrapper — relative so the badge dot can be absolutely positioned */}
+      <span className="relative flex-shrink-0" style={{ width: 16, height: 16 }}>
+        <Icon
           style={{
-            fontSize: 14,
-            lineHeight: '16px',
-            fontWeight: isSelected ? 500 : 400,
+            width: 16,
+            height: 16,
             color: isSelected
               ? 'var(--lyra-color-fg-active-strong)'
               : 'var(--lyra-color-fg-default)',
           }}
-        >
-          {item.label}
-        </span>
+        />
+        {/* Badge dot on icon — shown when collapsed */}
+        {item.badge && !open && (
+          <span
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              top: -2,
+              right: -2,
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              background: 'var(--lyra-color-status-warning-strong)',
+              border: '1.5px solid var(--lyra-color-bg-surface-shell)',
+            }}
+          />
+        )}
+      </span>
+
+      {open && (
+        <>
+          <span
+            className="flex-1 text-left truncate"
+            style={{
+              fontSize: 14,
+              lineHeight: '16px',
+              fontWeight: isSelected ? 500 : 400,
+              color: isSelected
+                ? 'var(--lyra-color-fg-active-strong)'
+                : 'var(--lyra-color-fg-default)',
+            }}
+          >
+            {item.label}
+          </span>
+          {/* Badge chip when expanded */}
+          {item.badge && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                borderRadius: 'var(--radius-full)',
+                padding: '1px 6px',
+                fontSize: 10,
+                fontWeight: 500,
+                lineHeight: '14px',
+                background: 'var(--lyra-color-status-warning-subtle)',
+                color: 'var(--lyra-color-status-warning-strong)',
+                flexShrink: 0,
+              }}
+            >
+              Updates
+            </span>
+          )}
+        </>
       )}
     </button>
   )

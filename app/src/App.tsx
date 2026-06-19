@@ -1,4 +1,4 @@
-import { Fragment, useState, useRef } from 'react'
+import { Fragment, useState, useRef, useEffect } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { TopBar } from './components/layout/TopBar'
 import { TrendingUp, Minus, ChevronRight, Sparkles, AlertTriangle, Activity, Megaphone, FileText, Network } from 'lucide-react'
@@ -387,6 +387,24 @@ export default function App() {
   // Active section within the Feedback Intelligence shell (drives the sidebar)
   const [fiSection, setFiSection] = useState<'dashboard' | 'campaigns' | 'designs' | 'ontology'>('campaigns')
   const protoIframeRef = useRef<HTMLIFrameElement>(null)
+  const [ontologyHasUpdates, setOntologyHasUpdates] = useState(() => {
+    try {
+      const stored = localStorage.getItem('fi-ontologies-v1')
+      if (!stored) return false
+      const parsed = JSON.parse(stored)
+      return Array.isArray(parsed) && parsed.some((o: { hasUpstreamChanges?: boolean }) => o.hasUpstreamChanges)
+    } catch { return false }
+  })
+
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      if (e.data && e.data.type === 'fi-ontology-status') {
+        setOntologyHasUpdates(!!e.data.hasUpdates)
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
@@ -478,7 +496,7 @@ export default function App() {
     { id: 'dashboard', label: 'Operations',         icon: Activity },
     { id: 'campaigns', label: 'Survey Campaigns',   icon: Megaphone },
     { id: 'designs',   label: 'Survey Templates',   icon: FileText },
-    { id: 'ontology',  label: 'Ontology Studio',    icon: Network },
+    { id: 'ontology',  label: 'Ontology Studio',    icon: Network, badge: ontologyHasUpdates },
   ]
   const FI_TITLES: Record<typeof fiSection, string> = {
     dashboard:
