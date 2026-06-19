@@ -11085,7 +11085,7 @@ function CampaignListPopover({ anchor, hidden, onClose }) {
   );
 }
 
-function CampaignList({ campaigns, valueStyle }) {
+function CampaignList({ campaigns, valueStyle, totalCount }) {
   const containerRef = React.useRef(null);
   const measureRef   = React.useRef(null);
   const triggerRef   = React.useRef(null);
@@ -11133,7 +11133,7 @@ function CampaignList({ campaigns, valueStyle }) {
 
       {/* Visible names */}
       <span style={{ ...valueStyle, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flexShrink: 1 }}>
-        {visible.join(", ")}
+        {totalCount != null && <span style={{ fontWeight: 500 }}>Total Campaigns: {totalCount}, </span>}{visible.join(", ")}
       </span>
 
       {/* +N more trigger */}
@@ -11205,10 +11205,7 @@ function OntologyMetaStrip({ ontology, formatUpdatedAt }) {
         {campaigns.length === 0 ? (
           <span style={{ ...valueStyle, color: "var(--color-fg-secondary)", fontStyle: "italic" }}>None</span>
         ) : (
-          <>
-            <span style={{ ...valueStyle, marginBottom: 2 }}>Total Campaigns: {campaigns.length}</span>
-            <CampaignList campaigns={campaigns} valueStyle={valueStyle} />
-          </>
+          <CampaignList campaigns={campaigns} valueStyle={valueStyle} totalCount={campaigns.length} />
         )}
       </div>
 
