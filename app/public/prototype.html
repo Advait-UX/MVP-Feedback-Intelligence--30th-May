@@ -11205,7 +11205,12 @@ function OntologyMetaStrip({ ontology, formatUpdatedAt }) {
         {campaigns.length === 0 ? (
           <span style={{ ...valueStyle, color: "var(--color-fg-secondary)", fontStyle: "italic" }}>None</span>
         ) : (
-          <CampaignList campaigns={campaigns} valueStyle={valueStyle} />
+          <>
+            <span style={{ font: "500 13px/18px var(--font-sans)", color: "var(--color-fg-secondary)", marginBottom: 4 }}>
+              Total Campaigns: {campaigns.length}
+            </span>
+            <CampaignList campaigns={campaigns} valueStyle={valueStyle} />
+          </>
         )}
       </div>
 
