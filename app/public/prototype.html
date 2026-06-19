@@ -11334,10 +11334,9 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
 
   // Always show max 10, but keep any "Updates available" rows visible
   const withUpdates = ontologies.filter(o => o.hasUpstreamChanges);
-  const withUpdatesIds = new Set(withUpdates.map(o => o.id));
-  const rest = ontologies.filter(o => !withUpdatesIds.has(o.id));
+  const rest = ontologies.filter(o => !o.hasUpstreamChanges);
   const slots = Math.max(0, 10 - withUpdates.length);
-  const display = [...withUpdates, ...rest.slice(0, slots)].sort((a, b) => {
+  const display = withUpdates.concat(rest.slice(0, slots)).sort((a, b) => {
     if (!sortKey) return 0;
     let av, bv;
     if (sortKey === "campaigns") {
