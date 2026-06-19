@@ -11201,14 +11201,11 @@ function OntologyMetaStrip({ ontology, formatUpdatedAt }) {
 
       {/* Col 2 — Mapped Campaigns */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 var(--space-6)", minWidth: 0 }}>
-        <span style={labelStyle}>Mapped Campaigns</span>
+        <span style={labelStyle}>Total Mapped Campaigns: {campaigns.length}</span>
         {campaigns.length === 0 ? (
           <span style={{ ...valueStyle, color: "var(--color-fg-secondary)", fontStyle: "italic" }}>None</span>
         ) : (
-          <>
-            <span style={{ ...valueStyle, marginBottom: 2 }}>Total Campaigns: {campaigns.length}</span>
-            <CampaignList campaigns={campaigns} valueStyle={valueStyle} />
-          </>
+          <CampaignList campaigns={campaigns} valueStyle={valueStyle} />
         )}
       </div>
 
