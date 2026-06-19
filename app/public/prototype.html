@@ -10566,6 +10566,18 @@ const TOPIC_MODELS = [
   { id: "self-service",    name: "Self-Service Effectiveness" },
   { id: "voc-billing",     name: "Voice of Customer — Billing" },
   { id: "proactive",       name: "Proactive Outreach Model" },
+  { id: "sentiment-intel", name: "Sentiment Intelligence Model" },
+  { id: "clv",             name: "Customer Lifetime Value Model" },
+  { id: "cc-efficiency",   name: "Contact Center Efficiency" },
+  { id: "voice-analytics", name: "Voice Analytics Model" },
+  { id: "escalation-pred", name: "Escalation Prediction Model" },
+  { id: "cust-journey",    name: "Customer Journey Model" },
+  { id: "feedback-cat",    name: "Feedback Categorization Model" },
+  { id: "agent-wellbeing", name: "Agent Wellbeing Model" },
+  { id: "qa-model",        name: "Quality Assurance Model" },
+  { id: "product-fb",      name: "Product Feedback Intelligence" },
+  { id: "workforce-eng",   name: "Workforce Engagement Model" },
+  { id: "social-listening",name: "Social Listening Model" },
 ];
 
 const SEED_CATEGORIES = [
@@ -10737,6 +10749,110 @@ const CATEGORIES_BY_MODEL = {
     { id: 5, name: "Opt-out Sentiment",         weight: 1, active: true },
     { id: 6, name: "Follow-up Satisfaction",    weight: 1, active: true },
   ],
+  "sentiment-intel": [
+    { id: 1, name: "Positive Sentiment Rate",   weight: 1, active: true },
+    { id: 2, name: "Negative Sentiment Rate",   weight: 1, active: true },
+    { id: 3, name: "Sentiment Shift Speed",     weight: 1, active: true },
+    { id: 4, name: "Emotional Intensity",       weight: 1, active: true },
+    { id: 5, name: "Sentiment Recovery",        weight: 1, active: true },
+    { id: 6, name: "Neutral Zone Coverage",     weight: 1, active: true },
+    { id: 7, name: "Peak Frustration Points",   weight: 1, active: true },
+  ],
+  "clv": [
+    { id: 1, name: "Revenue at Risk",           weight: 1, active: true },
+    { id: 2, name: "Upsell Readiness",          weight: 1, active: true },
+    { id: 3, name: "Tenure Satisfaction",       weight: 1, active: true },
+    { id: 4, name: "Product Adoption Depth",    weight: 1, active: true },
+    { id: 5, name: "Wallet Share Signal",       weight: 1, active: true },
+    { id: 6, name: "Renewal Likelihood",        weight: 1, active: true },
+  ],
+  "cc-efficiency": [
+    { id: 1, name: "Handle Time Quality",       weight: 1, active: true },
+    { id: 2, name: "Transfer Rate",             weight: 1, active: true },
+    { id: 3, name: "Queue Abandonment Signal",  weight: 1, active: true },
+    { id: 4, name: "After-Call Work Quality",   weight: 1, active: true },
+    { id: 5, name: "Occupancy Satisfaction",    weight: 1, active: true },
+    { id: 6, name: "Channel Mix Efficiency",    weight: 1, active: true },
+    { id: 7, name: "Staffing Alignment",        weight: 1, active: true },
+    { id: 8, name: "Peak Load Handling",        weight: 1, active: true },
+  ],
+  "voice-analytics": [
+    { id: 1, name: "Talk-to-Listen Ratio",      weight: 1, active: true },
+    { id: 2, name: "Dead Air Detection",        weight: 1, active: true },
+    { id: 3, name: "Overtalk Rate",             weight: 1, active: true },
+    { id: 4, name: "Pace & Clarity",            weight: 1, active: true },
+    { id: 5, name: "Keyword Coverage",          weight: 1, active: true },
+  ],
+  "escalation-pred": [
+    { id: 1, name: "Escalation Trigger Words",  weight: 1, active: true },
+    { id: 2, name: "Repeat Contact Frequency",  weight: 1, active: true },
+    { id: 3, name: "Agent Stress Indicators",   weight: 1, active: true },
+    { id: 4, name: "Issue Complexity Score",    weight: 1, active: true },
+    { id: 5, name: "Time-in-Queue Impact",      weight: 1, active: true },
+    { id: 6, name: "Supervisor Request Rate",   weight: 1, active: true },
+    { id: 7, name: "Pre-escalation Sentiment",  weight: 1, active: true },
+  ],
+  "cust-journey": [
+    { id: 1, name: "Journey Stage Alignment",   weight: 1, active: true },
+    { id: 2, name: "Touchpoint Satisfaction",   weight: 1, active: true },
+    { id: 3, name: "Cross-channel Continuity",  weight: 1, active: true },
+    { id: 4, name: "Friction Point Detection",  weight: 1, active: true },
+    { id: 5, name: "Drop-off Signal",           weight: 1, active: true },
+    { id: 6, name: "Milestone Achievement",     weight: 1, active: true },
+    { id: 7, name: "Journey Completion Rate",   weight: 1, active: true },
+    { id: 8, name: "Re-engagement Trigger",     weight: 1, active: true },
+  ],
+  "feedback-cat": [
+    { id: 1, name: "Category Accuracy",         weight: 1, active: true },
+    { id: 2, name: "Intent Match Rate",         weight: 1, active: true },
+    { id: 3, name: "Verbatim Completeness",     weight: 1, active: true },
+    { id: 4, name: "Topic Clustering Quality",  weight: 1, active: true },
+    { id: 5, name: "Noise Filtering",           weight: 1, active: true },
+    { id: 6, name: "Theme Emergence Rate",      weight: 1, active: true },
+  ],
+  "agent-wellbeing": [
+    { id: 1, name: "Burnout Signal Detection",  weight: 1, active: true },
+    { id: 2, name: "Engagement Score",          weight: 1, active: true },
+    { id: 3, name: "Workload Balance",          weight: 1, active: true },
+    { id: 4, name: "Peer Collaboration",        weight: 1, active: true },
+    { id: 5, name: "Recognition Response",      weight: 1, active: true },
+  ],
+  "qa-model": [
+    { id: 1, name: "Evaluation Coverage",       weight: 1, active: true },
+    { id: 2, name: "Calibration Consistency",   weight: 1, active: true },
+    { id: 3, name: "Critical Error Rate",       weight: 1, active: true },
+    { id: 4, name: "Coaching Linkage",          weight: 1, active: true },
+    { id: 5, name: "QA Score Accuracy",         weight: 1, active: true },
+    { id: 6, name: "Dispute Resolution Rate",   weight: 1, active: true },
+    { id: 7, name: "Sampling Representativeness",weight: 1, active: true },
+    { id: 8, name: "Form Completion Rate",      weight: 1, active: true },
+    { id: 9, name: "Trend Detection Lag",       weight: 1, active: true },
+  ],
+  "product-fb": [
+    { id: 1, name: "Feature Request Signal",    weight: 1, active: true },
+    { id: 2, name: "Bug Report Rate",           weight: 1, active: true },
+    { id: 3, name: "Usability Friction",        weight: 1, active: true },
+    { id: 4, name: "Release Satisfaction",      weight: 1, active: true },
+    { id: 5, name: "Documentation Adequacy",    weight: 1, active: true },
+    { id: 6, name: "Beta Feedback Quality",     weight: 1, active: true },
+    { id: 7, name: "Competitive Comparison",    weight: 1, active: true },
+  ],
+  "workforce-eng": [
+    { id: 1, name: "Schedule Adherence",        weight: 1, active: true },
+    { id: 2, name: "Forecast Accuracy",         weight: 1, active: true },
+    { id: 3, name: "Shrinkage Management",      weight: 1, active: true },
+    { id: 4, name: "Utilisation Rate",          weight: 1, active: true },
+    { id: 5, name: "Break Compliance",          weight: 1, active: true },
+    { id: 6, name: "Overtime Signal",           weight: 1, active: true },
+  ],
+  "social-listening": [
+    { id: 1, name: "Brand Mention Volume",      weight: 1, active: true },
+    { id: 2, name: "Sentiment on Social",       weight: 1, active: true },
+    { id: 3, name: "Viral Risk Detection",      weight: 1, active: true },
+    { id: 4, name: "Influencer Signal",         weight: 1, active: true },
+    { id: 5, name: "Response Time — Social",    weight: 1, active: true },
+    { id: 6, name: "Complaint Amplification",   weight: 1, active: true },
+  ],
 };
 
 // Default list of already-configured ontologies. Shown on the Ontology
@@ -10895,10 +11011,137 @@ const SEED_ONTOLOGIES = [
     updatedBy: "Maria Cohen",
     mappedCampaigns: [],
   },
+  {
+    id: "ont-sentiment-intel",
+    modelId: "sentiment-intel",
+    modelName: "Sentiment Intelligence Model",
+    categories: CATEGORIES_BY_MODEL["sentiment-intel"].map(c => ({ ...c })),
+    updatedAt: "2026-05-20T11:00:00Z",
+    updatedBy: "Sarah Lin",
+    mappedCampaigns: [
+      "Negative Sentiment Catcher — All Digital",
+      "Post-Chat CSAT — Tier 1 Billing",
+      "Social Media Response Quality",
+    ],
+  },
+  {
+    id: "ont-clv",
+    modelId: "clv",
+    modelName: "Customer Lifetime Value Model",
+    categories: CATEGORIES_BY_MODEL["clv"].map(c => ({ ...c })),
+    updatedAt: "2026-03-02T14:00:00Z",
+    updatedBy: "Priya Nair",
+    mappedCampaigns: [
+      "VIP Customer Satisfaction",
+      "Renewal Experience Survey",
+    ],
+  },
+  {
+    id: "ont-cc-efficiency",
+    modelId: "cc-efficiency",
+    modelName: "Contact Center Efficiency",
+    categories: CATEGORIES_BY_MODEL["cc-efficiency"].map(c => ({ ...c })),
+    updatedAt: "2026-02-28T09:45:00Z",
+    updatedBy: "James Okafor",
+    mappedCampaigns: [],
+  },
+  {
+    id: "ont-voice-analytics",
+    modelId: "voice-analytics",
+    modelName: "Voice Analytics Model",
+    categories: CATEGORIES_BY_MODEL["voice-analytics"].map(c => ({ ...c })),
+    updatedAt: "2026-04-18T16:30:00Z",
+    updatedBy: "John Smith",
+    mappedCampaigns: [
+      "Voice Channel Quality",
+      "Post-IVR Satisfaction",
+    ],
+  },
+  {
+    id: "ont-escalation-pred",
+    modelId: "escalation-pred",
+    modelName: "Escalation Prediction Model",
+    categories: CATEGORIES_BY_MODEL["escalation-pred"].map(c => ({ ...c })),
+    updatedAt: "2026-05-08T10:20:00Z",
+    updatedBy: "Maria Cohen",
+    mappedCampaigns: [
+      "Chat Escalation Monitor",
+    ],
+  },
+  {
+    id: "ont-cust-journey",
+    modelId: "cust-journey",
+    modelName: "Customer Journey Model",
+    categories: CATEGORIES_BY_MODEL["cust-journey"].map(c => ({ ...c })),
+    updatedAt: "2026-01-15T08:00:00Z",
+    updatedBy: "Priya Nair",
+    mappedCampaigns: [],
+  },
+  {
+    id: "ont-feedback-cat",
+    modelId: "feedback-cat",
+    modelName: "Feedback Categorization Model",
+    categories: CATEGORIES_BY_MODEL["feedback-cat"].map(c => ({ ...c })),
+    updatedAt: "2026-06-05T13:10:00Z",
+    updatedBy: "Sarah Lin",
+    mappedCampaigns: [],
+  },
+  {
+    id: "ont-agent-wellbeing",
+    modelId: "agent-wellbeing",
+    modelName: "Agent Wellbeing Model",
+    categories: CATEGORIES_BY_MODEL["agent-wellbeing"].map(c => ({ ...c })),
+    updatedAt: "2026-03-22T15:50:00Z",
+    updatedBy: "James Okafor",
+    mappedCampaigns: [],
+  },
+  {
+    id: "ont-qa-model",
+    modelId: "qa-model",
+    modelName: "Quality Assurance Model",
+    categories: CATEGORIES_BY_MODEL["qa-model"].map(c => ({ ...c })),
+    updatedAt: "2026-05-25T12:00:00Z",
+    updatedBy: "John Smith",
+    mappedCampaigns: [
+      "Agent Empathy Benchmark",
+      "First Contact Resolution Tracker",
+      "Tech Support — Tier 2",
+    ],
+  },
+  {
+    id: "ont-product-fb",
+    modelId: "product-fb",
+    modelName: "Product Feedback Intelligence",
+    categories: CATEGORIES_BY_MODEL["product-fb"].map(c => ({ ...c })),
+    updatedAt: "2026-04-30T17:00:00Z",
+    updatedBy: "Maria Cohen",
+    mappedCampaigns: [
+      "Product Feedback — Beta Testers",
+      "Mobile App Feedback",
+    ],
+  },
+  {
+    id: "ont-workforce-eng",
+    modelId: "workforce-eng",
+    modelName: "Workforce Engagement Model",
+    categories: CATEGORIES_BY_MODEL["workforce-eng"].map(c => ({ ...c })),
+    updatedAt: "2026-02-05T10:30:00Z",
+    updatedBy: "Priya Nair",
+    mappedCampaigns: [],
+  },
+  {
+    id: "ont-social-listening",
+    modelId: "social-listening",
+    modelName: "Social Listening Model",
+    categories: CATEGORIES_BY_MODEL["social-listening"].map(c => ({ ...c })),
+    updatedAt: "2026-06-12T08:45:00Z",
+    updatedBy: "James Okafor",
+    mappedCampaigns: [],
+  },
 ];
 
 // Persistence shim — uses localStorage. Real backend slots in here later.
-const ONTOLOGIES_STORAGE_KEY = "fi-ontologies-v3";
+const ONTOLOGIES_STORAGE_KEY = "fi-ontologies-v4";
 function loadOntologies() {
   try {
     const raw = localStorage.getItem(ONTOLOGIES_STORAGE_KEY);
@@ -11168,12 +11411,12 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
               return (
                 <tr key={o.id} onClick={() => onEdit(o.id)} style={{ cursor: "pointer" }} className={o.id === publishedId ? "new-campaign-row" : ""}>
                   <td style={{ width: 340 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+                    <div style={{ lineHeight: "20px" }}>
                       <a className="agent-link" href="#" style={{ fontWeight: 500 }} onClick={e => { e.preventDefault(); onEdit(o.id); }}>
                         {o.modelName}
                       </a>
                       {o.hasUpstreamChanges ? (
-                        <span className="fi-pill warning" title="Topic AI has new updates for this model">
+                        <span className="fi-pill warning" style={{ marginLeft: 6, verticalAlign: "middle" }} title="Topic AI has new updates for this model">
                           <span className="dot"/>Updates available
                         </span>
                       ) : null}

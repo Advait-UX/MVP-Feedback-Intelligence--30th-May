@@ -389,7 +389,7 @@ export default function App() {
   const protoIframeRef = useRef<HTMLIFrameElement>(null)
   const [ontologyHasUpdates, setOntologyHasUpdates] = useState(() => {
     try {
-      const stored = localStorage.getItem('fi-ontologies-v3')
+      const stored = localStorage.getItem('fi-ontologies-v4')
       if (!stored) return false
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) && parsed.some((o: { hasUpstreamChanges?: boolean }) => o.hasUpstreamChanges)
