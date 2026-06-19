@@ -10855,6 +10855,7 @@ const SEED_ONTOLOGIES = [
       "Agent Empathy Benchmark",
       "Complaint Resolution Follow-Up",
     ],
+    hasUpstreamChanges: true,
   },
   {
     id: "ont-onboarding",
@@ -10897,7 +10898,7 @@ const SEED_ONTOLOGIES = [
 ];
 
 // Persistence shim — uses localStorage. Real backend slots in here later.
-const ONTOLOGIES_STORAGE_KEY = "fi-ontologies-v2";
+const ONTOLOGIES_STORAGE_KEY = "fi-ontologies-v3";
 function loadOntologies() {
   try {
     const raw = localStorage.getItem(ONTOLOGIES_STORAGE_KEY);
