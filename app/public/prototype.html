@@ -10855,6 +10855,35 @@ const CATEGORIES_BY_MODEL = {
   ],
 };
 
+// Per-model metadata shown in the "About" modal.
+const MODEL_INFO = {
+  "cx-quality":      { desc: "Measures the overall quality of customer interactions across all channels. Tracks how well agents resolve issues, communicate, and meet customer expectations.", usedFor: ["Contact centre QA scoring", "CSAT correlation analysis", "Agent performance benchmarking", "Campaign effectiveness tracking"] },
+  "agent-perf":      { desc: "Evaluates individual agent effectiveness in handling interactions — from resolution speed and compliance to soft skills and knowledge application.", usedFor: ["Agent scorecards", "Coaching prioritisation", "Team performance reporting", "Hiring calibration"] },
+  "resolution":      { desc: "Focuses specifically on whether customer issues are fully resolved — analysing root cause identification, resolution quality, and follow-up adequacy.", usedFor: ["First contact resolution tracking", "Repeat contact reduction", "Escalation root cause analysis"] },
+  "effort-ease":     { desc: "Captures how much effort a customer had to exert to get their issue resolved — covering steps, re-contact need, and self-service coverage.", usedFor: ["Customer Effort Score (CES) programmes", "IVR and bot optimisation", "Journey friction reduction"] },
+  "nps-loyalty":     { desc: "Measures customer loyalty signals including likelihood to recommend, brand perception, and promoter/detractor dynamics.", usedFor: ["NPS survey programmes", "Loyalty segmentation", "Retention campaign targeting", "Brand health monitoring"] },
+  "digital-exp":     { desc: "Evaluates the quality of digital channel interactions — app, web, chat, and bot — including usability, containment, and omnichannel continuity.", usedFor: ["Digital channel optimisation", "Bot performance tracking", "App/web UX feedback", "Omnichannel CSAT"] },
+  "churn-risk":      { desc: "Identifies early signals of customer churn intent — including dissatisfaction depth, competitor mentions, and contract risk indicators.", usedFor: ["At-risk customer identification", "Retention team triggers", "Proactive outreach targeting", "Churn prediction models"] },
+  "agent-coaching":  { desc: "Surfaces coaching opportunities by measuring receptiveness, skill gaps, and improvement trajectories across agents.", usedFor: ["Targeted coaching plans", "L&D programme design", "Performance improvement tracking", "QA-to-coaching linkage"] },
+  "compliance-risk": { desc: "Monitors interactions for regulatory adherence, data privacy handling, and disclosure compliance to reduce legal and reputational risk.", usedFor: ["Regulatory compliance audits", "Risk flag escalation", "Legal review prioritisation", "Script mandate monitoring"] },
+  "onboarding":      { desc: "Tracks the quality of the customer onboarding journey — from welcome experience and setup ease through to early churn signals.", usedFor: ["New customer onboarding programmes", "Time-to-value measurement", "Early churn prevention", "Onboarding CSAT"] },
+  "self-service":    { desc: "Measures the effectiveness of self-service channels including IVR, knowledge bases, and bots — focusing on containment and deflection.", usedFor: ["IVR optimisation", "Knowledge base effectiveness", "Bot containment reporting", "Agent deflection tracking"] },
+  "voc-billing":     { desc: "Captures the Voice of Customer specifically around billing interactions — billing clarity, dispute resolution, and payment experience.", usedFor: ["Billing CSAT programmes", "Dispute reduction initiatives", "Billing agent coaching", "Collections feedback"] },
+  "proactive":       { desc: "Evaluates proactive outreach interactions for relevance, timing, and customer response — helping optimise outbound programmes.", usedFor: ["Outbound campaign quality", "Proactive notification effectiveness", "Opt-out sentiment tracking"] },
+  "sentiment-intel": { desc: "Analyses emotional tone across interactions — tracking positive/negative rates, sentiment shifts, and peak frustration moments.", usedFor: ["Real-time sentiment alerting", "Post-interaction mood analysis", "Agent sentiment impact reporting"] },
+  "clv":             { desc: "Identifies revenue signals in interactions — upsell readiness, renewal likelihood, and wallet share — to prioritise high-value customers.", usedFor: ["Upsell and cross-sell programmes", "Renewal risk tracking", "High-value customer prioritisation"] },
+  "cc-efficiency":   { desc: "Measures operational efficiency indicators surfaced through feedback — handle time quality, transfer rates, and staffing alignment signals.", usedFor: ["Operational performance reporting", "Workforce planning inputs", "Queue and staffing optimisation"] },
+  "voice-analytics": { desc: "Analyses speech characteristics including talk-to-listen ratio, dead air, overtalk, and keyword coverage to improve call quality.", usedFor: ["Call quality monitoring", "Script keyword compliance", "Agent communication coaching"] },
+  "escalation-pred": { desc: "Detects early escalation signals — trigger words, repeat contacts, agent stress indicators — to enable proactive intervention.", usedFor: ["Escalation prevention workflows", "Supervisor alert triggers", "Pre-escalation coaching"] },
+  "cust-journey":    { desc: "Maps customer feedback across journey stages — tracking touchpoint satisfaction, friction points, and drop-off signals.", usedFor: ["Journey mapping programmes", "Friction point reduction", "Cross-channel experience analysis"] },
+  "feedback-cat":    { desc: "Automatically categorises free-text feedback into structured topics — measuring accuracy, intent match, and theme emergence.", usedFor: ["Verbatim analysis", "Topic clustering", "Unstructured data quality"] },
+  "agent-wellbeing": { desc: "Detects signals of agent burnout, disengagement, and workload imbalance from interaction patterns and feedback.", usedFor: ["Agent wellbeing programmes", "Burnout early warning", "Manager 1:1 prioritisation"] },
+  "qa-model":        { desc: "Tracks quality assurance process health — evaluation coverage, calibration consistency, and coaching linkage effectiveness.", usedFor: ["QA programme management", "Calibration reporting", "QA-to-outcome correlation"] },
+  "product-fb":      { desc: "Captures product-specific feedback signals from support interactions — feature requests, bug reports, and release satisfaction.", usedFor: ["Product team feedback loops", "Bug triage prioritisation", "Release sentiment tracking"] },
+  "workforce-eng":   { desc: "Measures workforce engagement signals including schedule adherence, forecast accuracy, and utilisation rates from interaction data.", usedFor: ["WFM performance reporting", "Overtime risk monitoring", "Staffing efficiency analysis"] },
+  "social-listening":{ desc: "Monitors brand mentions, sentiment, and viral risk signals across social channels to protect and enhance brand reputation.", usedFor: ["Brand health monitoring", "Crisis detection", "Social CSAT tracking", "Influencer signal analysis"] },
+};
+
 // Default list of already-configured ontologies. Shown on the Ontology
 // Studio landing grid. Replaced by localStorage values if the user has
 // previously published changes.
@@ -11763,6 +11792,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
   const dirtyRef = React.useRef(false);
   const refreshDoneRef = React.useRef(false);
   const [toast, setToast] = React.useState(null);
+  const [aboutOpen, setAboutOpen] = React.useState(false);
 
   // Update refs synchronously during render (not via effect) so guardedNavigate is never stale
   dirtyRef.current = dirty;
@@ -11855,48 +11885,161 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
                 : "Configure New Ontology"}
           </h1>
         </div>
-        {(isEdit && ontology && ontology.hasUpstreamChanges && !refreshDone) ? (
-          <button
-            onClick={handleRefreshModel}
-            disabled={refreshState !== "idle" || !selectedModel}
-            title="Pull the latest categories from Topic AI"
-            style={{
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* About button — always visible when a model is selected */}
+          {selectedModel && (
+            <button
+              onClick={() => setAboutOpen(true)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "var(--lyra-color-bg-surface-base)",
+                border: "1px solid var(--lyra-color-border-soft)",
+                color: "var(--lyra-color-fg-default)",
+                font: "500 13px/20px var(--font-sans)",
+                padding: "6px 14px",
+                borderRadius: "var(--radius-md)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = "var(--lyra-color-state-bg-hover-opacity)"}
+              onMouseLeave={e => e.currentTarget.style.background = "var(--lyra-color-bg-surface-base)"}
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              About {(TOPIC_MODELS.find(m => m.id === selectedModel) || {}).name || selectedModel}
+            </button>
+          )}
+
+          {/* Refresh Model / Up to date */}
+          {(isEdit && ontology && ontology.hasUpstreamChanges && !refreshDone) ? (
+            <button
+              onClick={handleRefreshModel}
+              disabled={refreshState !== "idle" || !selectedModel}
+              title="Pull the latest categories from Topic AI"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "var(--color-bg-primary)",
+                border: "none",
+                color: "var(--color-fg-on-primary)",
+                font: "500 13px/20px var(--font-sans)",
+                padding: "6px 14px",
+                borderRadius: "var(--radius-md)",
+                cursor: (refreshState === "idle" && selectedModel) ? "pointer" : "default",
+                opacity: (!selectedModel || refreshState === "refreshing") ? 0.55 : 1,
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
+                <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+              </svg>
+              {refreshState === "refreshing" ? "Refreshing…" : "Refresh Model"}
+            </button>
+          ) : (
+            <span style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              background: "var(--color-bg-primary)",
-              border: "none",
-              color: "var(--color-fg-on-primary)",
+              background: "var(--lyra-color-status-success-subtle)",
+              border: "1px solid rgba(35,114,45,0.18)",
+              color: "var(--lyra-color-status-success-strong)",
               font: "500 13px/20px var(--font-sans)",
-              padding: "6px 14px",
+              padding: "6px 12px",
               borderRadius: "var(--radius-md)",
-              cursor: (refreshState === "idle" && selectedModel) ? "pointer" : "default",
-              opacity: (!selectedModel || refreshState === "refreshing") ? 0.55 : 1,
-            }}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="23 4 23 10 17 10"/>
-              <polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-              <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
-            </svg>
-            {refreshState === "refreshing" ? "Refreshing…" : "Refresh Model"}
-          </button>
-        ) : (
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: "var(--lyra-color-status-success-subtle)",
-            border: "1px solid rgba(35,114,45,0.18)",
-            color: "var(--lyra-color-status-success-strong)",
-            font: "500 13px/20px var(--font-sans)",
-            padding: "6px 12px",
-            borderRadius: "var(--radius-md)",
-          }}>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            Up to date
-          </span>
-        )}
+            }}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Up to date
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* About Model modal */}
+      {aboutOpen && selectedModel && (() => {
+        const modelMeta = TOPIC_MODELS.find(m => m.id === selectedModel) || {};
+        const info = MODEL_INFO[selectedModel] || {};
+        const cats = CATEGORIES_BY_MODEL[selectedModel] || [];
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.24)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}
+            onClick={e => { if (e.target === e.currentTarget) setAboutOpen(false); }}>
+            <div style={{
+              background: "var(--lyra-color-bg-surface-overlay)",
+              borderRadius: "var(--radius-xl)",
+              boxShadow: "var(--sol-effect-shadowlg)",
+              width: 560, maxWidth: "calc(100vw - 48px)",
+              maxHeight: "80vh", display: "flex", flexDirection: "column",
+            }}>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, padding: "var(--space-5) var(--space-6)", borderBottom: "1px solid var(--lyra-color-border-subtle)" }}>
+                <div>
+                  <div style={{ font: "400 12px/16px var(--font-sans)", color: "var(--lyra-color-fg-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Topic AI Model</div>
+                  <h2 style={{ margin: 0, font: "600 18px/24px var(--font-sans)", color: "var(--lyra-color-fg-default)" }}>{modelMeta.name}</h2>
+                </div>
+                <button onClick={() => setAboutOpen(false)} aria-label="Close" style={{ all: "unset", cursor: "pointer", color: "var(--lyra-color-fg-secondary)", display: "flex", alignItems: "center", padding: 4, borderRadius: "var(--radius-sm)" }}
+                  onMouseEnter={e => e.currentTarget.style.color = "var(--lyra-color-fg-default)"}
+                  onMouseLeave={e => e.currentTarget.style.color = "var(--lyra-color-fg-secondary)"}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+
+              {/* Body */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-5) var(--space-6)" }}>
+                {/* Description */}
+                <p style={{ margin: "0 0 var(--space-5)", font: "400 14px/24px var(--font-sans)", color: "var(--lyra-color-fg-default)" }}>
+                  {info.desc || "No description available for this model."}
+                </p>
+
+                {/* Use cases */}
+                {info.usedFor && info.usedFor.length > 0 && (
+                  <div style={{ marginBottom: "var(--space-5)" }}>
+                    <div style={{ font: "500 12px/16px var(--font-sans)", color: "var(--lyra-color-fg-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "var(--space-3)" }}>Best used for</div>
+                    <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+                      {info.usedFor.map((u, i) => (
+                        <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, font: "400 14px/20px var(--font-sans)", color: "var(--lyra-color-fg-default)" }}>
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--lyra-brand-600)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 3 }}><polyline points="20 6 9 17 4 12"/></svg>
+                          {u}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Categories */}
+                <div>
+                  <div style={{ font: "500 12px/16px var(--font-sans)", color: "var(--lyra-color-fg-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "var(--space-3)" }}>
+                    Categories <span style={{ background: "var(--lyra-slate-200)", color: "var(--lyra-slate-700)", borderRadius: "var(--radius-full)", padding: "0 6px", font: "500 11px/18px var(--font-sans)", marginLeft: 4 }}>{cats.length}</span>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {cats.map((c, i) => (
+                      <span key={i} style={{
+                        display: "inline-flex", alignItems: "center",
+                        background: "var(--lyra-slate-100)", color: "var(--lyra-slate-700)",
+                        border: "1px solid rgba(0,0,0,0.08)",
+                        borderRadius: "var(--radius-full)",
+                        padding: "3px 10px",
+                        font: "400 13px/18px var(--font-sans)",
+                      }}>{c.name}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{ padding: "var(--space-4) var(--space-6)", borderTop: "1px solid var(--lyra-color-border-subtle)", display: "flex", justifyContent: "flex-end" }}>
+                <button onClick={() => setAboutOpen(false)} style={{
+                  display: "inline-flex", alignItems: "center",
+                  background: "var(--lyra-color-bg-surface-base)",
+                  border: "1px solid var(--lyra-color-border-soft)",
+                  color: "var(--lyra-color-fg-default)",
+                  font: "500 13px/20px var(--font-sans)",
+                  padding: "6px 16px", borderRadius: "var(--radius-md)", cursor: "pointer",
+                }}>Close</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-6) var(--space-8) var(--space-8)" }}>
