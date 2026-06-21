@@ -2516,6 +2516,11 @@ select.fi-input {
   color: var(--color-fg-secondary);
 }
 
+@keyframes ont-success-fade {
+  0%, 70% { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
 </style>
 <style>
 /* ============================================================
@@ -11228,11 +11233,17 @@ function VUScoreModel({ onPublishSuccess, ontologies: ontologiesProp, setOntolog
   const [editingId, setEditingId] = React.useState(null);
   const [confirmRemoveId, setConfirmRemoveId] = React.useState(null);
   const [publishedId, setPublishedId] = React.useState(null);
+  const [successMessage, setSuccessMessage] = React.useState(null);
   React.useEffect(() => {
     if (!publishedId) return;
-    const t = setTimeout(() => setPublishedId(null), 3000);
+    const t = setTimeout(() => setPublishedId(null), 4000);
     return () => clearTimeout(t);
   }, [publishedId]);
+  React.useEffect(() => {
+    if (!successMessage) return;
+    const t = setTimeout(() => setSuccessMessage(null), 5000);
+    return () => clearTimeout(t);
+  }, [successMessage]);
 
   const editing = editingId ? ontologies.find(o => o.id === editingId) : null;
 
@@ -11288,6 +11299,7 @@ function VUScoreModel({ onPublishSuccess, ontologies: ontologiesProp, setOntolog
     setView("list");
     setEditingId(null);
     setPublishedId(savedId);
+    setSuccessMessage(`Ontology for "${modelName}" published successfully.`);
     if (onPublishSuccess) onPublishSuccess(modelName);
   };
 
@@ -11296,7 +11308,7 @@ function VUScoreModel({ onPublishSuccess, ontologies: ontologiesProp, setOntolog
   if (view === "list") {
     return (
       <React.Fragment>
-        <OntologyList ontologies={ontologies} onEdit={handleEdit} onRemove={handleRemove} onNew={handleNew} publishedId={publishedId}/>
+        <OntologyList ontologies={ontologies} onEdit={handleEdit} onRemove={handleRemove} onNew={handleNew} publishedId={publishedId} successMessage={successMessage}/>
         {confirmRemoveId && (
           <ConfirmModal
             title="Remove ontology configuration"
@@ -11352,7 +11364,7 @@ function OntSortIcon({ active, dir }) {
   );
 }
 
-function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
+function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId, successMessage }) {
   const [sortKey, setSortKey] = React.useState(null);
   const [sortDir, setSortDir] = React.useState("desc");
 
@@ -11361,11 +11373,15 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
     else { setSortKey(key); setSortDir("desc"); }
   }
 
-  // Always show max 10, but keep any "Updates available" rows visible
-  const withUpdates = ontologies.filter(o => o.hasUpstreamChanges);
-  const rest = ontologies.filter(o => !o.hasUpstreamChanges);
-  const slots = Math.max(0, 10 - withUpdates.length);
-  const display = withUpdates.concat(rest.slice(0, slots)).sort((a, b) => {
+  // Always show max 10, keep "Updates available" rows visible, published row always first
+  const publishedRow = publishedId ? ontologies.filter(o => o.id === publishedId) : [];
+  const withUpdates = ontologies.filter(o => o.hasUpstreamChanges && o.id !== publishedId);
+  const rest = ontologies.filter(o => !o.hasUpstreamChanges && o.id !== publishedId);
+  const slots = Math.max(0, 10 - publishedRow.length - withUpdates.length);
+  const display = publishedRow.concat(withUpdates).concat(rest.slice(0, slots)).sort((a, b) => {
+    // Published row always stays pinned at top regardless of sort
+    if (publishedId && a.id === publishedId) return -1;
+    if (publishedId && b.id === publishedId) return 1;
     if (!sortKey) return 0;
     let av, bv;
     if (sortKey === "campaigns") {
@@ -11402,6 +11418,25 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
       </div>
 
       <div className="table-wrap">
+        {/* Success banner — shown after publishing */}
+        {successMessage && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: "var(--space-2)",
+            margin: "0 0 var(--space-4)",
+            padding: "var(--space-3) var(--space-4)",
+            background: "var(--lyra-color-status-success-subtle)",
+            border: "1px solid rgba(35,114,45,0.2)",
+            borderRadius: "var(--radius-md)",
+            font: "400 14px/20px var(--font-sans)",
+            color: "var(--lyra-color-status-success-strong)",
+            animation: "ont-success-fade 5s ease 0.1s both",
+          }}>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style={{ flexShrink: 0, stroke: "var(--lyra-color-status-success-strong)", fill: "none", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }}>
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span>{successMessage}</span>
+          </div>
+        )}
         <div style={{
           display: "flex", alignItems: "flex-start", gap: "var(--space-2)",
           margin: "0 0 var(--space-4)",
