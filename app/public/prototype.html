@@ -12475,14 +12475,37 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
             </React.Fragment>
           ) : (
             <div style={{
-              border: "1.5px dashed var(--color-border-soft)",
-              borderRadius: "var(--radius-lg)",
-              padding: "48px 24px",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              padding: "64px 24px", gap: "var(--space-4)",
               textAlign: "center",
-              color: "var(--color-fg-secondary)",
-              font: "400 14px/20px var(--font-sans)",
             }}>
-              Select a Topic AI Model above to load its categories.
+              {/* Lyra-style empty state illustration */}
+              <svg width="120" height="96" viewBox="0 0 120 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                {/* Background rounded rect */}
+                <rect x="16" y="12" width="88" height="72" rx="10" fill="var(--lyra-slate-100)" />
+                {/* Horizontal lines (list items) */}
+                <rect x="30" y="28" width="48" height="5" rx="2.5" fill="var(--lyra-slate-300)" />
+                <rect x="30" y="40" width="36" height="5" rx="2.5" fill="var(--lyra-slate-200)" />
+                <rect x="30" y="52" width="42" height="5" rx="2.5" fill="var(--lyra-slate-200)" />
+                <rect x="30" y="64" width="28" height="5" rx="2.5" fill="var(--lyra-slate-200)" />
+                {/* Small circle bullets */}
+                <circle cx="24" cy="30.5" r="3" fill="var(--lyra-slate-300)" />
+                <circle cx="24" cy="42.5" r="3" fill="var(--lyra-slate-200)" />
+                <circle cx="24" cy="54.5" r="3" fill="var(--lyra-slate-200)" />
+                <circle cx="24" cy="66.5" r="3" fill="var(--lyra-slate-200)" />
+                {/* Magnifying glass / select indicator overlay */}
+                <circle cx="82" cy="30" r="14" fill="var(--lyra-brand-50)" stroke="var(--lyra-brand-200)" strokeWidth="1.5" />
+                <path d="M78 30h8M82 26v8" stroke="var(--lyra-brand-600)" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-2)" }}>
+                <p style={{ margin: 0, font: "500 14px/20px var(--font-sans)", color: "var(--lyra-color-fg-default)" }}>
+                  No model selected
+                </p>
+                <p style={{ margin: 0, font: "400 13px/20px var(--font-sans)", color: "var(--lyra-color-fg-secondary)", maxWidth: 320 }}>
+                  Select a Topic AI Model above to load its categories.
+                </p>
+              </div>
             </div>
           )}
 
