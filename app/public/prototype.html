@@ -10553,31 +10553,46 @@ Object.assign(window, { SEED_DESIGNS, designById, SurveyDesignsGrid, CreateSurve
 */
 
 const TOPIC_MODELS = [
-  { id: "cx-quality",      name: "CX Quality Model" },
-  { id: "agent-perf",      name: "Agent Performance Model" },
-  { id: "resolution",      name: "Resolution Intelligence" },
-  { id: "effort-ease",     name: "Effort & Ease Model" },
-  { id: "nps-loyalty",     name: "NPS Loyalty Model" },
-  { id: "digital-exp",     name: "Digital Experience Model" },
-  { id: "churn-risk",      name: "Churn Risk Intelligence" },
-  { id: "agent-coaching",  name: "Agent Coaching Model" },
-  { id: "compliance-risk", name: "Compliance & Risk Model" },
-  { id: "onboarding",      name: "Onboarding Experience Model" },
-  { id: "self-service",    name: "Self-Service Effectiveness" },
-  { id: "voc-billing",     name: "Voice of Customer — Billing" },
-  { id: "proactive",       name: "Proactive Outreach Model" },
-  { id: "sentiment-intel", name: "Sentiment Intelligence Model" },
-  { id: "clv",             name: "Customer Lifetime Value Model" },
-  { id: "cc-efficiency",   name: "Contact Center Efficiency" },
-  { id: "voice-analytics", name: "Voice Analytics Model" },
-  { id: "escalation-pred", name: "Escalation Prediction Model" },
-  { id: "cust-journey",    name: "Customer Journey Model" },
-  { id: "feedback-cat",    name: "Feedback Categorization Model" },
-  { id: "agent-wellbeing", name: "Agent Wellbeing Model" },
-  { id: "qa-model",        name: "Quality Assurance Model" },
-  { id: "product-fb",      name: "Product Feedback Intelligence" },
-  { id: "workforce-eng",   name: "Workforce Engagement Model" },
-  { id: "social-listening",name: "Social Listening Model" },
+  { id: "cx-quality",       name: "CX Quality Model",                   desc: "Best for contact centres measuring overall interaction quality and CSAT correlation." },
+  { id: "agent-perf",       name: "Agent Performance Model",            desc: "Ideal for agent scorecards, coaching prioritisation, and performance benchmarking." },
+  { id: "resolution",       name: "Resolution Intelligence",            desc: "Use when tracking first-contact resolution rates and reducing repeat contacts." },
+  { id: "effort-ease",      name: "Effort & Ease Model",                desc: "Effective for Customer Effort Score (CES) programmes and IVR optimisation." },
+  { id: "nps-loyalty",      name: "NPS Loyalty Model",                  desc: "Designed for NPS survey programmes and promoter/detractor segmentation." },
+  { id: "digital-exp",      name: "Digital Experience Model",           desc: "Best suited for digital channel feedback — app, web, chat, and bot interactions." },
+  { id: "churn-risk",       name: "Churn Risk Intelligence",            desc: "Effective for identifying at-risk customers and triggering retention workflows." },
+  { id: "agent-coaching",   name: "Agent Coaching Model",               desc: "Surfaces coaching opportunities and skill gaps across agent interactions." },
+  { id: "compliance-risk",  name: "Compliance & Risk Model",            desc: "Use for regulatory compliance audits and risk flag escalation workflows." },
+  { id: "onboarding",       name: "Onboarding Experience Model",        desc: "Best for new customer journeys — tracks setup ease and early churn signals." },
+  { id: "self-service",     name: "Self-Service Effectiveness",         desc: "Measures IVR, knowledge base, and bot containment and deflection rates." },
+  { id: "voc-billing",      name: "Voice of Customer — Billing",        desc: "Captures billing-specific feedback: clarity, disputes, and payment experience." },
+  { id: "proactive",        name: "Proactive Outreach Model",           desc: "Evaluates outbound campaign quality, timing, and customer response rates." },
+  { id: "sentiment-intel",  name: "Sentiment Intelligence Model",       desc: "Tracks positive/negative rates and peak frustration moments across interactions." },
+  { id: "clv",              name: "Customer Lifetime Value Model",      desc: "Identifies upsell readiness, renewal likelihood, and high-value customer signals." },
+  { id: "cc-efficiency",    name: "Contact Center Efficiency",          desc: "Measures handle time quality, transfer rates, and staffing alignment signals." },
+  { id: "voice-analytics",  name: "Voice Analytics Model",              desc: "Analyses talk-to-listen ratio, dead air, overtalk, and keyword coverage." },
+  { id: "escalation-pred",  name: "Escalation Prediction Model",       desc: "Detects early escalation triggers to enable proactive supervisor intervention." },
+  { id: "cust-journey",     name: "Customer Journey Model",             desc: "Maps feedback across journey stages and surfaces drop-off and friction signals." },
+  { id: "feedback-cat",     name: "Feedback Categorization Model",      desc: "Auto-categorises free-text feedback into structured topics with high accuracy." },
+  { id: "agent-wellbeing",  name: "Agent Wellbeing Model",              desc: "Detects burnout and disengagement signals from interaction patterns and feedback." },
+  { id: "qa-model",         name: "Quality Assurance Model",            desc: "Tracks QA programme health — coverage, calibration consistency, and coaching linkage." },
+  { id: "product-fb",       name: "Product Feedback Intelligence",      desc: "Captures feature requests, bug signals, and release satisfaction from support." },
+  { id: "workforce-eng",    name: "Workforce Engagement Model",         desc: "Measures schedule adherence, forecast accuracy, and utilisation from interaction data." },
+  { id: "social-listening", name: "Social Listening Model",             desc: "Monitors brand mentions, sentiment, and viral risk signals across social channels." },
+  { id: "omnichannel",      name: "Omnichannel Experience Model",       desc: "Tracks consistency and satisfaction across voice, chat, email, and digital channels." },
+  { id: "retention",        name: "Retention & Loyalty Intelligence",   desc: "Best for win-back campaigns and measuring loyalty programme effectiveness." },
+  { id: "accessibility",    name: "Accessibility Experience Model",     desc: "Measures how well support interactions serve customers with accessibility needs." },
+  { id: "b2b-account",      name: "B2B Account Health Model",           desc: "Designed for enterprise accounts — tracks relationship health and renewal risk." },
+  { id: "firstparty-data",  name: "First-Party Data Quality Model",     desc: "Assesses data capture accuracy and completeness during customer interactions." },
+  { id: "multilingual",     name: "Multilingual Experience Model",      desc: "Evaluates quality and consistency of support across multiple languages." },
+  { id: "brand-advocacy",   name: "Brand Advocacy Model",               desc: "Identifies customers likely to advocate publicly and amplify positive sentiment." },
+  { id: "post-purchase",    name: "Post-Purchase Experience Model",     desc: "Tracks satisfaction signals in the period immediately after purchase or delivery." },
+  { id: "support-deflection",name: "Support Deflection Intelligence",   desc: "Measures effectiveness of deflection strategies before customers reach an agent." },
+  { id: "ai-interaction",   name: "AI Interaction Quality Model",       desc: "Evaluates customer satisfaction with AI-assisted and bot-handled interactions." },
+  { id: "health-insurance",  name: "Healthcare & Insurance Model",      desc: "Specialised for regulated industries — tracks empathy, clarity, and compliance." },
+  { id: "field-service",    name: "Field Service Experience Model",     desc: "Designed for on-site service interactions — technician quality and resolution." },
+  { id: "collection-exp",   name: "Collections Experience Model",       desc: "Measures customer experience during sensitive collections and payment interactions." },
+  { id: "cx-benchmark",     name: "CX Benchmarking Model",              desc: "Standardised scoring for cross-team and cross-channel performance comparison." },
+  { id: "renewal-exp",      name: "Renewal Experience Model",           desc: "Focused on the renewal journey — identifies friction and satisfaction drivers." },
 ];
 
 const SEED_CATEGORIES = [
@@ -10852,6 +10867,115 @@ const CATEGORIES_BY_MODEL = {
     { id: 4, name: "Influencer Signal",         weight: 1, active: true },
     { id: 5, name: "Response Time — Social",    weight: 1, active: true },
     { id: 6, name: "Complaint Amplification",   weight: 1, active: true },
+  ],
+  "omnichannel": [
+    { id: 1, name: "Channel Consistency",       weight: 1, active: true },
+    { id: 2, name: "Context Continuity",        weight: 1, active: true },
+    { id: 3, name: "Cross-Channel CSAT",        weight: 1, active: true },
+    { id: 4, name: "Digital Containment Rate",  weight: 1, active: true },
+    { id: 5, name: "Transfer Friction",         weight: 1, active: true },
+    { id: 6, name: "Unified Experience Score",  weight: 1, active: true },
+  ],
+  "retention": [
+    { id: 1, name: "Win-Back Likelihood",       weight: 1, active: true },
+    { id: 2, name: "Loyalty Programme Uptake",  weight: 1, active: true },
+    { id: 3, name: "Cancellation Intent",       weight: 1, active: true },
+    { id: 4, name: "Retention Offer Response",  weight: 1, active: true },
+    { id: 5, name: "Churn Reversal Rate",       weight: 1, active: true },
+  ],
+  "accessibility": [
+    { id: 1, name: "Accessibility Ease",        weight: 1, active: true },
+    { id: 2, name: "Agent Accommodation",       weight: 1, active: true },
+    { id: 3, name: "Alternative Format Use",    weight: 1, active: true },
+    { id: 4, name: "Assistive Tech Compat.",    weight: 1, active: true },
+    { id: 5, name: "Inclusion Satisfaction",    weight: 1, active: true },
+  ],
+  "b2b-account": [
+    { id: 1, name: "Account Health Score",      weight: 1, active: true },
+    { id: 2, name: "Stakeholder Sentiment",     weight: 1, active: true },
+    { id: 3, name: "Renewal Readiness",         weight: 1, active: true },
+    { id: 4, name: "Escalation Frequency",      weight: 1, active: true },
+    { id: 5, name: "Executive Engagement",      weight: 1, active: true },
+    { id: 6, name: "Contract Risk Signal",      weight: 1, active: true },
+  ],
+  "firstparty-data": [
+    { id: 1, name: "Data Capture Accuracy",     weight: 1, active: true },
+    { id: 2, name: "Consent Compliance",        weight: 1, active: true },
+    { id: 3, name: "Profile Completeness",      weight: 1, active: true },
+    { id: 4, name: "Interaction Logging",       weight: 1, active: true },
+    { id: 5, name: "Data Quality Score",        weight: 1, active: true },
+  ],
+  "multilingual": [
+    { id: 1, name: "Language Match Quality",    weight: 1, active: true },
+    { id: 2, name: "Translation Accuracy",      weight: 1, active: true },
+    { id: 3, name: "Cultural Appropriateness",  weight: 1, active: true },
+    { id: 4, name: "Agent Language Proficiency",weight: 1, active: true },
+    { id: 5, name: "Cross-Locale CSAT",         weight: 1, active: true },
+  ],
+  "brand-advocacy": [
+    { id: 1, name: "Advocacy Intent",           weight: 1, active: true },
+    { id: 2, name: "Referral Likelihood",       weight: 1, active: true },
+    { id: 3, name: "Review Propensity",         weight: 1, active: true },
+    { id: 4, name: "Social Share Signal",       weight: 1, active: true },
+    { id: 5, name: "Brand Pride Indicator",     weight: 1, active: true },
+  ],
+  "post-purchase": [
+    { id: 1, name: "Delivery Satisfaction",     weight: 1, active: true },
+    { id: 2, name: "Unboxing Experience",       weight: 1, active: true },
+    { id: 3, name: "Post-Purchase Support",     weight: 1, active: true },
+    { id: 4, name: "Returns & Refund Ease",     weight: 1, active: true },
+    { id: 5, name: "Repurchase Intent",         weight: 1, active: true },
+  ],
+  "support-deflection": [
+    { id: 1, name: "Bot Containment Rate",      weight: 1, active: true },
+    { id: 2, name: "Knowledge Base Hit Rate",   weight: 1, active: true },
+    { id: 3, name: "IVR Self-Service Rate",     weight: 1, active: true },
+    { id: 4, name: "Deflection Quality",        weight: 1, active: true },
+    { id: 5, name: "Agent Escalation Rate",     weight: 1, active: true },
+  ],
+  "ai-interaction": [
+    { id: 1, name: "Bot Resolution Quality",    weight: 1, active: true },
+    { id: 2, name: "AI Response Accuracy",      weight: 1, active: true },
+    { id: 3, name: "Human Handoff Quality",     weight: 1, active: true },
+    { id: 4, name: "AI CSAT Score",             weight: 1, active: true },
+    { id: 5, name: "Automation Trust Level",    weight: 1, active: true },
+    { id: 6, name: "Task Completion Rate",      weight: 1, active: true },
+  ],
+  "health-insurance": [
+    { id: 1, name: "Empathy Score",             weight: 1, active: true },
+    { id: 2, name: "Regulatory Compliance",     weight: 1, active: true },
+    { id: 3, name: "Benefits Clarity",          weight: 1, active: true },
+    { id: 4, name: "Claim Handling Quality",    weight: 1, active: true },
+    { id: 5, name: "Sensitive Data Handling",   weight: 1, active: true },
+    { id: 6, name: "Member Satisfaction",       weight: 1, active: true },
+  ],
+  "field-service": [
+    { id: 1, name: "Technician Professionalism",weight: 1, active: true },
+    { id: 2, name: "On-Site Resolution Rate",   weight: 1, active: true },
+    { id: 3, name: "Appointment Adherence",     weight: 1, active: true },
+    { id: 4, name: "Work Quality Score",        weight: 1, active: true },
+    { id: 5, name: "Post-Visit Satisfaction",   weight: 1, active: true },
+  ],
+  "collection-exp": [
+    { id: 1, name: "Empathy in Collections",    weight: 1, active: true },
+    { id: 2, name: "Payment Plan Clarity",      weight: 1, active: true },
+    { id: 3, name: "Dignity Preservation",      weight: 1, active: true },
+    { id: 4, name: "Resolution Agreement Rate", weight: 1, active: true },
+    { id: 5, name: "Re-contact Avoidance",      weight: 1, active: true },
+  ],
+  "cx-benchmark": [
+    { id: 1, name: "Benchmark CSAT Score",      weight: 1, active: true },
+    { id: 2, name: "Cross-Team Consistency",    weight: 1, active: true },
+    { id: 3, name: "Calibration Score",         weight: 1, active: true },
+    { id: 4, name: "Performance Percentile",    weight: 1, active: true },
+    { id: 5, name: "Industry Comparison",       weight: 1, active: true },
+  ],
+  "renewal-exp": [
+    { id: 1, name: "Renewal Friction Level",    weight: 1, active: true },
+    { id: 2, name: "Offer Relevance",           weight: 1, active: true },
+    { id: 3, name: "Agent Renewal Knowledge",   weight: 1, active: true },
+    { id: 4, name: "Renewal CSAT",              weight: 1, active: true },
+    { id: 5, name: "Contract Clarity",          weight: 1, active: true },
   ],
 };
 
@@ -11363,7 +11487,14 @@ function OntologyList({ ontologies, onEdit, onRemove, onNew, publishedId }) {
 
   // Always show max 10, but keep any "Updates available" rows visible
   const withUpdates = ontologies.filter(o => o.hasUpstreamChanges);
-  const rest = ontologies.filter(o => !o.hasUpstreamChanges);
+  // Pre-sort rest by updatedAt desc so freshly published entries survive the 10-row cap
+  const rest = ontologies.filter(o => !o.hasUpstreamChanges).slice().sort((a, b) => {
+    const av = a.updatedAt || "";
+    const bv = b.updatedAt || "";
+    if (av < bv) return 1;
+    if (av > bv) return -1;
+    return 0;
+  });
   const slots = Math.max(0, 10 - withUpdates.length);
   const display = withUpdates.concat(rest.slice(0, slots)).sort((a, b) => {
     let av, bv;
@@ -11766,6 +11897,107 @@ function OntologyMetaStrip({ ontology, formatUpdatedAt }) {
   );
 }
 
+function OntModelDropdown({ value, options, disabled, onChange }) {
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(function() {
+    if (!open) return;
+    function handleClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return function() { document.removeEventListener("mousedown", handleClick); };
+  }, [open]);
+
+  const selected = options.filter(function(m) { return m.id === value; })[0] || null;
+
+  var triggerStyle = {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    width: "100%", minHeight: 36,
+    padding: "8px 12px",
+    background: disabled ? "rgba(0,0,0,0.04)" : "var(--lyra-color-bg-field)",
+    border: "1px solid",
+    borderColor: open ? "var(--lyra-color-border-active)" : "var(--lyra-color-border-soft)",
+    borderRadius: "var(--radius-sm)",
+    cursor: disabled ? "not-allowed" : "pointer",
+    font: "400 14px/20px var(--font-sans)",
+    color: selected ? "var(--lyra-color-fg-default)" : "var(--lyra-color-fg-disabled)",
+    boxShadow: open ? "0 0 0 3px rgba(22,108,202,0.12)" : "none",
+    textAlign: "left",
+    gap: 8,
+  };
+
+  var listStyle = {
+    position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
+    background: "var(--lyra-color-bg-surface-overlay)",
+    border: "1px solid var(--lyra-color-border-soft)",
+    borderRadius: "var(--radius-lg)",
+    boxShadow: "var(--sol-effect-shadowlg)",
+    maxHeight: 320, overflowY: "auto",
+    zIndex: 200,
+    padding: "4px 0",
+  };
+
+  return (
+    <div ref={containerRef} style={{ position: "relative" }}>
+      <button
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={function() { if (!disabled) setOpen(function(o) { return !o; }); }}
+        style={triggerStyle}
+      >
+        <span style={{ flex: 1, overflow: "hidden" }}>
+          {selected ? (
+            <span>
+              <span style={{ font: "500 14px/20px var(--font-sans)", color: "var(--lyra-color-fg-default)", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.name}</span>
+              <span style={{ font: "400 12px/16px var(--font-sans)", color: "var(--lyra-color-fg-secondary)", display: "block", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.desc}</span>
+            </span>
+          ) : (
+            <span style={{ font: "400 14px/20px var(--font-sans)", color: "var(--lyra-color-fg-disabled)" }}>
+              {disabled ? "All Topic AI Models are configured" : "Select a Topic AI Model…"}
+            </span>
+          )}
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: "var(--lyra-color-fg-secondary)", transform: open ? "rotate(180deg)" : "none", transition: "transform 150ms" }} aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div role="listbox" style={listStyle}>
+          {options.map(function(m) {
+            var isSelected = m.id === value;
+            return (
+              <div
+                key={m.id}
+                role="option"
+                aria-selected={isSelected}
+                onClick={function() { onChange(m.id); setOpen(false); }}
+                style={{
+                  padding: "10px 12px",
+                  cursor: "pointer",
+                  background: isSelected ? "var(--lyra-color-bg-active-subtle)" : "transparent",
+                  borderLeft: isSelected ? "2px solid var(--lyra-color-border-active)" : "2px solid transparent",
+                }}
+                onMouseEnter={function(e) { if (!isSelected) e.currentTarget.style.background = "var(--lyra-color-state-bg-hover-opacity)"; }}
+                onMouseLeave={function(e) { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
+              >
+                <div style={{ font: "500 14px/20px var(--font-sans)", color: isSelected ? "var(--lyra-color-fg-active-strong)" : "var(--lyra-color-fg-default)" }}>{m.name}</div>
+                <div style={{ font: "400 12px/16px var(--font-sans)", color: "var(--lyra-color-fg-secondary)", marginTop: 2 }}>{m.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublish }) {
   const isEdit = mode === "edit";
   const [categorySearch, setCategorySearch] = React.useState("");
@@ -11829,7 +12061,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
   const handleModelChange = (newId) => {
     setSelectedModel(newId);
     const defaults = CATEGORIES_BY_MODEL[newId] || [];
-    setCategories(defaults.map(c => ({ ...c, weight: 1 })));
+    setCategories(defaults.map(c => ({ ...c, weight: 1, _originalWeight: 1 })));
     setDirty(true);
     setNewlyAddedIds([]);
   };
@@ -12072,8 +12304,8 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
       })()}
 
       {/* Scrollable body */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-6) var(--space-8) var(--space-8)" }}>
-        <div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-6) var(--space-8) var(--space-8)", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
 
           {/* Banner: pre-refresh warning → replaced by post-refresh info bar */}
           {isEdit && ontology && ontology.hasUpstreamChanges && !refreshDone ? (
@@ -12117,33 +12349,25 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
           {isEdit && ontology ? (
             <OntologyMetaStrip ontology={ontology} formatUpdatedAt={formatUpdatedAt}/>
           ) : (
-            <div style={{ marginBottom: 40 }}>
+            <div style={{ marginBottom: 40, maxWidth: 480 }}>
               <label className="field-label" style={{ marginBottom: 6 }}>
-                Topic AI Model
+                Select a Topic AI Model
               </label>
               {(() => {
                 const availableModels = TOPIC_MODELS.filter(m => configuredModelIds.indexOf(m.id) === -1);
                 const nothingLeft = availableModels.length === 0;
                 return (
                   <React.Fragment>
-                    <select
-                      className="ont-model-select"
+                    <OntModelDropdown
                       value={selectedModel}
+                      options={availableModels}
                       disabled={nothingLeft}
-                      onChange={e => handleModelChange(e.target.value)}
-                      style={nothingLeft ? { background: "rgba(0,0,0,0.04)", color: "var(--color-fg-secondary)", cursor: "not-allowed", borderColor: "rgba(0,0,0,0.10)" } : undefined}
-                    >
-                      {!selectedModel && (
-                        <option value="">
-                          {nothingLeft ? "All Topic AI Models are configured" : "Select a Topic AI Model…"}
-                        </option>
-                      )}
-                      {availableModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                    </select>
+                      onChange={handleModelChange}
+                    />
                     <p className="hint" style={{ margin: "6px 0 0" }}>
                       {nothingLeft
                         ? "Every Topic AI Model already has an ontology. Edit an existing row to update its weights."
-                        : "Only models without an ontology yet are shown. Choose one to load its categories with default weight = 5."}
+                        : "Only models without an ontology yet are shown. Choose one to load its categories with default weight = 1."}
                     </p>
                   </React.Fragment>
                 );
@@ -12475,7 +12699,7 @@ function OntologyEditor({ mode, ontology, configuredModelIds, onCancel, onPublis
             </React.Fragment>
           ) : (
             <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               padding: "48px 24px", gap: "var(--space-3)",
               textAlign: "center",
             }}>
