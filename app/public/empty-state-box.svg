@@ -1,0 +1,54 @@
+<svg width="280" height="180" viewBox="0 0 280 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background blob -->
+  <path d="M220 30 C260 30 275 65 270 100 C265 135 240 155 200 158 C160 161 100 155 70 135 C40 115 30 85 45 60 C60 35 90 20 130 18 C160 16 180 30 220 30Z" fill="#E8EDF5"/>
+
+  <!-- Box body -->
+  <rect x="108" y="98" width="90" height="62" rx="3" fill="#D4A96A"/>
+  <!-- Box front face shading -->
+  <rect x="108" y="98" width="90" height="62" rx="3" fill="url(#boxShade)"/>
+
+  <!-- Box left flap (open) -->
+  <path d="M108 98 L108 75 L153 83 L153 98Z" fill="#C49455"/>
+  <!-- Box right flap (open, angled up) -->
+  <path d="M198 98 L198 72 L153 83 L153 98Z" fill="#BD8C4C"/>
+  <!-- Box left outer flap -->
+  <path d="M108 98 L108 72 L128 62 L153 83 L153 98Z" fill="#E8C07A"/>
+  <!-- Box right outer flap -->
+  <path d="M198 98 L198 70 L178 60 L153 83 L153 98Z" fill="#DDAD65"/>
+
+  <!-- Box top edge highlight -->
+  <line x1="108" y1="98" x2="198" y2="98" stroke="#C49455" strokeWidth="1"/>
+
+  <!-- Person legs (dark navy trousers) -->
+  <path d="M118 155 L122 130 L130 130 L133 155Z" fill="#2D3B5E"/>
+  <path d="M130 155 L130 130 L138 130 L140 155Z" fill="#2D3B5E"/>
+
+  <!-- Person body (blue jacket) -->
+  <path d="M112 105 C112 100 116 95 125 93 L135 91 C140 90 143 93 143 98 L143 130 L112 130Z" fill="#5B8EC5"/>
+
+  <!-- Person left arm holding clipboard -->
+  <path d="M112 105 L104 118 L110 121 L117 110Z" fill="#5B8EC5"/>
+
+  <!-- Clipboard -->
+  <rect x="100" y="117" width="14" height="18" rx="2" fill="#3A5A8C"/>
+  <rect x="103" y="115" width="8" height="4" rx="1" fill="#2D3B5E"/>
+
+  <!-- Person right arm (resting on box) -->
+  <path d="M143 110 L155 108 L154 115 L143 118Z" fill="#5B8EC5"/>
+
+  <!-- Person head -->
+  <circle cx="128" cy="85" r="11" fill="#F5C5A3"/>
+
+  <!-- Hair -->
+  <path d="M117 82 C117 73 122 68 128 68 C134 68 139 73 139 80 C139 76 135 73 128 73 C121 73 118 76 118 80Z" fill="#2D3B5E"/>
+
+  <!-- Ground line -->
+  <line x1="80" y1="160" x2="220" y2="160" stroke="#C8D0DC" strokeWidth="1.5" strokeLinecap="round"/>
+
+  <defs>
+    <linearGradient id="boxShade" x1="108" y1="98" x2="198" y2="160" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stopColor="#000" stopOpacity="0"/>
+      <stop offset="1" stopColor="#000" stopOpacity="0.07"/>
+    </linearGradient>
+  </defs>
+</svg>
