@@ -86,7 +86,7 @@ interface TopBarProps {
   appName?: string
 }
 
-export function TopBar({ onAppSwitch, appName = 'Feedback Intelligence' }: TopBarProps = {}) {
+export function TopBar({ onAppSwitch, appName = 'Feedback Management' }: TopBarProps = {}) {
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false)
   const switcherRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLElement>(null)

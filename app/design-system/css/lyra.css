@@ -54,6 +54,7 @@
   --lyra-color-bg-active-strong:     #166cca;
   --lyra-color-bg-destructive:       #bd2a2a;
   --lyra-color-bg-ai:                rgba(143,115,227,0.04);
+  --lyra-color-bg-ai-surface:        #f7f5ff;   /* AI panel card — lavender wash, from Figma accent/purple-strong-fg */
 
   /* Semantic — state */
   --lyra-color-state-bg-hover-opacity:           rgba(0,0,0,0.04);

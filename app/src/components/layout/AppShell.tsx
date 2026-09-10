@@ -44,8 +44,8 @@ export function AppShell({ children, title = 'Dashboard', breadcrumb = ['Feedbac
           title={panelOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           className="absolute z-20 flex h-5 w-5 items-center justify-center rounded-full bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0F172A] hover:border-[#CBD5E1] shadow-sm transition-all outline-none focus:outline-none"
           style={{
-            left: panelOpen ? '244px' : '48px',
-            top: '20px',
+            left: panelOpen ? '222px' : '50px',
+            top: '26px',
           }}
         >
           {panelOpen
@@ -64,7 +64,7 @@ export function AppShell({ children, title = 'Dashboard', breadcrumb = ['Feedbac
               sidebarOpen={panelOpen}
             />
           )}
-          <main className="flex-1 overflow-auto flex flex-col" style={{ background: 'rgb(243, 245, 246)' }}>
+          <main className={`flex-1 flex flex-col ${hidePageHeader ? 'overflow-hidden min-h-0' : 'overflow-auto'}`} style={{ background: 'rgb(243, 245, 246)' }}>
             {children}
           </main>
         </div>

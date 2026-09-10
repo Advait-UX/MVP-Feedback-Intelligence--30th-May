@@ -3,6 +3,20 @@
 
 > **Owner:** Advait Patil (advait.patil@nice.com)
 > **Product:** NiCE CXone · Feedback Intelligence · Initiative CXFM-2
+
+---
+
+## ⚠️ MANDATORY READING — Read BEFORE making any changes
+
+**`docs/FLOWS.md`** — Complete screen inventory, navigation map, all states, all data fields, and every modal/drawer. This is the authoritative reference for what screens must exist. If a screen or flow is not in FLOWS.md, ask before inventing it. If a screen IS in FLOWS.md and is not implemented, it must be built.
+
+**`docs/INTERACTIONS.md`** — Every single click interaction, navigation event, toggle, modal open/close, dropdown, and state change extracted directly from the source HTML prototype. Read this before implementing ANY button, link, or interactive element. This is the ground truth for "on click of A, B opens."
+
+**`docs/INSTRUCTIONS.md`** — Full product spec, requirements, and acceptance criteria.
+
+**Do not implement a screen from memory.** Always check FLOWS.md and INTERACTIONS.md first.
+
+---
 > **Stack:** React 19 + TypeScript + Vite + Tailwind v4
 > **Full spec:** `docs/INSTRUCTIONS.md`
 

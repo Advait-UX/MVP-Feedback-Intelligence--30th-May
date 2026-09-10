@@ -1,7 +1,7 @@
-import { Fragment, useState, useRef, useEffect } from 'react'
+import { Fragment, useState } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { TopBar } from './components/layout/TopBar'
-import { TrendingUp, Minus, ChevronRight, Sparkles, AlertTriangle, Activity, Megaphone, FileText, Network } from 'lucide-react'
+import { TrendingUp, Minus, ChevronRight, Sparkles, AlertTriangle, Megaphone, Library, LayoutGrid } from 'lucide-react'
 import { LandingPage } from './pages/LandingPage'
 import { AdminPage } from './pages/AdminPage'
 import { AnalysisPage } from './pages/AnalysisPage'
@@ -9,13 +9,18 @@ import { CohortPage } from './pages/CohortPage'
 import { InteractionPage } from './pages/InteractionPage'
 import { SurveyFlowPage } from './pages/SurveyFlowPage'
 import { CampaignMonitorPage } from './pages/CampaignMonitorPage'
-import { SurveyCampaignMonitoringPage } from './pages/SurveyCampaignMonitoringPage'
+import { ProgramsListPage } from './pages/ProgramsListPage'
+import { ThemesListPage } from './pages/ThemesListPage'
+import { ThemeDetailPage } from './pages/ThemeDetailPage'
+import { AlertsListPage } from './pages/AlertsListPage'
+import { ProgramHealthPage } from './pages/ProgramHealthPage'
 import { SurveyDetailPage } from './pages/SurveyDetailPage'
 import { CampaignInsightDashboard } from './components/feedback-intelligence/CampaignInsightDashboard'
 import { FeedbackIntelligenceDashboard } from './components/feedback-intelligence/FeedbackIntelligenceDashboard'
 import { getCampaignById, CAMPAIGNS } from './lib/campaigns'
 import { getSurveyById } from './lib/surveys'
-import { CampaignWizard } from './components/campaign-wizard/CampaignWizard'
+import { CreateProgramPage } from './pages/CreateProgramPage'
+import { SurveyTemplatesPage } from './pages/SurveyTemplatesPage'
 
 /* -------------------- Stat card -------------------- */
 function StatCard({ title, value, subtitle, borderColor = '#208337', alert }: {
@@ -379,8 +384,7 @@ export default function App() {
   const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'campaigns' | 'designs' | 'ontology'>('campaigns')
-  const protoIframeRef = useRef<HTMLIFrameElement>(null)
+  const [fiSection, setFiSection] = useState<'dashboard' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'health'>('programs')
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
@@ -388,24 +392,19 @@ export default function App() {
   // Selected survey drives the Survey Detail Level 3 page.
   const [selectedSurveyId, setSelectedSurveyId] = useState<string | null>(null)
   const selectedSurvey = selectedSurveyId ? getSurveyById(selectedSurveyId) : undefined
-  const [ontologyHasUpdates, setOntologyHasUpdates] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
-
-  useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'fi-ontology-status') {
-        setOntologyHasUpdates(!!e.data.hasUpdates)
-      }
-    }
-    window.addEventListener('message', handler)
-    return () => window.removeEventListener('message', handler)
-  }, [])
+  const [editCampaignId, setEditCampaignId] = useState<string | null>(null)
+  const editCampaign = editCampaignId ? getCampaignById(editCampaignId) : undefined
+  const [activatedProgram, setActivatedProgram] = useState<{ id: string; name: string; channels: string[] } | null>(null)
+  const [draftedProgram, setDraftedProgram] = useState<{ id: string; name: string } | null>(null)
+  const [savedProgram, setSavedProgram] = useState<{ id: string; name: string; editedBy: string } | null>(null)
+  const [themeId, setThemeId] = useState<string | null>(null)
 
   // App-switcher routing (nice_world TopBar dropdown).
   const handleAppSwitch = (appLabel: string) => {
     if (appLabel === 'Feedback Intelligence') {
       setFlow('feedback')
-      setFiSection('dashboard')
+      setFiSection('programs')
       setPage('campaign-portfolio')
     } else if (appLabel === 'Admin') setFlow('admin')
     // other apps: no-op
@@ -481,54 +480,88 @@ export default function App() {
   // Dashboard renders the native nice_world dashboard; the other three render
   // the prototype screens (own chrome hidden via ?embed=full).
   const FI_NAV_ITEMS = [
-    { id: 'dashboard', label: 'Operations',         icon: Activity },
-    { id: 'campaigns', label: 'Survey Campaigns',   icon: Megaphone },
-    { id: 'designs',   label: 'Survey Templates',   icon: FileText },
-    { id: 'ontology',  label: 'Ontology Studio',    icon: Network, ...(ontologyHasUpdates ? { badge: 'Update' } : {}) },
+    { id: 'dashboard', label: 'Dashboard',      icon: LayoutGrid },
+    { id: 'programs',  label: 'Programs',        icon: Megaphone },
+    {
+      type: 'group' as const,
+      id: 'library',
+      label: 'Library',
+      icon: Library,
+      children: [
+        { id: 'surveys', label: 'Surveys' },
+        { id: 'themes',  label: 'Themes' },
+        { id: 'alerts',  label: 'Alerts' },
+      ],
+    },
   ]
   const FI_TITLES: Record<typeof fiSection, string> = {
-    dashboard:
-      page === 'campaign-portfolio'
-        ? 'Operations Dashboard'
-        : page === 'campaign-insight' && selectedCampaign
-        ? `${selectedCampaign.name} · Campaign Insight`
-        : selectedCampaign
-        ? `${selectedCampaign.name} ${selectedCampaign.version}`
-        : 'Feedback Intelligence Dashboard',
-    campaigns: 'Survey Campaigns',
-    designs:   'Survey Templates',
-    ontology:  'Ontology Studio',
+    dashboard: 'Dashboard',
+    programs: page === 'campaign-portfolio'
+      ? 'Programs'
+      : page === 'campaign-insight' && selectedCampaign
+      ? `${selectedCampaign.name} · Insight`
+      : selectedCampaign
+      ? `${selectedCampaign.name} ${selectedCampaign.version}`
+      : 'Programs',
+    surveys: 'Surveys',
+    themes:  'Themes',
+    alerts:  'Alerts',
+    health:  'Program health',
   }
 
   return (
     <AppShell
       title={FI_TITLES[fiSection]}
-      breadcrumb={['Feedback Intelligence']}
+      breadcrumb={['Feedback Management']}
       onAppSwitch={handleAppSwitch}
       navItems={FI_NAV_ITEMS}
       activeNav={fiSection}
-      hidePageHeader={fiSection !== 'dashboard' || (page !== 'campaign-portfolio')}
+      hidePageHeader={true}
       onNavSelect={(id) => {
         setFiSection(id as typeof fiSection)
-        // Clicking Dashboard always returns to the portfolio top-level
+        // Clicking Programs always returns to the portfolio top-level
+        if (id === 'programs') { setPage('campaign-portfolio'); setShowWizard(false); setEditCampaignId(null) }
         if (id === 'dashboard') setPage('campaign-portfolio')
+        // Clicking Themes from within a detail view returns to the grid
+        if (id === 'themes') setThemeId(null)
       }}
     >
-      {fiSection === 'dashboard' ? (
+      {fiSection === 'programs' ? (
         showWizard ? (
-          <CampaignWizard
-            key="campaign-wizard-new"
+          <CreateProgramPage
+            key="create-program-new"
             onCancel={() => setShowWizard(false)}
-            onSave={() => setShowWizard(false)}
+            onSave={(status, data) => {
+              if (status === 'active' && data) {
+                setActivatedProgram({ id: `new-${Date.now()}`, name: data.name, channels: data.channels })
+              } else if (status === 'draft' && data) {
+                setDraftedProgram({ id: `draft-${Date.now()}`, name: data.name })
+              }
+              setShowWizard(false)
+            }}
+          />
+        ) : editCampaign ? (
+          <CreateProgramPage
+            key={`edit-program-${editCampaign.id}`}
+            editCampaign={editCampaign}
+            onCancel={() => setEditCampaignId(null)}
+            onSave={(_status, data) => {
+              if (data?.editedId) {
+                setSavedProgram({ id: data.editedId, name: data.name, editedBy: 'Advait Patil' })
+              }
+              setEditCampaignId(null)
+            }}
           />
         ) : page === 'campaign-portfolio' ? (
-          <SurveyCampaignMonitoringPage
-            onSelectCampaign={(id) => {
-              setSelectedCampaignId(id)
-              setPage('dashboard')
-            }}
-            onBackToAdmin={() => setFlow('admin')}
+          <ProgramsListPage
+            onSelectCampaign={(id) => { setEditCampaignId(id) }}
             onCreateCampaign={() => setShowWizard(true)}
+            activatedProgram={activatedProgram}
+            onClearActivated={() => setActivatedProgram(null)}
+            draftedProgram={draftedProgram}
+            onClearDrafted={() => setDraftedProgram(null)}
+            savedProgram={savedProgram}
+            onClearSaved={() => setSavedProgram(null)}
           />
         ) : page === 'campaign-insight' ? (
           <div className="p-6 lg:px-8 bg-[#F8FAFC] flex-1">
@@ -607,14 +640,22 @@ export default function App() {
             />
           </div>
         )
+      ) : fiSection === 'surveys' ? (
+        <SurveyTemplatesPage />
+      ) : fiSection === 'themes' ? (
+        themeId ? (
+          <ThemeDetailPage
+            themeId={themeId}
+            onBack={() => setThemeId(null)}
+            onDuplicate={(id) => setThemeId(id)}
+          />
+        ) : (
+          <ThemesListPage onSelectTheme={(id) => setThemeId(id)} />
+        )
+      ) : fiSection === 'alerts' ? (
+        <AlertsListPage />
       ) : (
-        <iframe
-          key={fiSection}
-          ref={protoIframeRef}
-          src={`./${__PROTO_FILE__}?embed=full&section=${fiSection}`}
-          title={FI_TITLES[fiSection]}
-          style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
-        />
+        <ProgramHealthPage />
       )}
     </AppShell>
   )

@@ -31,6 +31,7 @@ export default defineConfig(({ command }) => {
 
   return {
     base: '/Feedback-Intelligence---Enhanced-Version-July-2026/',
+    server: { port: process.env.PORT ? parseInt(process.env.PORT) : 5173 },
     plugins: [react(), tailwindcss(), protoHashPlugin()],
     define: {
       __BUILD_TIME__: JSON.stringify(Date.now()),

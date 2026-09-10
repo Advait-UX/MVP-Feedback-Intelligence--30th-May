@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
-import { ChevronDown, Clock, Calendar, Search, Check, X } from 'lucide-react'
+import { ChevronDown, Clock, Calendar, Search, Check, X, Lock, Info } from 'lucide-react'
 
 /* ── Toggle ── */
 export function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -347,8 +347,8 @@ export function FieldLabel({ children, required }: { children: React.ReactNode; 
   )
 }
 
-/* ── SurveyPickerDrawer ── */
-import { SURVEY_DESIGNS } from '../../lib/campaignWizard'
+/* ── SurveyPickerDrawer + ThemePickerDrawer ── */
+import { SURVEY_DESIGNS, DIGITAL_THEMES, type DigitalTheme } from '../../lib/campaignWizard'
 
 export function SurveyPickerDrawer({
   currentId, onClose, onSelect
@@ -356,96 +356,943 @@ export function SurveyPickerDrawer({
   currentId: string; onClose: () => void; onSelect: (id: string) => void
 }) {
   const [search, setSearch] = useState('')
-  const [localId, setLocalId] = useState(currentId)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  // Close on click outside the panel
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose()
+    }
+    // Delay so the triggering click doesn't immediately close
+    const t = setTimeout(() => document.addEventListener('mousedown', handler), 0)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', handler) }
+  }, [onClose])
 
   const filtered = SURVEY_DESIGNS.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.category.toLowerCase().includes(search.toLowerCase())
+    s.category.toLowerCase().includes(search.toLowerCase()) ||
+    s.why.toLowerCase().includes(search.toLowerCase())
   )
 
+  function handleSelect(id: string) {
+    onSelect(id)
+    onClose()
+  }
+
   return (
-    <>
-      <div
-        onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.24)', zIndex: 400 }}
-      />
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="survey-picker-title"
+      style={{
+        position: 'fixed',
+        top: 56, // below the app topbar
+        right: 24,
+        bottom: 24,
+        width: 705,
+        maxWidth: 'calc(100vw - 48px)',
+        zIndex: 400,
+        background: 'var(--lyra-color-bg-surface-overlay)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0px 20px 40px rgba(0,0,0,0.12)',
+        border: '1px solid var(--lyra-color-border-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
       <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: 480,
-        background: 'var(--lyra-color-bg-surface-base)',
-        borderLeft: '1px solid var(--lyra-color-border-soft)',
-        boxShadow: 'var(--sol-effect-shadowlg)',
-        zIndex: 401, display: 'flex', flexDirection: 'column',
+        display: 'flex', alignItems: 'center', gap: 20,
+        padding: '0 24px', height: 80, flexShrink: 0,
       }}>
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ font: '600 16px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>Choose Survey Template</div>
-            <div style={{ font: '400 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>Select the survey design for this campaign</div>
-          </div>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 4, color: 'var(--lyra-color-fg-secondary)', borderRadius: 'var(--radius-sm)' }}>
-            <X size={18} />
-          </button>
-        </div>
-        <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-          <div style={{ position: 'relative' }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--lyra-slate-400)' }} />
+        <h2 id="survey-picker-title" style={{
+          flex: 1, margin: 0,
+          font: '500 16px/20px var(--font-sans)',
+          color: 'var(--lyra-color-fg-default)',
+        }}>
+          Select a survey
+        </h2>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            width: 24, height: 24, borderRadius: 'var(--radius-sm)',
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--lyra-color-fg-default)', padding: 0, flexShrink: 0,
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div style={{
+        flex: 1, overflow: 'hidden',
+        padding: '0 24px 24px',
+        display: 'flex', flexDirection: 'column', gap: 32,
+      }}>
+
+        {/* Search */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            height: 32, padding: '0 12px',
+            background: 'var(--lyra-color-bg-field)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--lyra-color-border-strong)',
+            maxWidth: 422,
+          }}>
+            <Search size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
             <input
-              autoFocus value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search templates…"
+              ref={inputRef}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search surveys"
+              aria-label="Search surveys"
               style={{
-                width: '100%', boxSizing: 'border-box', padding: '7px 12px 7px 32px',
-                font: '400 14px/20px var(--font-sans)', border: '1px solid var(--lyra-color-border-soft)',
-                borderRadius: 'var(--radius-sm)', background: 'var(--lyra-color-bg-field)',
-                outline: 'none', color: 'var(--lyra-color-fg-default)',
+                flex: 1, border: 'none', background: 'transparent', outline: 'none',
+                font: '400 14px/20px var(--font-sans)',
+                color: 'var(--lyra-color-fg-default)',
               }}
             />
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-          {filtered.map(s => {
-            const selected = s.id === localId
-            return (
-              <div
-                key={s.id}
-                onClick={() => setLocalId(s.id)}
-                style={{
-                  padding: '12px 24px', cursor: 'pointer',
-                  background: selected ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
-                  borderLeft: selected ? '2px solid var(--lyra-brand-600)' : '2px solid transparent',
-                  transition: 'all 0.1s',
-                }}
-                onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-                onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{
-                    width: 16, height: 16, borderRadius: '50%', flexShrink: 0, marginTop: 2,
-                    border: `${selected ? '5px' : '1.5px'} solid ${selected ? 'var(--lyra-brand-600)' : 'var(--lyra-color-border-medium)'}`,
-                  }} />
-                  <div>
-                    <div style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>{s.name}</div>
-                    <div style={{ font: '400 12px/18px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{s.why}</div>
-                    <span style={{
-                      display: 'inline-block', marginTop: 6, padding: '2px 8px',
-                      borderRadius: 'var(--radius-full)', font: '500 11px/16px var(--font-sans)',
-                      background: 'var(--lyra-slate-100)', color: 'var(--lyra-slate-600)',
-                    }}>{s.category}</span>
+
+        {/* Survey list */}
+        <div style={{
+          flex: 1, overflowY: 'auto',
+          display: 'flex', flexDirection: 'column', gap: 24,
+        }}>
+          {filtered.length === 0 ? (
+            <p style={{
+              margin: 0, padding: '40px 0', textAlign: 'center',
+              font: '400 14px/20px var(--font-sans)',
+              color: 'var(--lyra-color-fg-secondary)',
+            }}>
+              No surveys match your search.
+            </p>
+          ) : filtered.map(s => (
+            <div
+              key={s.id}
+              style={{
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--lyra-color-border-soft)',
+                overflow: 'hidden', flexShrink: 0,
+              }}
+            >
+              {/* Card header */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 24,
+                padding: '12px 16px', minHeight: 56,
+                borderBottom: '1px solid var(--lyra-color-border-subtle)',
+              }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
+                  <span style={{
+                    font: '500 14px/20px var(--font-sans)',
+                    color: 'var(--lyra-color-fg-default)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {s.name}
+                  </span>
+                  <span style={{
+                    height: 24, padding: '0 8px', borderRadius: 'var(--radius-sm)',
+                    background: 'var(--lyra-color-accent-purple-subtle-bg, #EFEBFF)',
+                    display: 'inline-flex', alignItems: 'center', flexShrink: 0,
+                    font: '400 14px/20px var(--font-sans)',
+                    color: 'var(--lyra-color-accent-purple-subtle-fg, #6E56CC)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    Contextual
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleSelect(s.id)}
+                  style={{
+                    height: 36, minWidth: 80, padding: '0 16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--lyra-color-border-soft)',
+                    background: s.id === currentId ? 'var(--lyra-color-bg-active-subtle)' : 'var(--lyra-color-bg-surface-base)',
+                    font: '500 14px/20px var(--font-sans)',
+                    color: s.id === currentId ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-action)',
+                    cursor: 'pointer', flexShrink: 0,
+                  }}
+                  onMouseEnter={e => { if (s.id !== currentId) (e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)') }}
+                  onMouseLeave={e => { if (s.id !== currentId) (e.currentTarget.style.background = 'var(--lyra-color-bg-surface-base)') }}
+                >
+                  {s.id === currentId ? 'Selected' : 'Select'}
+                </button>
+              </div>
+
+              {/* Card body */}
+              <div style={{ padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                    <span style={{ font: '400 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
+                      Question types
+                    </span>
+                    <span style={{ font: '500 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-default)' }}>
+                      {s.questionTypes}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                    <span style={{ font: '400 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
+                      Updated on:
+                    </span>
+                    <span style={{ font: '500 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-default)', fontVariantNumeric: 'tabular-nums' }}>
+                      {s.updatedOn}
+                    </span>
                   </div>
                 </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+/* ── ThemeQuestionPreview ── */
+const RATING_LABELS = ['Very dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very satisfied']
+
+const PREVIEW_QUESTIONS: Record<string, { question: string; type: 'rating' | 'verbatim' }> = {
+  ASAT: { question: 'How would you rate the person who helped you today?', type: 'rating' },
+  CSAT: { question: 'How satisfied were you with your overall experience today?', type: 'rating' },
+  Verbatim: { question: 'Do you have any additional comments you\'d like to share?', type: 'verbatim' },
+}
+
+function SurveyWidgetMockup({ question, type, controlStyle }: { question: string; type: 'rating' | 'verbatim'; controlStyle: string }) {
+  const isQuickReply = controlStyle === 'Quick reply'
+
+  return (
+    <div style={{
+      width: '100%',
+      background: 'var(--lyra-color-bg-surface-shell)',
+      borderRadius: 'var(--radius-md)',
+      padding: 16,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12,
+    }}>
+      {/* Chat bubble — question */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{
+          alignSelf: 'flex-start',
+          maxWidth: '80%',
+          padding: '10px 14px',
+          background: 'var(--lyra-color-bg-surface-base)',
+          borderRadius: '0 var(--radius-md) var(--radius-md) var(--radius-md)',
+          border: '1px solid var(--lyra-color-border-subtle)',
+          font: '400 12px/16px var(--font-sans)',
+          letterSpacing: '0.2px',
+          color: 'var(--lyra-color-fg-default)',
+        }}>
+          {question}
+        </div>
+      </div>
+
+      {/* Answer options */}
+      {type === 'rating' ? (
+        isQuickReply ? (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {RATING_LABELS.map((label, i) => (
+              <div key={i} style={{
+                height: 28, padding: '0 10px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--lyra-color-border-soft)',
+                background: 'var(--lyra-color-bg-surface-base)',
+                display: 'inline-flex', alignItems: 'center',
+                font: '400 12px/16px var(--font-sans)',
+                letterSpacing: '0.2px',
+                color: 'var(--lyra-color-fg-default)',
+              }}>
+                {label}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {RATING_LABELS.map((label, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                height: 36, padding: '0 12px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--lyra-color-border-subtle)',
+                background: 'var(--lyra-color-bg-surface-base)',
+              }}>
+                <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid var(--lyra-color-border-medium)', flexShrink: 0 }} />
+                <span style={{ font: '400 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-default)' }}>{i + 1} – {label}</span>
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        <div style={{
+          padding: '10px 12px',
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--lyra-color-border-soft)',
+          background: 'var(--lyra-color-bg-surface-base)',
+          font: '400 12px/16px var(--font-sans)',
+          letterSpacing: '0.2px',
+          color: 'var(--lyra-color-fg-secondary)',
+          minHeight: 72,
+        }}>
+          Type your response here…
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ThemeQuestionPreview({ controlStyle }: { controlStyle: string }) {
+  const [activeTab, setActiveTab] = useState<'ASAT' | 'CSAT' | 'Verbatim'>('ASAT')
+  const tabs = ['ASAT', 'CSAT', 'Verbatim'] as const
+  const current = PREVIEW_QUESTIONS[activeTab]
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      {/* Tab bar */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--lyra-color-border-subtle)', marginBottom: 16 }}>
+        {tabs.map(tab => {
+          const isActive = activeTab === tab
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '14px 20px',
+                font: `400 14px/20px var(--font-sans)`,
+                color: isActive ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-default)',
+                background: 'none',
+                border: 'none',
+                borderBottom: isActive ? '4px solid var(--lyra-color-border-active)' : '4px solid transparent',
+                cursor: 'pointer',
+                marginBottom: -1,
+                outline: 'none',
+              }}
+            >
+              {tab}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Widget mockup */}
+      <SurveyWidgetMockup question={current.question} type={current.type} controlStyle={controlStyle} />
+    </div>
+  )
+}
+
+/* ── ThemePickerDrawer ── */
+export function ThemePickerDrawer({
+  currentId, onClose, onSelect
+}: {
+  currentId: string; onClose: () => void; onSelect: (id: string) => void
+}) {
+  const [search, setSearch] = useState('')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose()
+    }
+    const t = setTimeout(() => document.addEventListener('mousedown', handler), 0)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', handler) }
+  }, [onClose])
+
+  const filtered = DIGITAL_THEMES.filter(t =>
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.controlStyle.toLowerCase().includes(search.toLowerCase()) ||
+    t.messageMode.toLowerCase().includes(search.toLowerCase())
+  )
+
+  function handleSelect(id: string) {
+    onSelect(id)
+    onClose()
+  }
+
+  function togglePreview(id: string) {
+    setExpandedId(prev => prev === id ? null : id)
+  }
+
+  return (
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="theme-picker-title"
+      style={{
+        position: 'fixed',
+        top: 56,
+        right: 24,
+        bottom: 24,
+        width: 705,
+        maxWidth: 'calc(100vw - 48px)',
+        zIndex: 400,
+        background: 'var(--lyra-color-bg-surface-overlay)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0px 20px 40px rgba(0,0,0,0.12)',
+        border: '1px solid var(--lyra-color-border-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '0 24px', height: 80, flexShrink: 0 }}>
+        <h2 id="theme-picker-title" style={{ flex: 1, margin: 0, font: '500 16px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
+          Select a digital theme
+        </h2>
+        <button onClick={onClose} aria-label="Close" style={{ width: 24, height: 24, borderRadius: 'var(--radius-sm)', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lyra-color-fg-default)', padding: 0, flexShrink: 0 }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div style={{ flex: 1, overflow: 'hidden', padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+
+        {/* Search */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 32, padding: '0 12px', background: 'var(--lyra-color-bg-field)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--lyra-color-border-strong)', maxWidth: 422 }}>
+            <Search size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
+            <input ref={inputRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Search themes" aria-label="Search themes"
+              style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
+            />
+          </div>
+        </div>
+
+        {/* Theme list */}
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {filtered.length === 0 ? (
+            <p style={{ margin: 0, padding: '40px 0', textAlign: 'center', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>
+              No themes match your search.
+            </p>
+          ) : filtered.map(t => {
+            const isExpanded = expandedId === t.id
+            return (
+              <div key={t.id} style={{ borderRadius: 'var(--radius-lg)', border: '1px solid var(--lyra-color-border-soft)', overflow: 'hidden', flexShrink: 0 }}>
+
+                {/* Card header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 24, padding: '12px 16px', minHeight: 56, borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
+                    <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {t.name}
+                    </span>
+                    {t.type === 'system' ? (
+                      <span style={{
+                        height: 24, padding: '0 8px', borderRadius: 'var(--radius-sm)',
+                        background: 'var(--lyra-color-status-info-subtle)',
+                        display: 'inline-flex', alignItems: 'center', flexShrink: 0,
+                        font: '400 14px/20px var(--font-sans)',
+                        color: 'var(--lyra-color-status-info-strong)',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        System Default
+                      </span>
+                    ) : (
+                      <span style={{
+                        height: 24, padding: '0 8px', borderRadius: 'var(--radius-sm)',
+                        background: 'var(--lyra-color-status-success-subtle)',
+                        display: 'inline-flex', alignItems: 'center', flexShrink: 0,
+                        font: '400 14px/20px var(--font-sans)',
+                        color: 'var(--lyra-color-status-success-strong)',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        Custom
+                      </span>
+                    )}
+                  </div>
+                  {t.id === currentId ? (
+                    <div style={{
+                      height: 36, minWidth: 80, padding: '0 16px',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--lyra-color-bg-disabled)',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      font: '500 14px/20px var(--font-sans)',
+                      color: 'var(--lyra-color-fg-disabled)',
+                      flexShrink: 0,
+                    }}>
+                      Selected
+                    </div>
+                  ) : (
+                    <button onClick={() => handleSelect(t.id)}
+                      style={{
+                        height: 36, minWidth: 80, padding: '0 16px',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--lyra-color-border-soft)',
+                        background: 'var(--lyra-color-bg-surface-base)',
+                        font: '500 14px/20px var(--font-sans)',
+                        color: 'var(--lyra-color-fg-action)',
+                        cursor: 'pointer', flexShrink: 0,
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'var(--lyra-color-bg-surface-base)')}
+                    >
+                      Select
+                    </button>
+                  )}
+                </div>
+
+                {/* Card body */}
+                <div style={{ padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                      <span style={{ font: '400 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
+                        Control style:
+                      </span>
+                      <span style={{ font: '500 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-default)' }}>
+                        {t.controlStyle}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                      <span style={{ font: '400 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
+                        Message mode:
+                      </span>
+                      <span style={{ font: '500 12px/16px var(--font-sans)', letterSpacing: '0.2px', color: 'var(--lyra-color-fg-default)' }}>
+                        {t.messageMode}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                    <button
+                      onClick={() => togglePreview(t.id)}
+                      aria-expanded={isExpanded}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, font: '500 12px/16px var(--font-sans)', letterSpacing: '0.12px', color: 'var(--lyra-color-fg-default)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, outline: 'none' }}
+                    >
+                      {isExpanded ? 'Close Preview' : 'Preview'}
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+                        style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }}>
+                        <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  {isExpanded && <ThemeQuestionPreview controlStyle={t.controlStyle} />}
+                </div>
+
               </div>
             )
           })}
         </div>
-        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--lyra-color-border-subtle)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-color-bg-surface-base)', font: '500 14px/20px var(--font-sans)', cursor: 'pointer', color: 'var(--lyra-color-fg-default)' }}>Cancel</button>
-          <button
-            onClick={() => { if (localId) { onSelect(localId); onClose() } }}
-            disabled={!localId}
-            style={{ padding: '7px 16px', borderRadius: 'var(--radius-md)', border: 'none', background: localId ? 'var(--lyra-color-bg-primary)' : 'var(--lyra-color-bg-disabled)', font: '500 14px/20px var(--font-sans)', cursor: localId ? 'pointer' : 'not-allowed', color: localId ? 'var(--lyra-color-fg-on-primary)' : 'var(--lyra-color-fg-disabled)' }}
-          >
-            Apply Selection
-          </button>
-        </div>
       </div>
-    </>
+    </div>
+  )
+}
+
+/* ── ThemeDetailDrawer ── */
+
+const QT_DEFS: Array<{ name: string; subtitle: string; scaleLabels: string[] }> = [
+  { name: 'ASAT', subtitle: 'Agent Satisfaction, 1 to 5', scaleLabels: ['Very dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very satisfied'] },
+  { name: 'CSAT', subtitle: 'Customer Satisfaction, 1 to 5', scaleLabels: ['Very dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very satisfied'] },
+  { name: 'Verbatim', subtitle: 'Open text comment', scaleLabels: [] },
+]
+
+const INTRO_MESSAGES: Record<string, string> = {
+  'Invitation with opt out': "Dear {contact_firstName}, We'd love to hear about your experience today. We have just a few quick questions, just two minutes. Thanks! What will your feedback tell us.",
+  'Opt-in only': "Would you like to share feedback about your experience today?",
+}
+
+export function ThemeDetailDrawer({
+  theme, onClose,
+}: {
+  theme: DigitalTheme
+  onClose: () => void
+}) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [selectedQt, setSelectedQt] = useState(0)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose()
+    }
+    const t = setTimeout(() => document.addEventListener('mousedown', handler), 0)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', handler) }
+  }, [onClose])
+
+  const introMsg = INTRO_MESSAGES[theme.messageMode] ?? INTRO_MESSAGES['Invitation with opt out']
+  const isSystem = theme.type === 'system'
+  const activeQt = QT_DEFS[selectedQt]
+  const FONT = 'var(--font-sans)'
+
+  function ConfigRow({ label, value, noBorder }: { label: string; value: string; noBorder?: boolean }) {
+    return (
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '12px 0', height: 32,
+        borderBottom: noBorder ? 'none' : '1px solid var(--lyra-color-border-subtle)',
+      }}>
+        <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
+        <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', textAlign: 'right' }}>{value}</span>
+      </div>
+    )
+  }
+
+  function MsgRow({ label, value, multiline }: { label: string; value: string; multiline?: boolean }) {
+    return (
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: multiline ? 'flex-start' : 'center',
+        padding: '12px 0',
+        borderBottom: '1px solid var(--lyra-color-border-subtle)',
+      }}>
+        <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
+        <span style={{ flex: 1, font: `${multiline ? 400 : 500} 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', textAlign: 'right' }}>{value}</span>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="theme-detail-title"
+      style={{
+        position: 'fixed',
+        top: 56,
+        right: 24,
+        bottom: 24,
+        width: 705,
+        maxWidth: 'calc(100vw - 48px)',
+        zIndex: 400,
+        background: 'var(--lyra-color-bg-surface-overlay)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0px 20px 40px rgba(0,0,0,0.12)',
+        border: '1px solid var(--lyra-color-border-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '0 24px', height: 80, flexShrink: 0,
+        borderBottom: '1px solid var(--lyra-color-border-subtle)',
+      }}>
+        <h2 id="theme-detail-title" style={{ flex: 1, margin: 0, font: `600 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+          {theme.name}
+        </h2>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          padding: '3px 10px', borderRadius: 'var(--radius-full)',
+          font: `500 12px/16px ${FONT}`,
+          background: isSystem ? 'var(--lyra-color-status-info-subtle)' : 'var(--lyra-slate-100)',
+          color: isSystem ? 'var(--lyra-color-status-info-strong)' : 'var(--lyra-slate-600)',
+          flexShrink: 0,
+        }}>
+          {isSystem && <Lock size={11} />}
+          {isSystem ? 'System default' : 'Custom'}
+        </span>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 32, height: 32, borderRadius: 'var(--radius-sm)',
+            border: 'none', background: 'transparent',
+            color: 'var(--lyra-color-fg-secondary)', cursor: 'pointer', flexShrink: 0,
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Body — scrollable */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+        {/* Fix 1: Theme name row */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 4px' }}>
+          <span style={{ flex: '0 0 120px', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Theme name</span>
+          <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{theme.name}</span>
+        </div>
+
+        {/* ── Presentation card ── */}
+        <div style={{
+          outline: '1px solid var(--lyra-color-border-soft)',
+          outlineOffset: -1,
+          borderRadius: 'var(--radius-md)',
+          display: 'flex', flexDirection: 'column', gap: 12,
+          padding: '12px 24px',
+        }}>
+          <span style={{ font: `500 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Presentation</span>
+
+          <div style={{ display: 'flex', gap: 16, alignItems: 'stretch' }}>
+            {/* Left: question type list */}
+            <div style={{
+              width: 215, flexShrink: 0,
+              borderRadius: 'var(--radius-lg)',
+              overflow: 'hidden',
+              display: 'flex', flexDirection: 'column',
+            }}>
+              {/* Panel header */}
+              <div style={{ padding: '12px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  Question types for digital
+                </span>
+                <Info size={16} color="var(--lyra-color-fg-action)" />
+              </div>
+              {/* Type list — active: rounded + blue bg, no border; middle: border-soft; last: 24px padding, no border */}
+              {QT_DEFS.map((qt, i) => {
+                const isSelected = selectedQt === i
+                const isLast = i === QT_DEFS.length - 1
+                return (
+                  <div
+                    key={qt.name}
+                    onClick={() => setSelectedQt(i)}
+                    style={{
+                      padding: isLast && !isSelected ? '24px 12px' : '16px 12px',
+                      background: isSelected ? 'var(--lyra-color-bg-active-moderate)' : 'transparent',
+                      borderRadius: isSelected ? 'var(--radius-md)' : 0,
+                      borderBottom: (!isSelected && !isLast) ? '1px solid var(--lyra-color-border-soft)' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', gap: 2,
+                    }}
+                    onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                  >
+                    <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{qt.name}</span>
+                    <span style={{ font: `400 12px/16px ${FONT}`, letterSpacing: '0.20px', color: 'var(--lyra-color-fg-secondary)' }}>{qt.subtitle}</span>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Right: config for selected type */}
+            <div style={{
+              flex: 1,
+              background: 'var(--lyra-color-bg-surface-base)',
+              borderLeft: '1px solid var(--lyra-color-border-subtle)',
+              display: 'flex', flexDirection: 'column',
+              overflow: 'hidden',
+            }}>
+              {/* Right header */}
+              <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center' }}>
+                <span style={{ font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  Theme - {activeQt.name}
+                </span>
+              </div>
+              {/* Config rows */}
+              <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <ConfigRow label="Control style:" value={theme.controlStyle} />
+                <ConfigRow label="List picker label:" value="Rate your experience" />
+                <ConfigRow label="Edit scale label:" value="No" />
+                {/* Scale labels (only when type has them) */}
+                {activeQt.scaleLabels.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {activeQt.scaleLabels.map((lbl, i) => (
+                      <ConfigRow
+                        key={i}
+                        label={i === 0 ? '1: Lowest scale label' : i === activeQt.scaleLabels.length - 1 ? `${i + 1}: Highest scale label` : `${i + 1}:`}
+                        value={lbl}
+                        noBorder={i === activeQt.scaleLabels.length - 1}
+                      />
+                    ))}
+                  </div>
+                )}
+                {/* Preview accordion */}
+                <div style={{
+                  marginTop: 8,
+                  borderRadius: 'var(--radius-md)',
+                  outline: previewOpen ? '1px solid var(--lyra-color-border-subtle)' : 'none',
+                  outlineOffset: -1,
+                  overflow: 'hidden',
+                }}>
+                  {/* Accordion header */}
+                  <div
+                    onClick={() => setPreviewOpen(o => !o)}
+                    style={{
+                      padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      background: 'var(--lyra-color-bg-surface-shell)',
+                      borderRadius: previewOpen ? '8px 8px 0 0' : 'var(--radius-md)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{ font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Preview</span>
+                    <ChevronDown
+                      size={16}
+                      color="var(--lyra-color-fg-default)"
+                      style={{ transform: previewOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                    />
+                  </div>
+                  {/* Accordion content */}
+                  {previewOpen && (
+                    <div style={{
+                      padding: '16px',
+                      background: 'var(--lyra-color-bg-surface-base)',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    }}>
+                      {/* Chat UI container */}
+                      <div style={{
+                        width: '100%', maxWidth: 276,
+                        background: 'var(--lyra-color-bg-surface-shell)',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: '16px 14px',
+                        display: 'flex', flexDirection: 'column', gap: 12,
+                      }}>
+                        {/* Chat bubble row */}
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                          {/* Blue avatar */}
+                          <div style={{
+                            width: 36, height: 36, flexShrink: 0,
+                            borderRadius: '50%',
+                            background: 'var(--lyra-color-bg-primary)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 12c2.486 0 4.5-2.014 4.5-4.5S14.486 3 12 3 7.5 5.014 7.5 7.5 9.514 12 12 12zm0 2.25c-3.004 0-9 1.508-9 4.5v2.25h18V18.75c0-2.992-5.996-4.5-9-4.5z"/>
+                            </svg>
+                          </div>
+                          {/* Question bubble */}
+                          <div style={{
+                            flex: 1,
+                            background: 'var(--lyra-color-bg-surface-base)',
+                            borderRadius: '0 var(--radius-md) var(--radius-md) var(--radius-md)',
+                            padding: '10px 14px',
+                            font: `400 13px/20px ${FONT}`,
+                            color: 'var(--lyra-color-fg-default)',
+                            boxShadow: 'var(--sol-effect-shadowsm)',
+                          }}>
+                            {activeQt.name === 'ASAT'
+                              ? 'On a scale of 1 to 5, how satisfied were you with the agent who helped you today?'
+                              : activeQt.name === 'CSAT'
+                              ? 'On a scale of 1 to 5, how satisfied were you with the service you received?'
+                              : 'Please share your thoughts about your experience.'}
+                          </div>
+                        </div>
+
+                        {/* List picker card (ASAT / CSAT) */}
+                        {activeQt.scaleLabels.length > 0 && (
+                          <div style={{
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--lyra-color-border-subtle)',
+                            overflow: 'hidden',
+                            background: 'var(--lyra-color-bg-surface-base)',
+                          }}>
+                            {/* Picker header */}
+                            <div style={{
+                              padding: '8px 14px',
+                              background: 'var(--lyra-color-bg-surface-shell)',
+                              font: `500 11px/16px ${FONT}`,
+                              letterSpacing: '0.04em',
+                              textTransform: 'uppercase',
+                              color: 'var(--lyra-color-fg-secondary)',
+                              borderBottom: '1px solid var(--lyra-color-border-subtle)',
+                            }}>
+                              Rate your experience
+                            </div>
+                            {/* Scale rows */}
+                            {activeQt.scaleLabels.map((lbl, i) => (
+                              <div key={i} style={{
+                                padding: '10px 14px',
+                                borderBottom: i < activeQt.scaleLabels.length - 1 ? '1px solid var(--lyra-color-border-subtle)' : 'none',
+                                font: `400 13px/20px ${FONT}`,
+                                color: 'var(--lyra-color-fg-default)',
+                              }}>
+                                {i + 1} &mdash; {lbl}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Verbatim text area mock */}
+                        {activeQt.scaleLabels.length === 0 && (
+                          <div style={{
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--lyra-color-border-soft)',
+                            background: 'var(--lyra-color-bg-surface-base)',
+                            padding: '12px 14px',
+                            minHeight: 80,
+                            font: `400 13px/20px ${FONT}`,
+                            color: 'var(--lyra-color-fg-disabled)',
+                          }}>
+                            Type your comment here...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Message card ── */}
+        <div style={{
+          outline: '1px solid var(--lyra-color-border-soft)',
+          outlineOffset: -1,
+          borderRadius: 'var(--radius-md)',
+          display: 'flex', flexDirection: 'column', gap: 12,
+          padding: 16,
+        }}>
+          <span style={{ font: `500 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Message</span>
+
+          <div style={{
+            background: 'var(--lyra-color-bg-surface-base)',
+            borderRadius: 'var(--radius-md)',
+            padding: '0 16px',
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <MsgRow label="Survey introduction mode:" value={theme.messageMode} />
+            <MsgRow label="Introduction message:" value={introMsg} multiline />
+            <MsgRow label="Button to start label:" value="Get Started" />
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '12px 0',
+              borderBottom: '1px solid var(--lyra-color-border-subtle)',
+            }}>
+              <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Button to refuse label:</span>
+              <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', textAlign: 'right' }}>
+                {theme.messageMode === 'Opt-in only' ? 'No Thanks' : 'Not Today'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
+              <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Thank you message:</span>
+              <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', textAlign: 'right' }}>
+                Thank you for your feedback.
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   )
 }
