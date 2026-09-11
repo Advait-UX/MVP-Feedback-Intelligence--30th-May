@@ -38,7 +38,7 @@ export type Campaign = {
   topics: Topic[]
 }
 
-export const CAMPAIGNS: Campaign[] = [
+const BASE_CAMPAIGNS: Campaign[] = [
   {
     id: 'flight-disruption-recovery',
     name: 'Flight Disruption Recovery',
@@ -1018,6 +1018,55 @@ export const CAMPAIGNS: Campaign[] = [
     topics: [],
   },
 ]
+
+// ── Auto-generated filler programs to reach 200 total ──────────────────────
+const _STATUSES: Campaign['status'][] = ['active', 'active', 'active', 'paused', 'draft', 'ended']
+const _CATEGORIES = [
+  'Customer Effort', 'Service Quality', 'Loyalty & Membership', 'Product Experience',
+  'Digital Experience', 'Premium Experience', 'Onboarding', 'Post-Purchase',
+  'Service Disruption', 'Retention', 'Billing & Payments', 'Self-Service',
+]
+const _INTENTS = [
+  'Billing Inquiry', 'Account Management', 'Technical Support', 'Order Tracking',
+  'Returns & Refunds', 'Product Feedback', 'Subscription Management', 'Onboarding Ease',
+  'Loyalty Rewards', 'Service Recovery', 'App Experience', 'Website Navigation',
+  'Chat Support', 'Email Resolution', 'Call Deflection', 'Knowledge Base',
+]
+const _NAME_A = ['Billing','Account','Onboarding','Premium','VIP','Digital','Self-Service','Mobile App',
+  'Web Portal','Agent','Loyalty','Subscription','Retention','Post-Purchase','Returns',
+  'Checkout','Cart Abandonment','Welcome','Renewal','Escalation','Chat','Email','IVR',
+  'In-App','API','Partner','Enterprise','SMB','Student','Senior','First-Time']
+const _NAME_B = ['Satisfaction','NPS','CSAT','Feedback','Experience','Pulse','Check-In','Survey',
+  'Review','Sentiment','Health Check','Touchpoint','Journey','Effort Score']
+
+function _h(s: string): number {
+  let h = 0; for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0; return Math.abs(h)
+}
+function _pick<T>(arr: T[], n: number): T { return arr[Math.abs(n) % arr.length] }
+
+const EXTRA_CAMPAIGNS: Campaign[] = Array.from({ length: 167 }, (_, i) => {
+  const idx = i + 34
+  const id = `auto-program-${idx}`
+  const h = _h(id)
+  const status = _pick(_STATUSES, h + i)
+  const cat = _pick(_CATEGORIES, h + i * 3)
+  const name = `${_pick(_NAME_A, h + i * 7)} ${_pick(_NAME_B, h + i * 11)}`
+  const sent = status === 'active' ? 200 + (h % 3000) : null
+  const rr = status === 'active' ? 20 + (h % 60) : null
+  return {
+    id, name, version: 'v1.0', status, channels: ['Digital'],
+    daysRunning: status === 'active' ? (h % 90) + 1 : null,
+    sent, sentDelta: sent ? { tone: h % 2 === 0 ? 'up' : 'down', text: h % 2 === 0 ? `+${h % 15}%` : `-${h % 10}%` } as const : null,
+    responseRate: rr, responseDelta: rr ? { tone: rr > 40 ? 'up' : 'down', text: rr > 40 ? '+3pp' : '-2pp' } as const : null,
+    avgVu: status === 'active' ? 30 + (h % 50) : null, avgVuDelta: null,
+    topIntents: [_pick(_INTENTS, h), _pick(_INTENTS, h + 5)],
+    trigger: '', sparkline: [],
+    csat: status === 'active' ? 55 + (h % 35) : null, csatSeries: [],
+    category: cat, topics: [],
+  }
+})
+
+export const CAMPAIGNS: Campaign[] = [...BASE_CAMPAIGNS, ...EXTRA_CAMPAIGNS]
 
 export function getCampaignById(id: string): Campaign | undefined {
   return CAMPAIGNS.find(c => c.id === id)

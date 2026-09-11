@@ -41,11 +41,13 @@ function seededDate(seed: string): string {
 
 function seededDateWithTime(seed: string): string {
   const day = seededRange(seed, 1, 28, 'day')
-  const month = MONTH_NAMES[seededRange(seed, 0, 11, 'month')]
+  const monthIdx = seededRange(seed, 0, 11, 'month')
   const year = 2026
   const hour = seededRange(seed, 0, 23, 'hour')
   const minute = seededRange(seed, 0, 59, 'minute')
-  return `${month} ${day}, ${year} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  const generated = new Date(year, monthIdx, day, hour, minute)
+  const capped = generated > new Date() ? new Date() : generated
+  return `${MONTH_NAMES[capped.getMonth()]} ${capped.getDate()}, ${capped.getFullYear()} ${String(capped.getHours()).padStart(2, '0')}:${String(capped.getMinutes()).padStart(2, '0')}`
 }
 
 export type ProgramRowExtras = {

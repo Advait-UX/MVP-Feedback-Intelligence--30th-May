@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   CheckCircle2, Info, Search, Monitor, Phone, Clock,
-  ChevronUp, ChevronDown, ChevronRight, Check, ClipboardList, Power, UserRoundCheck,
+  ChevronUp, ChevronDown, ChevronRight, Check, ClipboardList, Power, UserRoundCheck, FlaskConical,
 } from 'lucide-react'
 import { Toggle, SurveyPickerDrawer, ThemePickerDrawer, ThemeDetailDrawer, FiDatePicker } from '../components/campaign-wizard/WizardPrimitives'
 import { SURVEY_DESIGNS, DIGITAL_THEMES } from '../lib/campaignWizard'
@@ -268,7 +268,11 @@ function SectionHeader({
         </span>
         {infoTip && <InfoTooltip text={infoTip} />}
       </div>
-      {status === 'ok' && <CheckCircle2 size={18} style={{ color: 'var(--lyra-color-status-success-medium)' }} />}
+      {status === 'ok' && (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8.00195 0.00049856C3.60195 0.000224352 0.00172877 3.6 0.00145457 8C0.00118036 12.4 3.60096 16.0002 8.00096 16.0005C12.401 16.0008 16.0012 12.401 16.0015 8.001C16.0017 3.601 12.402 0.000772768 8.00195 0.00049856ZM12.1615 6.48076L7.60127 11.0405C7.44126 11.2005 7.20125 11.2804 7.04125 11.2804C6.80125 11.2804 6.56126 11.2004 6.40127 11.0404L4.1614 8.80026C3.84142 8.48024 3.84145 8.00024 4.16147 7.68026C4.48149 7.36028 4.96149 7.36031 5.28147 7.68033L7.04137 9.44044L11.0416 5.44069C11.3616 5.12071 11.8416 5.12074 12.1616 5.44076C12.4816 5.76078 12.4816 6.16078 12.1615 6.48076Z" fill="#197E26"/>
+        </svg>
+      )}
       {status === 'error' && <ErrorCircle18 />}
       {status === 'warn' && <div style={{ width: 18, height: 18, borderRadius: '50%', border: '1.5px solid var(--lyra-color-border-medium)', background: 'transparent', flexShrink: 0 }} />}
     </div>
@@ -672,7 +676,9 @@ function StepItem({
     >
       <div style={{ flexShrink: 0 }}>
         {status === 'ok'
-          ? <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--lyra-color-status-success-strong, #197E26)' }} />
+          ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8.00195 0.00049856C3.60195 0.000224352 0.00172877 3.6 0.00145457 8C0.00118036 12.4 3.60096 16.0002 8.00096 16.0005C12.401 16.0008 16.0012 12.401 16.0015 8.001C16.0017 3.601 12.402 0.000772768 8.00195 0.00049856ZM12.1615 6.48076L7.60127 11.0405C7.44126 11.2005 7.20125 11.2804 7.04125 11.2804C6.80125 11.2804 6.56126 11.2004 6.40127 11.0404L4.1614 8.80026C3.84142 8.48024 3.84145 8.00024 4.16147 7.68026C4.48149 7.36028 4.96149 7.36031 5.28147 7.68033L7.04137 9.44044L11.0416 5.44069C11.3616 5.12071 11.8416 5.12074 12.1616 5.44076C12.4816 5.76078 12.4816 6.16078 12.1615 6.48076Z" fill="#197E26"/>
+            </svg>
           : status === 'error'
           ? <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
               <circle cx="8" cy="8" r="8" fill="var(--lyra-color-status-critical-strong)"/>
@@ -916,6 +922,22 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
 
         {/* Right: action buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Test program — always first */}
+          {canTest ? (
+            <button
+              style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-color-bg-surface-base)', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', cursor: 'pointer', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
+            ><FlaskConical size={16} style={{ color: 'var(--lyra-color-fg-secondary)' }} />Test program</button>
+          ) : (
+            <div style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-disabled)', display: 'inline-flex', alignItems: 'center', gap: 6, font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-disabled)', cursor: 'not-allowed' }}>
+              <FlaskConical size={16} />Test program
+            </div>
+          )}
+
+          {/* Vertical divider */}
+          <div style={{ width: 1, height: 24, background: 'var(--lyra-color-border-soft)', flexShrink: 0 }} />
+
           {/* Cancel — always active */}
           <button
             onClick={() => { if (editCampaign ? hasChanges : (form.name || form.surveyId)) { setShowCancelModal(true) } else { onCancel() } }}
@@ -923,19 +945,6 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
           >Cancel</button>
-
-          {/* Test program */}
-          {canTest ? (
-            <button
-              style={{ height: 36, minWidth: 80, padding: '0 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-color-bg-surface-base)', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', cursor: 'pointer', outline: 'none' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
-            >Test program</button>
-          ) : (
-            <div style={{ height: 36, minWidth: 80, padding: '0 16px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-disabled)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-disabled)', cursor: 'not-allowed' }}>
-              Test program
-            </div>
-          )}
 
           {editCampaign ? (
             <>
@@ -1012,7 +1021,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
       </div>
 
       {/* ── Body ── */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 0, gap: 16, padding: '24px 24px 0' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, gap: 24, padding: '24px 32px 0' }}>
 
         {/* ① Left step sidebar */}
         <div style={{ width: 160, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'flex-start' }}>
@@ -1049,7 +1058,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
             )}
 
             {/* Program name */}
-            <div style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
+            <div style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, maxWidth: 400 }}>
                 <Label required>Program name</Label>
                 <span style={{ font: '400 12px/16px var(--font-sans)', color: nameChars > 45 ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-fg-secondary)' }}>
@@ -1098,7 +1107,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
             </div>
 
             {/* Delivery */}
-            <div ref={deliveryRef} style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
+            <div ref={deliveryRef} style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
               <SectionHeader label="Delivery" infoTip="Choose how and when customers receive this survey. Select the channel, schedule, and survey hours for this program." status={suppressValidation ? 'ok' : isExpiredInactive ? 'error' : (deliveryDone ? 'ok' : deliveryError ? 'error' : 'warn')} />
 
               {/* Active date range */}
@@ -1124,7 +1133,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '8px 0' }} />
+              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '12px 0' }} />
 
               {/* Survey hours */}
               <div style={{ paddingBottom: 20 }}>
@@ -1166,7 +1175,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                 )}
               </div>
 
-              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '8px 0' }} />
+              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '12px 0' }} />
 
               {/* Surveying days */}
               <div style={{ paddingBottom: 20 }}>
@@ -1183,7 +1192,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '8px 0' }} />
+              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '12px 0' }} />
 
               {/* Select channels */}
               <div style={{ paddingBottom: 20 }}>
@@ -1223,7 +1232,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '8px 0' }} />
+              <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '12px 0' }} />
 
               {/* Themes */}
               <div>
@@ -1292,7 +1301,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
 
 
             {/* Audience */}
-            <div ref={audienceRef} style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
+            <div ref={audienceRef} style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
               <SectionHeader label="Audience" infoTip="Choose who can receive this survey. These audience settings apply only to this program and won't affect other programs." status={suppressValidation ? 'ok' : (audienceError ? 'error' : 'ok')} />
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1361,7 +1370,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                   })()}
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '8px 0' }} />
+                <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '12px 0' }} />
 
                 {/* ② Filter by interaction duration */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}>
@@ -1400,7 +1409,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                   )}
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '8px 0' }} />
+                <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: '12px 0' }} />
 
                 {/* ③ Suppression rules */}
                 <div>
@@ -1450,7 +1459,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
 
 
             {/* Survey */}
-            <div ref={surveyRef} style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
+            <div ref={surveyRef} style={{ marginBottom: 24, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
               <SectionHeader
                 label={<><span>Survey </span><span style={{ color: 'var(--lyra-color-status-critical-strong, #C93232)' }}>*</span></>}
                 infoTip="Choose the survey you want to send. If the survey is updated in the library, all programs using it will automatically use the latest version."
@@ -1539,7 +1548,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
 
 
             {/* Actions (optional) */}
-            <div ref={actionsRef} style={{ border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
+            <div ref={actionsRef} style={{ border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
               <SectionHeader
                 label={<>Actions <span style={{ fontWeight: 400, lineHeight: '24px', color: 'var(--lyra-color-fg-secondary)' }}>(optional)</span></>}
                 infoTip="Optional. Who gets notified when a response needs attention. Pick a reusable set from the library."
@@ -1578,8 +1587,8 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
               borderRadius: 12,
               display: 'flex',
               flexDirection: 'column',
-              padding: 16,
-              gap: 16,
+              padding: 20,
+              gap: 20,
             }}>
               {/* Heading */}
               <div style={{ font: '500 16px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>Summary</div>
@@ -1677,7 +1686,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
               >Cancel</button>
               <button
-                onClick={() => { setShowDeactivateModal(false); onSave('draft') }}
+                onClick={() => { setShowDeactivateModal(false); onSave('draft', { name: form.name, channels: [], editedId: editCampaign?.id }) }}
                 style={{ height: 36, minWidth: 80, padding: '0 16px', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--lyra-color-bg-destructive)', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-on-primary)', cursor: 'pointer' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.9' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}

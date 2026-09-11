@@ -397,7 +397,7 @@ export default function App() {
   const editCampaign = editCampaignId ? getCampaignById(editCampaignId) : undefined
   const [activatedProgram, setActivatedProgram] = useState<{ id: string; name: string; channels: string[] } | null>(null)
   const [draftedProgram, setDraftedProgram] = useState<{ id: string; name: string } | null>(null)
-  const [savedProgram, setSavedProgram] = useState<{ id: string; name: string; editedBy: string } | null>(null)
+  const [savedProgram, setSavedProgram] = useState<{ id: string; name: string; editedBy: string; action?: 'deactivated' } | null>(null)
   const [themeId, setThemeId] = useState<string | null>(null)
 
   // App-switcher routing (nice_world TopBar dropdown).
@@ -545,9 +545,9 @@ export default function App() {
             key={`edit-program-${editCampaign.id}`}
             editCampaign={editCampaign}
             onCancel={() => setEditCampaignId(null)}
-            onSave={(_status, data) => {
+            onSave={(status, data) => {
               if (data?.editedId) {
-                setSavedProgram({ id: data.editedId, name: data.name, editedBy: 'Advait Patil' })
+                setSavedProgram({ id: data.editedId, name: data.name, editedBy: 'Advait Patil', action: status === 'draft' ? 'deactivated' : undefined })
               }
               setEditCampaignId(null)
             }}

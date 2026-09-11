@@ -94,7 +94,7 @@ function Pagination({
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '12px 16px', flexShrink: 0,
+      padding: '12px 24px', flexShrink: 0,
       borderTop: '1px solid var(--lyra-color-border-subtle)',
       background: 'var(--lyra-color-bg-surface-base)',
     }}>
@@ -150,7 +150,9 @@ function PagBtn({ children, onClick, disabled, 'aria-label': ariaLabel }: {
 const FONT = 'var(--font-sans)'
 
 function buildInitialOrder(): Campaign[] {
-  const withExtra = CAMPAIGNS.map(c => ({ c, extra: deriveProgramRow(c) }))
+  const withExtra = CAMPAIGNS
+    .filter(c => c.status === 'active')
+    .map(c => ({ c, extra: deriveProgramRow(c) }))
   const prioritized = withExtra
     .filter(({ extra }) => extra.priority !== '-')
     .sort((a, b) => parseInt(a.extra.priority.slice(1)) - parseInt(b.extra.priority.slice(1)))
@@ -202,10 +204,18 @@ function PriorityModal({ initialOrder, onClose, onSave }: {
         width: 760, maxWidth: 'calc(100vw - 48px)',
         maxHeight: 'calc(100vh - 80px)',
         display: 'flex', flexDirection: 'column',
+        overflow: 'hidden',
       }}>
         {/* Header */}
         <div style={{ height: 80, padding: '0 24px', display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
-          <span style={{ flex: 1, font: `500 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Prioritise programs</span>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ font: `500 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Prioritise programs</span>
+            <span style={{
+              font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)',
+              background: 'var(--lyra-slate-100)', borderRadius: 'var(--radius-full)',
+              padding: '2px 8px',
+            }}>{items.length} programs</span>
+          </div>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -218,10 +228,10 @@ function PriorityModal({ initialOrder, onClose, onSave }: {
         </div>
 
         {/* Body */}
-        <div style={{ padding: '0 24px 0', display: 'flex', flexDirection: 'column', gap: 24, overflowY: 'auto', flex: 1 }}>
+        <div style={{ padding: '0 28px 0', display: 'flex', flexDirection: 'column', gap: 24, overflowY: 'auto', flex: 1, minHeight: 0 }}>
           {/* Info banner */}
           <div style={{
-            padding: '12px 16px', borderRadius: 'var(--radius-md)',
+            padding: '12px 20px', borderRadius: 'var(--radius-md)',
             background: 'var(--lyra-color-status-info-subtle)',
             display: 'flex', alignItems: 'flex-start', gap: 8,
           }}>
@@ -232,7 +242,7 @@ function PriorityModal({ initialOrder, onClose, onSave }: {
           </div>
 
           {/* Draggable table */}
-          <div style={{ border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: 24 }}>
+          <div style={{ border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)', overflow: 'clip', marginBottom: 24 }}>
             {/* Column headers */}
             <div style={{ display: 'grid', gridTemplateColumns: '116px 1fr 140px', borderBottom: '1px solid var(--lyra-color-border-soft)' }}>
               <div style={{ padding: '14px 16px', font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Priority</div>
@@ -245,37 +255,40 @@ function PriorityModal({ initialOrder, onClose, onSave }: {
               {items.map((c, idx) => (
                 <div
                   key={c.id}
-                  draggable
-                  onDragStart={() => handleDragStart(idx)}
                   onDragOver={e => handleDragOver(e, idx)}
                   onDrop={e => handleDrop(e, idx)}
-                  onDragEnd={handleDragEnd}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '116px 1fr 140px',
                     borderBottom: '1px solid var(--lyra-color-border-subtle)',
-                    borderTop: dropIdx === idx && dragIdx !== null && dragIdx !== idx ? '2px solid var(--lyra-color-border-active)' : '2px solid transparent',
+                    boxShadow: dropIdx === idx && dragIdx !== null && dragIdx !== idx ? 'inset 0 2px 0 var(--lyra-color-border-active)' : 'none',
                     opacity: dragIdx === idx ? 0.45 : 1,
-                    cursor: 'grab',
                     background: dragIdx === idx ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
                     transition: 'opacity 0.1s, background 0.1s',
                   }}
                   onMouseEnter={e => { if (dragIdx === null) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
                   onMouseLeave={e => { if (dragIdx === null) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                 >
-                  {/* Priority cell */}
-                  <div style={{ padding: '0 16px', height: 40, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <GripVertical size={16} style={{ color: 'var(--lyra-color-fg-action)', flexShrink: 0 }} />
+                  {/* Priority cell — only the grip handle is draggable so the rest of the row scrolls normally */}
+                  <div style={{ padding: '0 16px', height: 44, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div
+                      draggable
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragEnd={handleDragEnd}
+                      style={{ cursor: 'grab', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                    >
+                      <GripVertical size={16} style={{ color: 'var(--lyra-color-fg-action)' }} />
+                    </div>
                     <span style={{ font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>P{idx + 1}</span>
                   </div>
                   {/* Program name cell */}
-                  <div style={{ padding: '0 16px', height: 40, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 16px', height: 44, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                     <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {c.name}
                     </span>
                   </div>
                   {/* Channel cell */}
-                  <div style={{ padding: '0 16px', height: 40, display: 'flex', alignItems: 'center' }}>
+                  <div style={{ padding: '0 16px', height: 44, display: 'flex', alignItems: 'center' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
                       <Monitor size={16} style={{ color: 'var(--lyra-color-fg-default)' }} />
                       Digital
@@ -304,7 +317,7 @@ function PriorityModal({ initialOrder, onClose, onSave }: {
             Cancel
           </button>
           <button
-            onClick={() => { onSave(items); onClose() }}
+            onClick={() => onSave(items)}
             style={{
               height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)',
               border: 'none', background: 'var(--lyra-color-bg-primary)',
@@ -340,7 +353,7 @@ function SortableTh({
       style={{
         height: 48, padding: '0 var(--space-4)', textAlign: 'left',
         font: '500 14px/20px var(--font-sans)', fontFamily: FONT,
-        color: active ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-default)',
+        color: 'var(--lyra-color-fg-default)',
         borderBottom: '1px solid var(--lyra-color-border-soft)',
         width, whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none',
       }}
@@ -379,7 +392,7 @@ export function ProgramsListPage({
   onClearActivated?: () => void
   draftedProgram?: { id: string; name: string } | null
   onClearDrafted?: () => void
-  savedProgram?: { id: string; name: string; editedBy: string } | null
+  savedProgram?: { id: string; name: string; editedBy: string; action?: 'deactivated' } | null
   onClearSaved?: () => void
 }) {
   const [search, setSearch] = useState('')
@@ -390,8 +403,8 @@ export function ProgramsListPage({
   const [highlightedId, setHighlightedId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [priorityOrder, setPriorityOrder] = useState<Campaign[]>(() => buildInitialOrder())
-  const [sortKey, setSortKey] = useState<SortKey | null>(null)
-  const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [sortKey, setSortKey] = useState<SortKey | null>('updatedOn')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   const activatedExtras = useRef<Record<string, { updatedOn: string; updatedBy: string; status?: string }>>({})
 
@@ -482,11 +495,14 @@ export function ProgramsListPage({
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
     const todayStr = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
     setHighlightedId(savedProgram.id)
-    setToast(`"${savedProgram.name}" has been saved successfully`)
+    setToast(savedProgram.action === 'deactivated' ? `"${savedProgram.name}" has been deactivated` : `"${savedProgram.name}" has been saved successfully`)
+    if (savedProgram.action === 'deactivated') {
+      setPriorityOrder(prev => prev.filter(c => c.id !== savedProgram.id))
+    }
     setCurrentPage(1)
     setSortKey('updatedOn')
     setSortDir('desc')
-    activatedExtras.current[savedProgram.id] = { updatedOn: todayStr, updatedBy: savedProgram.editedBy }
+    activatedExtras.current[savedProgram.id] = { updatedOn: todayStr, updatedBy: savedProgram.editedBy, status: savedProgram.action === 'deactivated' ? 'Inactive' : undefined }
     const t1 = setTimeout(() => setHighlightedId(null), 3000)
     const t2 = setTimeout(() => setToast(null), 3000)
     const t3 = setTimeout(() => onClearSaved?.(), 3100)
@@ -572,7 +588,7 @@ export function ProgramsListPage({
 
       {/* ② Scrollable body — search + table */}
       <div style={{ flex: 1, overflow: 'auto', minHeight: 0, padding: '32px 32px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
           <SearchInput value={search} onChange={handleSearch} placeholder="Search programs" />
           <StatusDropdown value={statusFilter} onChange={handleFilterChange} />
         </div>
@@ -659,7 +675,12 @@ export function ProgramsListPage({
         <PriorityModal
           initialOrder={priorityOrder}
           onClose={() => setPriorityModalOpen(false)}
-          onSave={order => setPriorityOrder(order)}
+          onSave={order => {
+            setPriorityOrder(order)
+            setPriorityModalOpen(false)
+            setToast('Program priority has been saved successfully')
+            setTimeout(() => setToast(null), 3000)
+          }}
         />
       )}
     </div>
@@ -700,7 +721,12 @@ function ProgramRow({ campaign, priority, onSelect, highlighted, overrideExtras 
         <span style={{ fontWeight: 500, color: 'var(--lyra-color-fg-link)' }}>{campaign.name}</span>
       </Td>
       <Td>{campaign.category ? extra.survey : '-'}</Td>
-      <Td>{campaign.channels.join(', ')}</Td>
+      <Td>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
+          <Monitor size={16} style={{ color: 'var(--lyra-color-fg-default)', flexShrink: 0 }} />
+          Digital
+        </span>
+      </Td>
       <Td>
         <span style={{ color: extra.alert === '-' ? 'var(--lyra-color-fg-secondary)' : 'var(--lyra-color-fg-default)' }}>
           {extra.alert}
