@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Billing-flow cluster — Analysis</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        background: #F8FAFC;
+        color: #0F172A;
+        padding: 32px;
+      }
+      .page { max-width: 1200px; margin: 0 auto; }
+      .back-link {
+        color: #378ADD;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .back-link:hover { text-decoration: underline; }
+      .page-title { font-size: 24px; font-weight: 600; margin-top: 24px; }
+      .page-subtitle { color: #64748B; font-size: 13px; margin-top: 4px; }
+      .panel {
+        background: #fff;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 24px;
+        margin-top: 24px;
+      }
+      .panel-title { font-size: 16px; font-weight: 600; color: #0F172A; }
+      .panel-subtitle { font-size: 12px; color: #64748B; margin-top: 4px; }
+
+      /* Flow */
+      .flow { display: flex; align-items: center; margin-top: 24px; }
+      .step-box {
+        width: 130px; height: 100px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        border: 1px solid #E5E7EB; border-radius: 8px; background: #fff; flex-shrink: 0;
+      }
+      .step-count { font-size: 24px; font-weight: 700; color: #0F172A; line-height: 1; }
+      .step-pct { font-size: 13px; color: #64748B; margin-top: 4px; }
+      .step-label { font-size: 12px; font-weight: 500; color: #475569; margin-top: 4px; }
+      .arrow { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 60px; padding: 0 4px; }
+      .arrow-label { font-size: 12px; color: #64748B; margin-bottom: 4px; }
+      .arrow-label.red { color: #DC2626; font-weight: 600; }
+      .arrow-line { width: 100%; display: flex; align-items: center; }
+      .arrow-bar { flex: 1; background: #94A3B8; height: 2px; }
+      .arrow-bar.red { background: #DC2626; height: 4px; }
+      .arrow-head { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid #94A3B8; }
+      .arrow-head.red { border-left-color: #DC2626; }
+
+      /* Breakdown */
+      .breakdown-header { display: flex; align-items: center; gap: 6px; }
+      .breakdown-header .icon { color: #DC2626; font-size: 14px; }
+      .breakdown-header .text { font-size: 13px; font-weight: 600; color: #DC2626; }
+      .breakdown-subtitle { font-size: 12px; color: #64748B; margin-top: 4px; margin-bottom: 12px; }
+      .breakdown-card { border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; }
+      .breakdown-row {
+        display: flex; align-items: center; padding: 12px 16px;
+        border-bottom: 1px solid #F1F5F9; cursor: pointer; transition: background 0.15s;
+      }
+      .breakdown-row:last-child { border-bottom: none; }
+      .breakdown-row:hover { background: #F8FAFC; }
+      .breakdown-row.culprit { background: #FEF2F2; }
+      .breakdown-row.culprit:hover { background: #FEE2E2; }
+      .row-intent { flex: 1; display: flex; align-items: center; gap: 8px; }
+      .row-intent .name { font-size: 13px; font-weight: 500; color: #0F172A; }
+      .row-intent .name.bold { font-weight: 600; }
+      .pill {
+        display: inline-flex; align-items: center; gap: 3px;
+        padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+      }
+      .pill.culprit { background: #FEE2E2; color: #991B1B; }
+      .row-drop { width: 100px; text-align: center; font-size: 14px; font-weight: 600; }
+      .row-drop.red { color: #DC2626; }
+      .row-drop.gray { color: #475569; }
+      .row-abs { width: 160px; text-align: center; font-size: 12px; color: #64748B; }
+      .chip {
+        display: inline-flex; align-items: center; padding: 4px 10px;
+        border-radius: 8px; font-size: 12px; border: 1px solid #CBD5E1;
+        color: #475569; background: #fff; cursor: pointer; transition: background 0.15s;
+        text-decoration: none;
+      }
+      .chip:hover { background: #F1F5F9; }
+      .chip.red { border-color: #DC2626; color: #DC2626; }
+      .chip.red:hover { background: #FEF2F2; }
+
+      /* Evidence */
+      .evidence {
+        background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px;
+        padding: 24px; margin-top: 24px;
+      }
+      .evidence-title { font-size: 14px; font-weight: 600; color: #0F172A; }
+      .evidence-divider { border-top: 1px solid #FECACA; margin: 12px 0 16px; }
+      .evidence-columns { display: flex; }
+      .evidence-col { flex: 1; }
+      .evidence-col.left { padding-right: 24px; }
+      .evidence-col.right { padding-left: 24px; }
+      .evidence-sep { width: 1px; background: #FECACA; }
+      .big-num { font-size: 32px; font-weight: 700; line-height: 1; }
+      .big-num.red { color: #DC2626; }
+      .big-num.green { color: #16A34A; }
+      .evidence-label { font-size: 13px; font-weight: 500; color: #0F172A; margin-top: 4px; }
+      .evidence-sub { font-size: 12px; color: #64748B; margin-top: 2px; }
+
+      /* Diagnosis */
+      .diagnosis-header { display: flex; align-items: center; gap: 6px; }
+      .diagnosis-header .icon { color: #DC2626; }
+      .diagnosis-header .text { font-size: 14px; font-weight: 600; color: #DC2626; }
+      .diagnosis-body { font-size: 13px; color: #475569; line-height: 1.5; max-width: 700px; margin-top: 12px; }
+      .diagnosis-body + .diagnosis-body { margin-top: 8px; }
+      .diagnosis-body strong { color: #0F172A; font-weight: 600; }
+      .actions { display: flex; gap: 12px; margin-top: 16px; }
+      .action-chip {
+        display: inline-flex; align-items: center; padding: 8px 14px;
+        border-radius: 8px; font-size: 12px; border: 1px solid; background: #fff;
+        cursor: pointer; transition: background 0.15s; text-decoration: none;
+      }
+      .action-chip.primary { border-color: #DC2626; color: #DC2626; }
+      .action-chip.primary:hover { background: #FEF2F2; }
+      .action-chip.secondary { border-color: #CBD5E1; color: #475569; }
+      .action-chip.secondary:hover { background: #F1F5F9; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- Header -->
+      <a href="/" class="back-link">← Back to dashboard</a>
+      <h1 class="page-title">Billing-flow cluster — Analysis</h1>
+      <p class="page-subtitle">Tracking 3,520 interactions across 3 linked intents · Last 7 days</p>
+
+      <!-- Section 1: Conversion Flow -->
+      <div class="panel">
+        <div class="panel-title">Conversion flow</div>
+        <div class="panel-subtitle">How interactions in this cluster move from extraction to confirmed signal</div>
+
+        <div class="flow">
+          <div class="step-box">
+            <div class="step-count">3,520</div>
+            <div class="step-pct">100%</div>
+            <div class="step-label">Extracted</div>
+          </div>
+          <div class="arrow">
+            <div class="arrow-label">-28%</div>
+            <div class="arrow-line"><div class="arrow-bar"></div><div class="arrow-head"></div></div>
+          </div>
+          <div class="step-box">
+            <div class="step-count">2,534</div>
+            <div class="step-pct">72%</div>
+            <div class="step-label">Question</div>
+          </div>
+          <div class="arrow">
+            <div class="arrow-label red">⚠ -53%</div>
+            <div class="arrow-line"><div class="arrow-bar red"></div><div class="arrow-head red"></div></div>
+          </div>
+          <div class="step-box">
+            <div class="step-count">1,191</div>
+            <div class="step-pct">34%</div>
+            <div class="step-label">Responded</div>
+          </div>
+          <div class="arrow">
+            <div class="arrow-label">-11%</div>
+            <div class="arrow-line"><div class="arrow-bar"></div><div class="arrow-head"></div></div>
+          </div>
+          <div class="step-box">
+            <div class="step-count">1,060</div>
+            <div class="step-pct">30%</div>
+            <div class="step-label">Confirmed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Intent Breakdown -->
+      <div class="panel">
+        <div class="breakdown-header">
+          <span class="icon">⚠</span>
+          <span class="text">Where the 1,343 dropped at this step</span>
+        </div>
+        <div class="breakdown-subtitle">The 53% drop at Question → Responded, broken down by intent</div>
+
+        <div class="breakdown-card">
+          <!-- Row 1: Call Transfer Impact -->
+          <div class="breakdown-row culprit">
+            <div class="row-intent">
+              <span class="name bold">Call Transfer Impact</span>
+              <span class="pill culprit">⚠ culprit</span>
+            </div>
+            <div class="row-drop red">-69%</div>
+            <div class="row-abs">(-433 customers)</div>
+            <a href="#" class="chip red">open cohort →</a>
+          </div>
+          <!-- Row 2: Billing Dispute -->
+          <div class="breakdown-row">
+            <div class="row-intent">
+              <span class="name">Billing Dispute</span>
+            </div>
+            <div class="row-drop gray">-47%</div>
+            <div class="row-abs">(-410 customers)</div>
+            <a href="#" class="chip">open cohort →</a>
+          </div>
+          <!-- Row 3: Refund Processing -->
+          <div class="breakdown-row">
+            <div class="row-intent">
+              <span class="name">Refund Processing</span>
+            </div>
+            <div class="row-drop gray">-42%</div>
+            <div class="row-abs">(-500 customers)</div>
+            <a href="#" class="chip">open cohort →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Evidence Block -->
+      <div class="evidence">
+        <div class="evidence-title">Of the 1,060 confirmed responses in this cluster:</div>
+        <div class="evidence-divider"></div>
+        <div class="evidence-columns">
+          <div class="evidence-col left">
+            <div class="big-num red">84%</div>
+            <div class="evidence-label">rated 3 stars or below</div>
+            <div class="evidence-sub">(892 customers)</div>
+          </div>
+          <div class="evidence-sep"></div>
+          <div class="evidence-col right">
+            <div class="big-num green">+60</div>
+            <div class="evidence-label">Avg agent VU on those</div>
+            <div class="evidence-sub">(positive — agent did well)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Diagnosis + Actions -->
+      <div class="panel">
+        <div class="diagnosis-header">
+          <span class="icon">⚠</span>
+          <span class="text">Where the friction actually sits</span>
+        </div>
+        <p class="diagnosis-body">
+          1,060 customers completed surveys and rated 3 stars or below — despite
+          their human agent scoring positive on Agent Resolution.
+        </p>
+        <p class="diagnosis-body">
+          The customer experience broke <strong>BEFORE the agent joined the call</strong>.
+          The bot-to-human handoff is where the rating is being lost, not in the
+          human resolution that followed.
+        </p>
+        <div class="actions">
+          <a href="#" class="action-chip primary">Investigate handoff cluster →</a>
+          <a href="#int-022" class="action-chip secondary">Open INT-022 →</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

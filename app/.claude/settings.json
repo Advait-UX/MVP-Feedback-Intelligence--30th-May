@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/shaydiner -type d -name \".obsidian\" 2>/dev/null | head -20)",
+      "Read(//Users/shaydiner/**)",
+      "Bash(cp \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/DINER-OBS-BRAIN/01-Professional/Canonical Decisions for Diner.md\" \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/fm-lyra/Canonical Decisions for Diner.md\")",
+      "Bash(cp \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/DINER-OBS-BRAIN/01-Professional/Competitive-Intelligence/Cognigy-Theme-CSS.md\" \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/fm-lyra/Cognigy-Theme-CSS.md\")",
+      "Bash(cp \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/DINER-OBS-BRAIN/01-Professional/Competitive-Intelligence/Cognigy-Design-Tokens.md\" \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/fm-lyra/Cognigy-Design-Tokens.md\")",
+      "Bash(cp \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/DINER-OBS-BRAIN/01-Professional/Products & Features/Reply - FM To NiCE World - 2026-05-04.md\" \"/Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/fm-lyra/Reply - FM To NiCE World - 2026-05-04.md\")",
+      "Bash(npm create *)",
+      "Bash(cd /tmp && rm -rf lyra-scaffold && npm create vite@latest lyra-scaffold -- --template react-ts 2>&1 | tail -10)",
+      "Bash(cp -r public /Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/fm-lyra/)",
+      "Bash(cp -r src /Users/shaydiner/Library/CloudStorage/OneDrive-NICELtd/Archive/Documents/fm-lyra/)",
+      "Bash(npx tsc *)",
+      "Bash(npx vite *)",
+      "Bash(curl -s http://localhost:5173)",
+      "WebFetch(domain:www.figma.com)",
+      "Bash(grep -E \"\\\\.\\(tsx|jsx|ts|js\\)$\")",
+      "WebFetch(domain:claude.ai)"
+    ]
+  }
+}

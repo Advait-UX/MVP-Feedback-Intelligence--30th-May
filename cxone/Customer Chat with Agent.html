@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CXone Agent · Customer chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+:root{
+  --page: rgb(245,247,249);
+  --surface:#ffffff;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.22);
+  --divider:#eef0f3;
+  --text: rgba(0,0,0,0.85);
+  --muted: rgba(0,0,0,0.58);
+  --subtle: rgba(0,0,0,0.42);
+  --blue: rgb(54,148,252);
+  --blue-700: rgb(24,91,164);
+  --blue-50: rgb(238,245,254);
+  --green: rgb(39,138,51);
+  --green-50: rgb(231,246,234);
+  --red: rgb(214,57,57);
+  --red-50: rgb(252,232,232);
+  --amber: rgb(217,138,7);
+  --purple: rgb(120,86,186);
+  --purple-50: rgb(243,238,253);
+  --font:"Open Sans","Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--font);font-size:13px;color:var(--text);background:var(--page);-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+
+.app{display:grid;grid-template-rows:48px 1fr;height:100vh;min-width:1440px}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid var(--border);padding:0 16px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
+.brand-logo{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;color:var(--blue)}
+.brand .caret{color:var(--subtle);font-size:12px}
+.tab{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--blue-50);font-size:13px;color:var(--text);font-weight:500}
+.tab .phone-i{color:var(--blue)}
+.tab .count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--red);color:#fff;font-size:12px;font-weight:600}
+.new-contact{display:inline-flex;align-items:center;gap:4px;color:var(--blue-700);font-size:13px;font-weight:500;padding:6px 8px;border-radius:6px;cursor:pointer}
+.new-contact:hover{background:var(--blue-50)}
+.topbar .spacer{flex:1}
+.status{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);padding:5px 12px;border-radius:8px;font-size:13px}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.iconbtn{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted);cursor:pointer;background:transparent;border:none;padding:0}
+.iconbtn:hover{background:#f3f4f6}
+.avatar-sm{width:32px;height:32px;border-radius:50%;background:#3b3b3b;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+
+/* Layout */
+.body{display:grid;grid-template-columns:48px 280px 1fr 360px;min-height:0}
+
+/* Rail */
+.rail{background:rgb(249,250,252);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:6px}
+.rail .rb{position:relative;width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer}
+.rail .rb.active{color:var(--blue);background:var(--blue-50)}
+.rail .rb .badge{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;border-radius:999px;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+
+/* Sessions */
+.sessions{background:#fff;border-right:1px solid var(--border);padding:18px 14px;overflow:auto;box-shadow:2px 0 8px rgba(16,24,40,0.04);position:relative;z-index:1}
+.sessions h2{margin:0 0 4px;font-size:15px;font-weight:700;letter-spacing:-.01em;color:rgba(0,0,0,0.9)}
+.sessions .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.s-card{display:grid;grid-template-columns:32px 1fr auto;gap:10px;padding:10px;border-radius:8px;cursor:pointer;align-items:center}
+.s-card + .s-card{margin-top:4px}
+.s-card:hover{background:#f7f9fb}
+.s-card.active{background:var(--blue-50);box-shadow:inset 3px 0 0 var(--blue)}
+.s-ic{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#fef0e0;color:#c97f1d}
+.s-ic.chat{background:#e7f2ff;color:var(--blue)}
+.s-name{font-weight:600;font-size:13px}
+.s-meta{font-size:12px;color:var(--muted)}
+.s-card{transition:background .15s ease}
+.s-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:2px}
+.s-pill .d{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.s-pill.hold .d{background:var(--amber)}
+.s-time{font-size:12px;color:var(--muted)}
+
+/* Main */
+.main{display:grid;grid-template-rows:auto 1fr auto;min-height:0;background:var(--page)}
+.chat-header{display:flex;align-items:center;gap:14px;padding:12px 20px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:nowrap}
+.chat-header .id-block{flex:1;min-width:0}
+.av-jc{width:38px;height:38px;border-radius:50%;background:var(--blue);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ch-title{font-size:15px;font-weight:600}
+.ch-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.timer{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.ctrls{display:flex;align-items:center;gap:6px;margin-left:8px}
+.cbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.cbtn:hover{background:#f7f9fb}
+.cbtn.hold{background:#fff7e0;border-color:#f4d27a;color:#a87311}
+.end{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-left:8px}
+.end:hover{filter:brightness(0.95)}
+
+/* Thread */
+.thread{overflow:auto;padding:20px 24px 24px}
+.evt{display:flex;justify-content:center;margin:8px 0}
+.evt .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:#eef1f5;color:var(--muted);font-size:12px}
+.evt .pill.dark{background:#e4e7ec}
+.msg{display:flex;margin:14px 0;max-width:680px}
+.msg .who{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--subtle);margin-bottom:4px}
+.msg .stamp{font-size:12px;color:var(--subtle);margin-top:4px}
+.msg.agent{margin-left:auto;align-items:flex-end;flex-direction:column}
+.msg.agent .bubble{background:var(--blue);color:#fff;border-radius:14px 14px 4px 14px;padding:12px 14px;line-height:1.5;font-size:13px;max-width:560px}
+.msg.agent .who{color:var(--blue-700)}
+.msg.cust{align-items:flex-start;flex-direction:column}
+.msg.cust .bubble{background:#fff;border:1px solid var(--border);border-radius:14px 14px 14px 4px;padding:10px 14px;line-height:1.5;font-size:13px;max-width:560px}
+.msg.cust .who{color:var(--subtle)}
+
+/* Composer */
+.composer{background:#fff;box-shadow:0 -2px 8px rgba(16,24,40,0.03);border-top:1px solid var(--border);padding:12px 20px;display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}
+.composer input{flex:1;height:38px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font:inherit;font-size:13px;color:var(--text);outline:none;background:#fff}
+.composer input::placeholder{color:var(--subtle)}
+.wrapup{height:38px;border:1px solid var(--border);background:#fff;border-radius:8px;padding:0 14px;font-size:13px;font-weight:500;cursor:pointer}
+.send{height:38px;border:none;background:var(--blue);color:#fff;border-radius:8px;padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+
+/* AI panel */
+.ai{background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:0;box-shadow:-2px 0 8px rgba(16,24,40,0.04)}
+.ai-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.ai-head .sp{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#a78bfa,#60a5fa);color:#fff;display:inline-flex;align-items:center;justify-content:center}
+.ai-head h2{margin:0;font-size:14px;font-weight:600;flex:1}
+.tabs{display:flex;gap:18px;padding:0 14px;border-bottom:1px solid var(--border);background:#fff}
+.tab-btn{background:none;border:none;padding:10px 0;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+.ai-body{padding:14px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px}
+.ai-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ai-title{font-size:13.5px;font-weight:600}
+.ai-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.vu-badge{font-size:12px;font-weight:700;letter-spacing:0.06em;color:var(--purple);background:var(--purple-50);padding:4px 8px;border-radius:6px;line-height:1;white-space:nowrap}
+
+.group-label{font-size:12px;font-weight:700;letter-spacing:0.06em;color:var(--subtle);display:flex;align-items:center;gap:8px;margin-top:6px}
+.group-label .ld{width:6px;height:6px;border-radius:50%}
+.group-label.pos .ld{background:var(--green)}
+.group-label.neg .ld{background:var(--red)}
+
+.intent{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.ci-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafbfc;display:flex;flex-direction:column;gap:12px}
+.ci-id{display:flex;align-items:center;gap:12px}
+.ci-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2a6fdb,#1e57b3);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.02em;flex:0 0 auto}
+.ci-name{font-size:14px;font-weight:600;color:var(--text,#0d0f12)}
+.ci-meta{font-size:11.5px;color:var(--subtle,#666);margin-top:2px}
+.ci-grid{display:flex;flex-direction:column;gap:6px}
+.ci-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--border)}
+.ci-row:last-child{border-bottom:none}
+.ci-k{color:var(--subtle,#666);font-weight:500}
+.ci-v{color:var(--text,#0d0f12);font-weight:600;text-align:right}
+.intent-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap}
+.intent-name{flex:1;min-width:0}
+.intent-name{font-size:13px;font-weight:600}
+.intent-score{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.intent.pos .intent-score{color:var(--green)}
+.intent.neg .intent-score{color:var(--red)}
+.bar{height:4px;border-radius:2px;background:#eef0f3;margin:8px 0;position:relative;overflow:hidden}
+.bar .fill{position:absolute;top:0;bottom:0;border-radius:2px}
+.intent.pos .bar .fill{background:var(--green);left:50%}
+.intent.neg .bar .fill{background:var(--red);right:50%}
+.intent-desc{font-size:12px;color:var(--muted);line-height:1.45}
+
+.ai-foot{font-size:12px;color:var(--subtle);display:flex;align-items:center;justify-content:space-between;border-top:1px dashed var(--border);padding-top:10px;margin-top:4px}
+.ai-foot a{color:var(--blue);text-decoration:none;font-weight:600}
+
+.suggest{padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+.chip{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text);cursor:pointer}
+.chip:hover{background:#f7f9fb}
+.ask{padding:10px 14px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.ask input{height:34px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font:inherit;font-size:13px;outline:none}
+.ask input::placeholder{color:var(--subtle)}
+.ask .go{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.poweredby{font-size:12px;color:var(--subtle);padding:0 14px 12px;display:flex;align-items:center;gap:6px}
+.poweredby .s{color:var(--purple)}
+
+/* Floating nav */
+.nav-pill{position:fixed;right:24px;bottom:24px;background:#fff;border:1px solid var(--border);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,0.08);display:flex;align-items:center;gap:4px;padding:4px;z-index:50;font-size:13px}
+.nav-pill .np{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;color:var(--muted);text-decoration:none;cursor:pointer}
+.nav-pill .np.disabled{opacity:0.4;pointer-events:none}
+.nav-pill .np.next{background:var(--blue);color:#fff;font-weight:600;padding:6px 14px}
+.nav-pill .ix{font-size:12px;color:var(--subtle);padding:0 6px;font-variant-numeric:tabular-nums}
+</style>
+<link rel="stylesheet" href="storyline.css">
+</head>
+<body data-step="1 / 6" data-prev="" data-next="CXone Survey Line Screen.html" data-phone-mode="call" data-phone-name="Rachel · NICE Support" data-phone-sub="mobile" data-phone-timer="02:46" data-phone-avatar="RW">
+<div class="app">
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3V7z" stroke="currentColor" stroke-width="1.6"/></svg>
+      </span>
+      CXone Agent <span class="caret">▾</span>
+    </div>
+    <div class="tab">
+      <svg class="phone-i" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.79a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.29-1.29a2 2 0 0 1 2.11-.45c.89.35 1.83.59 2.79.72A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="1.7"/></svg>
+      James Carter <span class="count">2</span>
+    </div>
+    <div class="new-contact">+ New contact</div>
+    <div class="spacer"></div>
+    <div class="status"><span class="dot"></span> Available · 2:34</div>
+    <div class="iconbtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.7"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke="currentColor" stroke-width="1.7"/></svg></div>
+    <div class="avatar-sm">RW</div>
+  </header>
+
+  <div class="body">
+    <!-- Rail -->
+    <nav class="rail">
+      <div class="rb active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.79a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.29-1.29a2 2 0 0 1 2.11-.45c.89.35 1.83.59 2.79.72A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="1.7"/></svg>
+        <span class="badge">2</span>
+      </div>
+      <div class="rb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.7"/></svg></div>
+      <div class="rb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="m3 7 9 6 9-6" stroke="currentColor" stroke-width="1.7"/></svg></div>
+      <div class="rb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.7"/></svg></div>
+    </nav>
+
+    <!-- Sessions -->
+    <section class="sessions">
+      <h2>Active interactions</h2>
+      <div class="sub">2 active · 1 in queue</div>
+
+      <div class="s-card active">
+        <div class="s-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.79a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.29-1.29a2 2 0 0 1 2.11-.45c.89.35 1.83.59 2.79.72A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="1.7"/></svg></div>
+        <div>
+          <div class="s-name">James Carter</div>
+          <div class="s-meta">#22073579 · BAC OB Phone</div>
+          <div class="s-pill"><span class="d"></span>Live · Billing</div>
+        </div>
+        <div class="s-time">02:34</div>
+      </div>
+
+      <div class="s-card">
+        <div class="s-ic chat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.7"/></svg></div>
+        <div>
+          <div class="s-name">Diane Green</div>
+          <div class="s-meta">#22073491 · Chat</div>
+          <div class="s-pill hold"><span class="d"></span>On hold</div>
+        </div>
+        <div class="s-time">14:02</div>
+      </div>
+
+      <div class="s-card">
+        <div class="s-ic" style="background:#e7eaf0;color:var(--muted)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="m3 7 9 6 9-6" stroke="currentColor" stroke-width="1.7"/></svg></div>
+        <div>
+          <div class="s-name">Roberto Bautista</div>
+          <div class="s-meta">#22073612 · Email follow-up</div>
+        </div>
+        <div class="s-time">Queue</div>
+      </div>
+    </section>
+
+    <!-- Main thread -->
+    <section class="main">
+      <header class="chat-header">
+      <div class="av-jc">JC</div>
+      <div class="id-block">
+        <div class="ch-title">James Carter · #22073579</div>
+        <div class="ch-sub">Voice · BAC OB Phone · 253-895-8956 · Skill: dfw_forward_email_2</div>
+      </div>
+      <div class="timer">02:46</div>
+      <div class="ctrls">
+          <button class="cbtn" title="Mute"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" stroke="currentColor" stroke-width="1.7"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3" stroke="currentColor" stroke-width="1.7"/></svg></button>
+          <button class="cbtn hold" title="Hold"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/></svg></button>
+          <button class="cbtn" title="Keypad"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="6" r="1.5"/><circle cx="12" cy="6" r="1.5"/><circle cx="18" cy="6" r="1.5"/><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/><circle cx="6" cy="18" r="1.5"/><circle cx="12" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg></button>
+          <button class="cbtn" title="Transfer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 7h12l-3-3M17 17H5l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="cbtn" title="Consult"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="cbtn" title="Speaker"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H2v6h4l5 4V5zM15 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+          <button class="cbtn" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <button class="end" onclick="window.location.href='CXone Survey Line Screen.html'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          End call
+        </button>
+      </header>
+
+      <div class="thread">
+        <div class="evt"><span class="pill">→ Transferred from Andrew (AI agent) · 9:08 AM</span></div>
+
+        <div class="msg agent">
+          <div class="who">Rachel Whitman · Agent</div>
+          <div class="bubble">I completely understand, James, and I apologize that Andrew couldn't take care of this for you immediately. Since our CRM update on March 18th, we are manually processing these specific billing reviews to make sure everything aligns correctly in the new system. But don't worry, I have your account pulled up and my goal is to get this sorted out for you right now.</div>
+          <div class="stamp">9:10 AM</div>
+        </div>
+
+        <div class="msg cust">
+          <div class="who">James Carter</div>
+          <div class="bubble">I really appreciate that, Rachel.</div>
+          <div class="stamp">9:10 AM</div>
+        </div>
+
+        <div class="msg agent">
+          <div class="who">Rachel Whitman · Agent</div>
+          <div class="bubble">Looking at your account history, I can confirm you've been on the Standard Basic plan since April 2024 — there are absolutely no records of you requesting the "Entertainment Plus Bundle" that triggered this charge. Looks like a system error during the batch update prior to our migration.</div>
+          <div class="stamp">9:11 AM</div>
+        </div>
+
+        <div class="msg cust">
+          <div class="who">James Carter</div>
+          <div class="bubble">Oh, okay. Well, it's a relief to know it wasn't something I did by accident.</div>
+          <div class="stamp">9:11 AM</div>
+        </div>
+
+        <div class="evt"><span class="pill dark">⏸ Call on hold · 9:12 AM · Submitting refund</span></div>
+        <div class="evt"><span class="pill">▶ Call resumed · 9:13 AM</span></div>
+
+        <div class="msg agent">
+          <div class="who">Rachel Whitman · Agent</div>
+          <div class="bubble">I've submitted a full refund of $87.00 to your original payment method — you'll see it back within 5–7 business days. The bundle is also removed from your account, effective immediately.</div>
+          <div class="stamp">9:13 AM</div>
+        </div>
+      </div>
+
+      <div class="composer">
+        <input type="text" placeholder="Type a note for the contact record…">
+        <button class="wrapup">Wrap-up</button>
+        <button class="send">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="m3 11 18-8-8 18-2-8-8-2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          Send to customer
+        </button>
+      </div>
+    </section>
+
+    <!-- AI panel -->
+    <aside class="ai">
+      <div class="ai-head">
+        <span class="sp">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3zM18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14z" fill="currentColor"/></svg>
+        </span>
+        <h2>AI Assistant</h2>
+        <button class="iconbtn" title="Theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.7"/></svg></button>
+        <button class="iconbtn" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="1.7"/></svg></button>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn">Intent detected</button>
+        <button class="tab-btn active">Customer info</button>
+      </div>
+      <div class="ai-body">
+        <div class="ai-title-row">
+          <div>
+            <div class="ai-title">Customer info</div>
+            <div class="ai-sub">Verified profile · CRM synced 2 min ago</div>
+          </div>
+          <span class="vu-badge">VERIFIED</span>
+        </div>
+
+        <div class="ci-card">
+          <div class="ci-id">
+            <div class="ci-avatar">JC</div>
+            <div>
+              <div class="ci-name">James Carter</div>
+              <div class="ci-meta">Customer ID · CUS-48201 · Premium</div>
+            </div>
+          </div>
+          <div class="ci-grid">
+            <div class="ci-row"><span class="ci-k">Email</span><span class="ci-v">james.carter@gmail.com</span></div>
+            <div class="ci-row"><span class="ci-k">Phone</span><span class="ci-v">+1 (415) 555-0142</span></div>
+            <div class="ci-row"><span class="ci-k">Account</span><span class="ci-v">Premium · since Mar 2021</span></div>
+            <div class="ci-row"><span class="ci-k">Location</span><span class="ci-v">San Francisco, CA</span></div>
+            <div class="ci-row"><span class="ci-k">Lifetime value</span><span class="ci-v">$4,820</span></div>
+            <div class="ci-row"><span class="ci-k">CSAT (avg)</span><span class="ci-v">4.6 / 5</span></div>
+          </div>
+        </div>
+
+        <div class="group-label pos"><span class="ld"></span>RECENT ACTIVITY · 3</div>
+
+        <div class="intent pos">
+          <div class="intent-row">
+            <div class="intent-name">Billing inquiry — resolved</div>
+            <div class="intent-score">Today</div>
+          </div>
+          <div class="intent-desc">Duplicate $49 charge refunded same day.</div>
+        </div>
+
+        <div class="intent pos">
+          <div class="intent-row">
+            <div class="intent-name">Plan upgrade</div>
+            <div class="intent-score">Apr 14</div>
+          </div>
+          <div class="intent-desc">Moved from Standard to Premium tier.</div>
+        </div>
+
+        <div class="intent pos">
+          <div class="intent-row">
+            <div class="intent-name">Support chat</div>
+            <div class="intent-score">Mar 02</div>
+          </div>
+          <div class="intent-desc">Password reset · resolved in 3 min.</div>
+        </div>
+
+        <div class="ai-foot">
+          <span>3 of 17 events shown</span>
+          <a href="#">Full history →</a>
+        </div>
+      </div>
+
+      <div class="suggest">
+        <button class="chip">Summarize call so far</button>
+        <button class="chip">Draft wrap-up note</button>
+        <button class="chip">Find refund policy</button>
+      </div>
+      <div class="ask">
+        <input type="text" placeholder="Ask anything…">
+        <button class="go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="m3 11 18-8-8 18-2-8-8-2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="poweredby"><span class="s">✦</span> Powered by NICE Enlighten · Suggestions are AI-generated.</div>
+    </aside>
+  </div>
+</div>
+
+<!-- Floating nav handled by storyline.js -->
+<script src="storyline.js"></script>
+</body>
+</html>

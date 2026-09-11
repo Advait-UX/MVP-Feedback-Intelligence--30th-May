@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CXone Agent · Survey line · Complete</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" />
+<style>
+  :root {
+    --page: rgb(245,247,249);
+    --bg: rgb(245,247,249);
+    --surface: rgb(251,252,254);
+    --surface-pure: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --divider: #eef0f3;
+    --text: rgba(0,0,0,0.85);
+    --text-muted: rgba(0,0,0,0.6);
+    --text-subtle: rgba(0,0,0,0.46);
+    --text-strong: rgba(0,0,0,0.9);
+
+    --blue: rgb(54,148,252);
+    --blue-600: rgb(24,91,164);
+    --blue-50: rgb(238,245,254);
+
+    --green: rgb(39,138,51);
+    --green-50: rgb(232,246,234);
+    --red: rgb(214,57,57);
+    --amber: rgb(176,121,0);
+    --amber-strong: rgb(217,138,7);
+
+    --font: "Open Sans","Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; font-family: var(--font); font-size: 13px;
+    color: var(--text); background: var(--page);
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; }
+
+  .app { display: grid; grid-template-rows: 56px 1fr; height: 100vh; min-width: 1280px; }
+
+  /* ===== Topbar ===== */
+  .topbar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 8px 8px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 16px; padding: 0 8px; height: 40px; }
+  .brand-mark { width: 24px; height: 24px; color: var(--blue); display: grid; place-items: center; }
+  .brand-name {
+    font-family: "Inter", var(--font);
+    font-weight: 500; font-size: 16px; letter-spacing: -.01em;
+    color: rgba(0,0,0,0.8);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .brand-caret { color: var(--text-muted); display: inline-flex; }
+
+  .survey-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 32px; padding: 0 12px;
+    border-radius: 999px;
+    background: var(--blue-50);
+    color: var(--blue-600);
+    font-weight: 600; font-size: 13px;
+  }
+  .topbar-spacer { flex: 1; }
+  .status-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 32px; padding: 0 12px;
+    border-radius: 999px;
+    background: var(--surface-pure); color: var(--text);
+    border: 1px solid var(--border);
+    font-weight: 600; font-size: 13px;
+  }
+  .status-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .status-chip.supervisor .eye { color: var(--text-muted); display: inline-flex; }
+
+  /* ===== Main grid ===== */
+  .main {
+    display: grid;
+    grid-template-columns: 256px 1fr;
+    gap: 16px;
+    padding: 20px;
+    min-height: 0;
+    background: var(--page);
+  }
+
+  /* ===== Sessions sidebar ===== */
+  .sidebar {
+    background: var(--surface-pure);
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    padding: 24px 16px;
+    display: flex; flex-direction: column; gap: 18px;
+    overflow: auto;
+  }
+  .sidebar h3 {
+    margin: 0 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-subtle);
+  }
+  .sessions-list {
+    list-style: none; padding: 0; margin: 8px 0 0;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .session-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--text); font-size: 13px;
+    cursor: pointer;
+  }
+  .session-item:hover { background: var(--bg); }
+  .session-item.active { background: transparent; color: var(--blue-600); font-weight: 600; border-left: 2px solid var(--blue); border-radius: 0; padding-left: 8px; }
+  .session-item .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.25); }
+  .session-item.active .dot { background: var(--green); }
+
+  /* ===== Center column ===== */
+  .center { display: flex; flex-direction: column; min-height: 0; }
+  .top-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    padding: 4px 4px 14px;
+  }
+  .crumbs {
+    color: var(--text-subtle); font-size: 13px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .crumbs .sep { color: var(--text-subtle); }
+  .crumbs .current { color: var(--text-strong); font-weight: 700; }
+  .crumbs .id { color: var(--text-subtle); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+
+  .top-actions { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 36px; padding: 0 14px;
+    border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--surface-pure); color: var(--text);
+    cursor: pointer;
+  }
+  .btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn.primary:hover { background: var(--blue-600); border-color: var(--blue-600); }
+
+  /* ===== Complete card ===== */
+  .qa-card {
+    background: var(--surface-pure);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    padding: 36px 40px 40px;
+    overflow: auto;
+  }
+  .complete-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .complete-title-block { display: grid; grid-template-columns: 48px 1fr; gap: 14px; align-items: center; }
+  .check-tile {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--green-50);
+    color: var(--green);
+    display: grid; place-items: center;
+  }
+  .complete-title {
+    font-family: "Inter", var(--font);
+    font-size: 24px; font-weight: 700; color: var(--text-strong);
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+  .complete-sub { color: var(--text-muted); margin-top: 4px; font-size: 13.5px; }
+  .fi-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 10px;
+    background: var(--surface-pure);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .fi-badge strong { color: var(--text-strong); font-weight: 700; }
+
+  /* Stats row */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 26px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    min-height: 110px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat .k { color: var(--text-muted); font-size: 13px; }
+  .stat .v {
+    font-family: "Inter", var(--font);
+    font-size: 28px; font-weight: 700; color: var(--text-strong);
+    letter-spacing: -.01em;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat.signal .v { color: var(--amber); }
+  .stat .sub { color: var(--text-subtle); font-size: 12px; margin-top: auto; }
+  .stat .stars { color: var(--amber-strong); letter-spacing: 1px; font-size: 14px; margin-top: 4px; }
+  .stat .stars .off { color: rgba(0,0,0,0.18); }
+
+  /* Q & A list */
+  .qa-list {
+    display: flex; flex-direction: column; gap: 18px;
+    margin-top: 26px;
+  }
+  .q-card {
+    background: var(--surface-pure);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 14px;
+  }
+  .q-num {
+    width: 28px; height: 28px; border-radius: 999px;
+    background: var(--green); color: #fff;
+    font-weight: 700; font-size: 14px;
+    display: grid; place-items: center;
+    margin-top: 2px;
+    font-family: "Inter", var(--font);
+  }
+  .q-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .q-text {
+    font-size: 15px; line-height: 1.5; color: var(--text-strong);
+    font-weight: 600;
+  }
+  .a-rating {
+    color: var(--amber);
+    font-weight: 700; font-size: 14.5px;
+  }
+  .a-neg {
+    color: var(--red);
+    font-weight: 700; font-size: 14.5px;
+  }
+  .a-quote {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 14px;
+  }
+</style>
+<link rel="stylesheet" href="storyline.css">
+</head>
+<body data-step="6 / 6" data-prev="CXone Survey Line Screen - Q3 Answered.html" data-next="" data-phone-mode="ended" data-phone-name="Call ended" data-phone-sub="Survey complete · thank you" data-phone-timer="02:21" data-phone-avatar="✓" data-phone-ivr-label="" data-phone-ivr-text="" data-phone-ivr-key="">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l12-7L7 5z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 23.848" fill="none">
+          <path d="M 23.719 5.814 C 23.876 5.815 24.002 5.94 24 6.096 C 23.849 15.818 15.918 23.698 6.134 23.848 C 5.978 23.849 5.851 23.724 5.851 23.568 L 5.851 19.309 C 5.851 19.156 5.975 19.034 6.129 19.03 C 13.245 18.884 19.005 13.16 19.152 6.09 C 19.156 5.936 19.279 5.813 19.433 5.813 L 23.719 5.814 Z" fill="currentColor" fill-rule="nonzero"/>
+          <path d="M 12.256 0.001 C 13.871 0.001 15.18 1.302 15.181 2.906 C 15.181 4.511 13.872 5.812 12.256 5.813 C 10.64 5.813 9.33 4.511 9.33 2.906 C 9.33 1.302 10.64 0.001 12.256 0.001 Z" fill="currentColor" fill-rule="nonzero"/>
+          <path d="M 2.926 0 C 4.541 0 5.85 1.301 5.851 2.905 C 5.851 4.509 4.541 5.811 2.926 5.812 C 1.31 5.812 0 4.51 0 2.905 C 0 1.301 1.31 0 2.926 0 Z" fill="currentColor" fill-rule="nonzero"/>
+        </svg>
+      </div>
+      <div class="brand-name">CXone Agent
+        <span class="brand-caret"><svg width="14" height="14"><use href="#i-chevron-down"/></svg></span>
+      </div>
+    </div>
+
+    <div class="survey-pill">
+      <svg width="14" height="14"><use href="#i-clock"/></svg>
+      Survey monitor · #a2964 James C.
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <div class="status-chip supervisor">
+      <span class="eye"><svg width="14" height="14"><use href="#i-eye"/></svg></span>
+      Supervisor view · Maya R.
+    </div>
+    <div class="status-chip">
+      <span class="dot"></span>
+      Complete · 01:24
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar">
+      <div>
+        <h3>Sessions</h3>
+        <ul class="sessions-list">
+          <li class="session-item active">
+            <span class="dot"></span>
+            #a2964 · James C.
+          </li>
+          <li class="session-item">
+            <span class="dot"></span>
+            #a2965 · Rachel W.
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <section class="center">
+      <div class="top-row">
+        <div class="crumbs">
+          <span>Sessions</span><span class="sep">/</span>
+          <span class="current">Retention Voice Q2</span><span class="sep">/</span>
+          <span class="id">1c4fa089…a2964</span>
+        </div>
+        <div class="top-actions">
+          <button class="btn">
+            <svg width="14" height="14"><use href="#i-play"/></svg>
+            Replay audio
+          </button>
+          <button class="btn primary">
+            Open in Feedback Intelligence ›
+          </button>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="complete-head">
+          <div class="complete-title-block">
+            <div class="check-tile">
+              <svg width="28" height="28"><use href="#i-check"/></svg>
+            </div>
+            <div>
+              <h1 class="complete-title">Session complete</h1>
+              <div class="complete-sub">3 of 3 prompts answered · 1 free-text comment · auto-validated</div>
+            </div>
+          </div>
+          <div class="fi-badge">Sent to FI in <strong>2.1s</strong></div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="k">Rating</div>
+            <div class="v">3/5</div>
+            <div class="stars">★ ★ ★ <span class="off">★ ★</span></div>
+          </div>
+          <div class="stat signal">
+            <div class="k">FI Signal</div>
+            <div class="v">Mixed</div>
+            <div class="sub">1 pos · 3 neg</div>
+          </div>
+          <div class="stat">
+            <div class="k">Confidence</div>
+            <div class="v">94/100</div>
+            <div class="sub">Aligned w/ transcript</div>
+          </div>
+          <div class="stat">
+            <div class="k">Duration</div>
+            <div class="v">01:24</div>
+            <div class="sub">From transfer to wrap</div>
+          </div>
+        </div>
+
+        <div class="qa-list">
+          <div class="q-card">
+            <div class="q-num">1</div>
+            <div class="q-body">
+              <div class="q-text">On a scale of 1 to 5, how satisfied were you with Rachel's handling?</div>
+              <div class="a-rating">3 · Moderately satisfied</div>
+            </div>
+          </div>
+
+          <div class="q-card">
+            <div class="q-num">2</div>
+            <div class="q-body">
+              <div class="q-text">Did the transition from automated system to human agent cause any frustration?</div>
+              <div class="a-neg">Yes — repeated info, system wasn't listening</div>
+            </div>
+          </div>
+
+          <div class="q-card">
+            <div class="q-num">3</div>
+            <div class="q-body">
+              <div class="q-text">Were you left feeling unsure about what went wrong?</div>
+              <div class="a-quote">“Yes, but Rachel was able to resolve my query.”</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script defer src="storyline.js"></script>
+</body>
+</html>
