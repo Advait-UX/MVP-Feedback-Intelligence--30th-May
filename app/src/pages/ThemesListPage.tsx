@@ -524,7 +524,7 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
                     style={{
                       height: 36, padding: '0 var(--space-4)', borderRadius: 'var(--radius-md)',
                       border: 'none', background: 'var(--lyra-color-bg-destructive)',
-                      font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-on-desctructive)',
+                      font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-inverse)',
                       cursor: 'pointer', transition: 'background 0.12s',
                     }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.88' }}
