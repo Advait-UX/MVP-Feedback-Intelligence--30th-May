@@ -156,22 +156,16 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
   const allThemes = getAllThemes()
 
   const rows = useMemo(() => {
-    if (search) {
-      const q = search.toLowerCase()
-      const filtered = allThemes.filter(t => t.nm.toLowerCase().includes(q))
-      return [...filtered].sort((a, b) => Number(b.sys) - Number(a.sys))
-    }
-    const list = [...allThemes]
-    if (highlightedId) {
-      const idx = list.findIndex(t => t.id === highlightedId)
-      if (idx !== -1) {
-        const [item] = list.splice(idx, 1)
-        const insertAt = list.findIndex(t => !t.sys)
-        list.splice(insertAt === -1 ? list.length : insertAt, 0, item)
-      }
-    }
-    return list
-  }, [search, allThemes, highlightedId])
+    const base = search
+      ? allThemes.filter(t => t.nm.toLowerCase().includes(search.toLowerCase()))
+      : allThemes
+    return [...base].sort((a, b) => {
+      if (a.sys !== b.sys) return Number(b.sys) - Number(a.sys)
+      const at = a.updatedOn ? new Date(a.updatedOn).getTime() : 0
+      const bt = b.updatedOn ? new Date(b.updatedOn).getTime() : 0
+      return bt - at
+    })
+  }, [search, allThemes])
 
 
   function openDuplicate(theme: Theme) {

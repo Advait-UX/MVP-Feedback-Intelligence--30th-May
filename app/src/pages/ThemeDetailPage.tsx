@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Info, Lock, Save, ChevronDown, User, X } from 'lucide-react'
+import { Info, Lock, ChevronDown, User, X } from 'lucide-react'
 import {
   type Theme, type QType, type QuestionConfig, type MessageConfig,
   type ThemeValidationErrors,
@@ -131,12 +131,18 @@ function ChatPreview({ theme, activeQType }: { theme: Theme; activeQType: QType 
         )}
 
         {!isVerb && control === 'quickreply' && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {[1, 2, 3, 4, 5].map(n => (
-              <div key={n} style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--lyra-color-border-soft)', font: '500 12px/16px ' + F, color: 'var(--lyra-color-fg-default)' }}>
-                {n}
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[1, 2, 3, 4, 5].map(n => {
+              const label = n === 1 ? qConfig.lowLabel : n === 5 ? qConfig.highLabel : qConfig.midLabels[n - 2]
+              return (
+                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px', borderRadius: 6, border: '1px solid var(--lyra-color-border-soft)' }}>
+                  <span style={{ font: '500 12px/16px ' + F, color: 'var(--lyra-color-fg-default)' }}>{n}</span>
+                  {label && (
+                    <span style={{ font: '400 12px/16px ' + F, color: 'var(--lyra-color-fg-secondary)' }}>— {label}</span>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -175,7 +181,7 @@ function CharCount({ length, maxLen }: { length: number; maxLen: number }) {
   return (
     <span style={{
       flexShrink: 0, font: '400 12px/16px ' + F, letterSpacing: '0.2px',
-      color: length >= maxLen ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-fg-secondary)',
+      color: 'var(--lyra-color-fg-secondary)',
     }}>
       {length}/{maxLen}
     </span>
@@ -331,24 +337,34 @@ function SelectField({ id, value, onChange, options, disabled }: {
   options: { value: string; label: string }[]; disabled?: boolean
 }) {
   return (
-    <select
-      id={id}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      disabled={disabled}
-      style={{
-        height: 38, width: '100%', padding: '0 12px',
-        background:   disabled ? 'var(--lyra-color-bg-disabled)' : 'var(--lyra-color-bg-field)',
-        border:       '1px solid var(--lyra-color-border-soft)',
-        borderRadius: 'var(--radius-sm)',
-        font:         '400 14px/20px ' + F,
-        color:        disabled ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-default)',
-        cursor:       disabled ? 'not-allowed' : 'pointer',
-        outline:      'none', boxSizing: 'border-box',
-      }}
-    >
-      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
+    <div style={{ position: 'relative' }}>
+      <select
+        id={id}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        disabled={disabled}
+        style={{
+          appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+          height: 38, width: '100%', padding: '0 36px 0 12px',
+          background:   disabled ? 'var(--lyra-color-bg-disabled)' : 'var(--lyra-color-bg-field)',
+          border:       '1px solid var(--lyra-color-border-soft)',
+          borderRadius: 'var(--radius-sm)',
+          font:         '400 14px/20px ' + F,
+          color:        disabled ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-default)',
+          cursor:       disabled ? 'not-allowed' : 'pointer',
+          outline:      'none', boxSizing: 'border-box',
+        }}
+        onFocus={e => { if (!disabled) { e.currentTarget.style.borderColor = 'var(--lyra-color-border-active)'; e.currentTarget.style.boxShadow = 'var(--sol-effect-activering)' } }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'var(--lyra-color-border-soft)'; e.currentTarget.style.boxShadow = '' }}
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown size={14} style={{
+        position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+        color: disabled ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-secondary)',
+        pointerEvents: 'none',
+      }} />
+    </div>
   )
 }
 
@@ -573,7 +589,7 @@ export function ThemeDetailPage({
             <>
               <HeaderBtn onClick={onBack}>Cancel</HeaderBtn>
               <HeaderBtn onClick={handleSave} variant="primary" disabled={(isCreate ? !theme.nm.trim() : !isDirty) || nameDuplicate}>
-                <Save size={14} /> Save
+                Save
               </HeaderBtn>
             </>
           )}
