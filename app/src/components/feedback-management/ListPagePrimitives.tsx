@@ -119,7 +119,7 @@ export function StatusPill({ label, tone }: { label: string; tone: PillTone }) {
 }
 
 /* ── Row kebab menu — status-aware action popover ── */
-export function RowKebabMenu({ status = 'active' }: { status?: 'active' | 'inactive' | 'draft' }) {
+export function RowKebabMenu({ status = 'active', onDelete, onEdit }: { status?: 'active' | 'inactive' | 'draft'; onDelete?: () => void; onEdit?: () => void }) {
   const [open, setOpen] = useState(false)
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
   const ref = useRef<HTMLDivElement>(null)
@@ -157,7 +157,8 @@ export function RowKebabMenu({ status = 'active' }: { status?: 'active' | 'inact
         disabled={variant === 'disabled'}
         style={{
           width: '100%', textAlign: 'left', background: 'none', border: 'none',
-          padding: '0 8px', height: 24, borderRadius: 6, cursor: variant === 'disabled' ? 'default' : 'pointer',
+          padding: '0 var(--space-3)', height: 36, borderRadius: 'var(--radius-sm)',
+          cursor: variant === 'disabled' ? 'default' : 'pointer',
           font: '400 14px/20px var(--font-sans)', color, display: 'flex', alignItems: 'center',
         }}
         onMouseEnter={e => { if (variant !== 'disabled') (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
@@ -200,47 +201,43 @@ export function RowKebabMenu({ status = 'active' }: { status?: 'active' | 'inact
         >
           {/* Action card */}
           <div style={{
-            padding: 20,
+            padding: 'var(--space-2)',
             background: 'var(--lyra-color-bg-surface-overlay)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             outline: '1px solid var(--lyra-color-border-soft)',
-            boxShadow: '0px 12px 24px rgba(0, 0, 0, 0.08)',
+            boxShadow: 'var(--sol-effect-shadowlg)',
             display: 'flex',
             flexDirection: 'column',
-            gap: 8,
-            minWidth: 130,
+            gap: 2,
+            minWidth: 160,
             position: 'relative',
           }}>
             {/* Items above divider */}
             {status === 'active' && (
               <>
-                <MenuItem label="Edit" />
+                <MenuItem label="Edit" onClick={onEdit} />
                 <MenuItem label="Duplicate" />
-                <MenuItem label="Deactivate" />
               </>
             )}
             {status === 'inactive' && (
               <>
-                <MenuItem label="Edit" />
+                <MenuItem label="Edit" onClick={onEdit} />
                 <MenuItem label="Duplicate" />
                 <MenuItem label="Activate" />
               </>
             )}
             {status === 'draft' && (
               <>
-                <MenuItem label="Edit" />
+                <MenuItem label="Edit" onClick={onEdit} />
                 <MenuItem label="Activate" />
               </>
             )}
 
             {/* Divider */}
-            <div style={{ height: 1, background: 'var(--lyra-color-border-soft)', margin: '4px 0' }} />
+            <div style={{ height: 1, background: 'var(--lyra-color-border-subtle)', margin: 'var(--space-1) 0' }} />
 
             {/* Delete */}
-            <MenuItem
-              label="Delete"
-              variant={status === 'active' ? 'disabled' : 'danger'}
-            />
+            <MenuItem label="Delete" variant="danger" onClick={onDelete} />
 
             {/* Right-pointing arrow */}
             <div style={{
@@ -442,9 +439,9 @@ export function GridToolbar({ label, shown, total }: { label: string; shown: num
   )
 }
 
-export function TableShell({ children }: { children: React.ReactNode }) {
+export function TableShell({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', ...style }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: FONT, fontSize: 14 }}>
         {children}
       </table>
@@ -452,22 +449,23 @@ export function TableShell({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function Th({ children, align = 'left', width }: { children: React.ReactNode; align?: 'left' | 'right'; width?: number }) {
+export function Th({ children, align = 'left', width, style }: { children: React.ReactNode; align?: 'left' | 'right'; width?: number; style?: React.CSSProperties }) {
   return (
     <th style={{
       height: 48, padding: '0 var(--space-4)', textAlign: align,
       font: '500 14px/20px var(--font-sans)', fontFamily: FONT,
       color: 'var(--lyra-color-fg-default)', borderBottom: '1px solid var(--lyra-color-border-soft)',
       width, whiteSpace: 'nowrap',
+      ...style,
     }}>
       {children}
     </th>
   )
 }
 
-export function Td({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
+export function Td({ children, align = 'left', style }: { children: React.ReactNode; align?: 'left' | 'right'; style?: React.CSSProperties }) {
   return (
-    <td style={{ padding: 'var(--space-3) var(--space-4)', textAlign: align, color: 'var(--lyra-color-fg-default)', fontSize: 14 }}>
+    <td style={{ padding: 'var(--space-3) var(--space-4)', textAlign: align, color: 'var(--lyra-color-fg-default)', fontSize: 14, ...style }}>
       {children}
     </td>
   )

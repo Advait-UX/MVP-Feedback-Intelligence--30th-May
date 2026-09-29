@@ -13,6 +13,9 @@ import { ProgramsListPage } from './pages/ProgramsListPage'
 import { ThemesListPage } from './pages/ThemesListPage'
 import { ThemeDetailPage } from './pages/ThemeDetailPage'
 import { AlertsListPage } from './pages/AlertsListPage'
+import type { Alert } from './pages/AlertsListPage'
+import { CreateAlertPage } from './pages/CreateAlertPage'
+import { EditAlertPage } from './pages/EditAlertPage'
 import { ProgramHealthPage } from './pages/ProgramHealthPage'
 import { SurveyDetailPage } from './pages/SurveyDetailPage'
 import { CampaignInsightDashboard } from './components/feedback-intelligence/CampaignInsightDashboard'
@@ -399,6 +402,11 @@ export default function App() {
   const [draftedProgram, setDraftedProgram] = useState<{ id: string; name: string } | null>(null)
   const [savedProgram, setSavedProgram] = useState<{ id: string; name: string; editedBy: string; action?: 'deactivated' } | null>(null)
   const [themeId, setThemeId] = useState<string | null>(null)
+  const [newThemeId, setNewThemeId] = useState<string | null>(null)
+  const [showCreateAlert, setShowCreateAlert] = useState(false)
+  const [activatedAlert, setActivatedAlert] = useState<{ name: string } | null>(null)
+  const [editingAlert, setEditingAlert] = useState<Alert | null>(null)
+  const [savedAlert, setSavedAlert] = useState<{ id: string; name: string } | null>(null)
 
   // App-switcher routing (nice_world TopBar dropdown).
   const handleAppSwitch = (appLabel: string) => {
@@ -643,17 +651,46 @@ export default function App() {
       ) : fiSection === 'surveys' ? (
         <SurveyTemplatesPage />
       ) : fiSection === 'themes' ? (
-        themeId ? (
+        themeId === '__new__' ? (
+          <ThemeDetailPage
+            onBack={() => setThemeId(null)}
+            onCreated={(id) => { setThemeId(null); setNewThemeId(id) }}
+          />
+        ) : themeId ? (
           <ThemeDetailPage
             themeId={themeId}
             onBack={() => setThemeId(null)}
-            onDuplicate={(id) => setThemeId(id)}
           />
         ) : (
-          <ThemesListPage onSelectTheme={(id) => setThemeId(id)} />
+          <ThemesListPage
+            onSelectTheme={(id) => setThemeId(id)}
+            onCreateTheme={() => setThemeId('__new__')}
+            newlyCreatedId={newThemeId}
+            onClearNewlyCreated={() => setNewThemeId(null)}
+          />
         )
       ) : fiSection === 'alerts' ? (
-        <AlertsListPage />
+        showCreateAlert ? (
+          <CreateAlertPage
+            onCancel={() => setShowCreateAlert(false)}
+            onActivate={(name) => { setShowCreateAlert(false); setActivatedAlert({ name }) }}
+          />
+        ) : editingAlert ? (
+          <EditAlertPage
+            alert={editingAlert}
+            onCancel={() => setEditingAlert(null)}
+            onSave={(name) => { const id = editingAlert.id; setEditingAlert(null); setSavedAlert({ id, name }) }}
+          />
+        ) : (
+          <AlertsListPage
+            onCreateAlert={() => setShowCreateAlert(true)}
+            activatedAlert={activatedAlert}
+            onClearActivated={() => setActivatedAlert(null)}
+            onEditAlert={(alert) => setEditingAlert(alert)}
+            savedAlert={savedAlert}
+            onClearSaved={() => setSavedAlert(null)}
+          />
+        )
       ) : (
         <ProgramHealthPage />
       )}

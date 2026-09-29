@@ -6,6 +6,7 @@ export interface QuestionConfig {
   scaleLabels: boolean
   lowLabel: string
   highLabel: string
+  midLabels: [string, string, string]
   listPickerLabel: string
 }
 
@@ -26,10 +27,13 @@ export interface Theme {
   ch: ThemeChannel
   q: Record<QType, QuestionConfig>
   msg: MessageConfig
+  updatedOn?: string
+  updatedBy?: string
+  linkedPrograms?: string[]
 }
 
 export const CONTROL_OPTIONS: Record<ThemeChannel, { scale: string[]; verbatim: string[] }> = {
-  digital: { scale: ['quickreply', 'listpicker'], verbatim: ['textarea'] },
+  digital: { scale: ['listpicker', 'quickreply'], verbatim: ['textarea'] },
 }
 
 const DEFAULT_CONTROLS: Record<ThemeChannel, { scale: string; verbatim: string }> = {
@@ -42,6 +46,7 @@ function makeQ(ch: ThemeChannel): Record<QType, QuestionConfig> {
     scaleLabels: false,
     lowLabel: 'Very dissatisfied',
     highLabel: 'Very satisfied',
+    midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'],
     listPickerLabel: 'Rate your experience',
   }
   return {
@@ -74,24 +79,44 @@ export const db: { lf: Record<ThemeChannel, Theme[]> } = {
         ch:  'digital',
         q:   makeQ('digital'),
         msg: makeMsg(),
+        linkedPrograms: ['Billing Effort Score', 'Home service feedback survey', 'Tech support satisfaction survey', 'Product quality feedback survey', 'Fitness program satisfaction survey', 'Onboarding Feedback B2B'],
       },
       {
         id:  't3',
-        nm:  'Billing — Digital',
+        nm:  'Digital - Theme for billing related survey',
         sys: false,
         def: false,
         ds:  'Quick reply control with scale labels on. Used by the Billing Support program.',
         ch:  'digital',
         q: {
-          osat:     { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', listPickerLabel: 'Rate your experience' },
-          asat:     { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', listPickerLabel: 'Rate your experience' },
-          csat:     { control: 'quickreply', scaleLabels: false, lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', listPickerLabel: 'Rate your experience' },
-          verbatim: { control: 'textarea',   scaleLabels: false, lowLabel: '',                  highLabel: '',               listPickerLabel: '' },
+          osat:     { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
+          asat:     { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
+          csat:     { control: 'quickreply', scaleLabels: false, lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
+          verbatim: { control: 'textarea',   scaleLabels: false, lowLabel: '',                  highLabel: '',               midLabels: ['', '', ''],                             listPickerLabel: '' },
         },
         msg: {
           ...makeMsg(),
           intro: 'How was your billing support experience? Your feedback helps our team.',
         },
+        updatedOn: 'Aug 11, 2026 10:55:06 AM',
+        updatedBy: 'Maria',
+        linkedPrograms: ['Billing Effort Score'],
+      },
+      {
+        id:  't4',
+        nm:  'Digital - Theme for retail survey',
+        sys: false,
+        def: false,
+        ds:  'Quick reply control. Used by the Retail Feedback program.',
+        ch:  'digital',
+        q:   makeQ('digital'),
+        msg: {
+          ...makeMsg(),
+          intro: 'How was your shopping experience with us today?',
+        },
+        updatedOn: 'Aug 12, 2026 10:55:06 AM',
+        updatedBy: 'Dave',
+        linkedPrograms: [],
       },
     ],
   },
@@ -112,7 +137,16 @@ export function getControlOptions(ch: ThemeChannel, qType: QType): string[] {
 export function syncTheme(updated: Theme): void {
   const arr = db.lf[updated.ch]
   const idx = arr.findIndex(t => t.id === updated.id)
-  if (idx !== -1) arr[idx] = updated
+  if (idx !== -1) arr[idx] = { ...updated, updatedOn: nowStamp(), updatedBy: 'Advait Patil' }
+}
+
+function nowStamp(): string {
+  const now = new Date()
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  let h = now.getHours()
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  h = h % 12 || 12
+  return `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()} ${String(h).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} ${ampm}`
 }
 
 export function createTheme(nm: string, ch: ThemeChannel): Theme {
@@ -125,20 +159,66 @@ export function createTheme(nm: string, ch: ThemeChannel): Theme {
     ch,
     q:   makeQ(ch),
     msg: makeMsg(),
+    updatedOn: nowStamp(),
+    updatedBy: 'Advait Patil',
   }
   db.lf[ch].push(t)
   return t
 }
 
-export function duplicateTheme(theme: Theme): Theme {
-  const baseName = theme.sys ? 'Digital theme' : theme.nm
+export function makeDraftTheme(ch: ThemeChannel): Theme {
+  return {
+    id: '',
+    nm: '',
+    sys: false,
+    def: false,
+    ds: 'Custom digital theme',
+    ch,
+    q: makeQ(ch),
+    msg: makeMsg(),
+  }
+}
+
+export function saveNewTheme(theme: Theme): Theme {
+  const t: Theme = {
+    ...theme,
+    id: `t${Date.now()}`,
+    nm: sanitizeName(theme.nm).trim().slice(0, 50),
+    updatedOn: nowStamp(),
+    updatedBy: 'Advait Patil',
+  }
+  db.lf[theme.ch].push(t)
+  return t
+}
+
+export function suggestDuplicateName(theme: Theme): string {
+  const baseName = theme.sys ? 'Digital —' : theme.nm
+  const existing = new Set(getAllThemes().map(t => t.nm.trim().toLowerCase()))
+  let n = 1
+  let candidate = `${baseName} (Copy ${n})`.slice(0, 50)
+  while (existing.has(candidate.trim().toLowerCase())) {
+    n += 1
+    candidate = `${baseName} (Copy ${n})`.slice(0, 50)
+  }
+  return candidate
+}
+
+export function isThemeNameTaken(nm: string, excludeId?: string): boolean {
+  const q = nm.trim().toLowerCase()
+  return getAllThemes().some(t => t.id !== excludeId && t.nm.trim().toLowerCase() === q)
+}
+
+export function duplicateTheme(theme: Theme, name?: string): Theme {
+  const nm = (name?.trim() || suggestDuplicateName(theme)).slice(0, 50)
   const copy: Theme = {
     ...(JSON.parse(JSON.stringify(theme)) as Theme),
     id:  `t${Date.now()}`,
-    nm:  `${baseName} (copy)`.slice(0, 50),
+    nm,
     sys: false,
     def: false,
     ds:  'Custom digital theme',
+    updatedOn: nowStamp(),
+    updatedBy: 'Advait Patil',
   }
   db.lf[theme.ch].push(copy)
   return copy
