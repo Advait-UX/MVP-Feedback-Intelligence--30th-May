@@ -30,7 +30,7 @@ export default defineConfig(({ command }) => {
     : 'prototype.html'
 
   return {
-    base: '/Feedback-Intelligence---Enhanced-Version-July-2026/',
+    base: '/MVP-Feedback-Intelligence--30th-May/',
     server: { port: process.env.PORT ? parseInt(process.env.PORT) : 5173 },
     plugins: [react(), tailwindcss(), protoHashPlugin()],
     define: {
