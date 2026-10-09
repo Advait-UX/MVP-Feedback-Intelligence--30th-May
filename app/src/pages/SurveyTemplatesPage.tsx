@@ -1,10 +1,76 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown, Info } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  ListPageHeader, SearchInput, StatusPill,
+  ListPageHeader, SearchInput, StatusPill, GridPanel, GridToolbar,
 } from '@/components/feedback-management/ListPagePrimitives'
+
+const SURVEYS_PAGE_SIZE = 50
+
+function SurveysPagBtn({ children, onClick, disabled, 'aria-label': ariaLabel }: {
+  children: React.ReactNode; onClick: () => void; disabled: boolean; 'aria-label': string
+}) {
+  return (
+    <button
+      onClick={onClick} disabled={disabled} aria-label={ariaLabel}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: 28, height: 28, borderRadius: 'var(--radius-xs)',
+        border: '1px solid var(--lyra-color-border-soft)',
+        background: 'var(--lyra-color-bg-surface-base)',
+        color: disabled ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-default)',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
+      onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function SurveysPagination({
+  page, totalPages, totalItems, pageSize, onPage,
+}: {
+  page: number; totalPages: number; totalItems: number; pageSize: number; onPage: (p: number) => void
+}) {
+  const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
+  const end = Math.min(page * pageSize, totalItems)
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      height: 48, padding: '0 12px', flexShrink: 0,
+      borderTop: '1px solid var(--lyra-color-border-subtle)',
+      background: 'var(--lyra-color-bg-surface-base)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <SurveysPagBtn onClick={() => onPage(1)} disabled={page === 1} aria-label="First page"><ChevronsLeft size={14} /></SurveysPagBtn>
+        <SurveysPagBtn onClick={() => onPage(page - 1)} disabled={page === 1} aria-label="Previous page"><ChevronLeft size={14} /></SurveysPagBtn>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
+          Page
+          <input
+            type="number" min={1} max={totalPages} value={page}
+            onChange={e => { const v = parseInt(e.target.value); if (v >= 1 && v <= totalPages) onPage(v) }}
+            style={{
+              width: 40, height: 28, textAlign: 'center',
+              border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-xs)',
+              font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)',
+              background: 'var(--lyra-color-bg-surface-base)', outline: 'none',
+            }}
+          />
+          of {totalPages}
+        </span>
+        <SurveysPagBtn onClick={() => onPage(page + 1)} disabled={page === totalPages} aria-label="Next page"><ChevronRight size={14} /></SurveysPagBtn>
+        <SurveysPagBtn onClick={() => onPage(totalPages)} disabled={page === totalPages} aria-label="Last page"><ChevronsRight size={14} /></SurveysPagBtn>
+      </div>
+      <span style={{ font: '400 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>
+        {start}–{end} of {totalItems} surveys
+      </span>
+    </div>
+  )
+}
 
 /* ============================================================
  * Surveys Page — TypeScript port of lyra/designs.jsx
@@ -608,6 +674,7 @@ function SurveyDesignsGrid({
   highlightId?: string | null
 }) {
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [deletedIds, setDeletedIds] = useState<string[]>([])
   const [sortCol, setSortCol] = useState<'date' | 'programs'>('date')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
@@ -621,7 +688,7 @@ function SurveyDesignsGrid({
   const newDesignIds = new Set(newDesigns.map(d => d.id))
   const allDesigns = [...newDesigns, ...SEED_DESIGNS.filter(d => !newDesignIds.has(d.id))]
   const dateSortKey = (d: SurveyDesign) => d._sortTs ?? (new Date(d.updated ?? '').getTime() || 0)
-  const rows = allDesigns
+  const filteredRows = allDesigns
     .filter(d => {
       if (deletedIds.includes(d.id)) return false
       if (typeFilter && typeOf(d) !== typeFilter) return false
@@ -633,6 +700,9 @@ function SurveyDesignsGrid({
       const bv = sortCol === 'programs' ? (b.usedBy ?? 0) : dateSortKey(b)
       return sortDir === 'asc' ? av - bv : bv - av
     })
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / SURVEYS_PAGE_SIZE))
+  const rows = filteredRows.slice((page - 1) * SURVEYS_PAGE_SIZE, page * SURVEYS_PAGE_SIZE)
 
   const total = allDesigns.filter(d => !deletedIds.includes(d.id)).length
   const isFilterActive = typeFilter !== ''
@@ -655,27 +725,28 @@ function SurveyDesignsGrid({
       />
 
       {/* Scrollable content frame — pt-32 px-32 pb-0 per Figma */}
-      <div className="flex-1 overflow-auto" style={{ padding: 'var(--space-7) var(--space-7) 0' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-7)', minHeight: '100%' }}>
+      <div className="flex-1 flex flex-col overflow-hidden" style={{ padding: 'var(--space-7) var(--space-7) 0' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-7)', overflow: 'hidden', minHeight: 0 }}>
 
           {/* Description */}
           <p style={{
             margin: 0,
             font: '400 14px/20px var(--font-sans)',
             color: 'var(--lyra-color-fg-default)',
+            flexShrink: 0,
           }}>
             Channel-agnostic definitions — the questions and their scales, nothing else. How they look and read comes from the theme; who is asked comes from the program.
           </p>
 
           {/* Grid section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', overflow: 'hidden', minHeight: 0, paddingBottom: 'var(--space-7)' }}>
 
             {/* Filter bar — above Grid Panel */}
             <div style={{
               display: 'flex', flexWrap: 'wrap', alignItems: 'center',
-              gap: 'var(--space-2)', minHeight: 32,
+              gap: 'var(--space-2)', minHeight: 32, flexShrink: 0,
             }}>
-              <SearchInput value={search} onChange={setSearch} placeholder="Search Surveys" />
+              <SearchInput value={search} onChange={v => { setSearch(v); setPage(1) }} placeholder="Search Surveys" />
 
               {/* Query chip: Type: Select */}
               <div style={{
@@ -706,7 +777,7 @@ function SurveyDesignsGrid({
                 </span>
                 <select
                   value={typeFilter}
-                  onChange={e => setTypeFilter(e.target.value as '' | 'Contextual' | 'Manual')}
+                  onChange={e => { setTypeFilter(e.target.value as '' | 'Contextual' | 'Manual'); setPage(1) }}
                   style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
                   aria-label="Filter by type"
                 >
@@ -720,7 +791,7 @@ function SurveyDesignsGrid({
               {/* Clear ghost button */}
               {isFilterActive && (
                 <button
-                  onClick={() => setTypeFilter('')}
+                  onClick={() => { setTypeFilter(''); setPage(1) }}
                   style={{
                     background: 'none', border: 'none', padding: '0 var(--space-2)',
                     font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-link)',
@@ -735,22 +806,11 @@ function SurveyDesignsGrid({
             </div>
 
             {/* Grid Panel */}
-            <div style={{ borderRadius: 'var(--lyra-radius-lg, 12px)', overflow: 'hidden' }}>
-              {/* Toolbar */}
-              <div style={{
-                height: 56,
-                display: 'flex', alignItems: 'center',
-                padding: '0 var(--space-4)',
-                borderBottom: '1px solid var(--lyra-color-border-subtle)',
-                flexShrink: 0,
-              }}>
-                <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
-                  Surveys - {rows.length}/{total}
-                </span>
-              </div>
+            <GridPanel>
+              <GridToolbar label="Surveys" shown={filteredRows.length} total={total} />
 
               {/* Table */}
-              <div style={{ overflowX: 'auto' }}>
+              <div className="flex-1 overflow-auto">
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-sans)' }}>
                   <thead>
                     <tr>
@@ -880,7 +940,15 @@ function SurveyDesignsGrid({
                   </tbody>
                 </table>
               </div>
-            </div>
+
+              <SurveysPagination
+                page={page}
+                totalPages={totalPages}
+                totalItems={filteredRows.length}
+                pageSize={SURVEYS_PAGE_SIZE}
+                onPage={setPage}
+              />
+            </GridPanel>
           </div>
         </div>
       </div>

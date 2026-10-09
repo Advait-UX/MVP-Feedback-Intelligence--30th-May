@@ -80,7 +80,6 @@ function PagBtn({ children, onClick, disabled, label }: { children: React.ReactN
 function AddRecipientsModal({ selected, onConfirm, onClose }: { selected: string[]; onConfirm: (ids: string[]) => void; onClose: () => void }) {
   const MAX_RECIPIENTS = 5
   const [leftSearch, setLeftSearch] = useState('')
-  const [rightSearch, setRightSearch] = useState('')
   const [localSelected, setLocalSelected] = useState<string[]>(selected)
   const [page, setPage] = useState(1)
 
@@ -93,10 +92,6 @@ function AddRecipientsModal({ selected, onConfirm, onClose }: { selected: string
   const pageUsers = filtered.slice((page - 1) * MODAL_PAGE_SIZE, page * MODAL_PAGE_SIZE)
 
   const selectedUsers = useMemo(() => ALL_USERS.filter(u => localSelected.includes(u.id)), [localSelected])
-  const filteredSelected = useMemo(() => {
-    const q = rightSearch.toLowerCase()
-    return q ? selectedUsers.filter(u => u.name.toLowerCase().includes(q)) : selectedUsers
-  }, [selectedUsers, rightSearch])
 
   const toggle = (id: string) => {
     setLocalSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : prev.length < MAX_RECIPIENTS ? [...prev, id] : prev)
@@ -132,9 +127,9 @@ function AddRecipientsModal({ selected, onConfirm, onClose }: { selected: string
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
           {/* Info banner */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)', padding: 'var(--space-3) var(--space-4)', background: 'var(--lyra-color-status-info-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)', padding: 'var(--space-3) var(--space-4)', background: 'var(--lyra-color-status-info-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Info size={16} style={{ color: 'var(--lyra-color-status-info-strong)' }} />
             </div>
@@ -144,10 +139,10 @@ function AddRecipientsModal({ selected, onConfirm, onClose }: { selected: string
           </div>
 
           {/* Two-panel row */}
-          <div style={{ display: 'flex', gap: 'var(--space-6)', alignItems: 'flex-start' }}>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 'var(--space-6)', alignItems: 'stretch' }}>
             {/* Left panel */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minWidth: 0 }}>
-              <div style={{ ...inputBase, width: 280 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minWidth: 0, minHeight: 0 }}>
+              <div style={{ ...inputBase, width: 280, flexShrink: 0 }}>
                 <Search size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
                 <input
                   type="text" placeholder="Start typing to find recipients" value={leftSearch}
@@ -155,15 +150,15 @@ function AddRecipientsModal({ selected, onConfirm, onClose }: { selected: string
                   style={{ flex: 1, border: 'none', outline: 'none', background: 'none', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
                 />
               </div>
-              <div style={{ border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
                 {/* Toolbar */}
-                <div style={{ height: 48, padding: '0 var(--space-4)', display: 'flex', alignItems: 'center', background: 'var(--lyra-color-bg-surface-shell)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+                <div style={{ height: 48, flexShrink: 0, padding: '0 var(--space-4)', display: 'flex', alignItems: 'center', background: 'var(--lyra-color-bg-surface-shell)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                   <span style={{ font: '500 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>
                     {filtered.length} users {' '}|{' '} {localSelected.length} selected
                   </span>
                 </div>
                 {/* Table */}
-                <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', position: 'sticky', top: 0, background: 'var(--lyra-color-bg-surface-base)', zIndex: 1 }}>
@@ -221,24 +216,18 @@ function AddRecipientsModal({ selected, onConfirm, onClose }: { selected: string
             </div>
 
             {/* Right panel — selected */}
-            <div style={{ width: 300, flexShrink: 0, border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
-              <div style={{ height: 48, padding: '0 var(--space-4)', display: 'flex', alignItems: 'center', background: 'var(--lyra-color-bg-surface-shell)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                <span style={{ font: '500 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>{localSelected.length} selected</span>
-              </div>
-              <div style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', maxHeight: 420, overflowY: 'auto' }}>
-                <div style={{ ...inputBase }}>
-                  <Search size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
-                  <input
-                    type="text" placeholder="Search" value={rightSearch}
-                    onChange={e => setRightSearch(e.target.value)}
-                    style={{ flex: 1, border: 'none', outline: 'none', background: 'none', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
-                  />
+            <div style={{ width: 300, flexShrink: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+              {/* Spacer — aligns this panel's box top with the left panel's box top (below its search field) */}
+              <div style={{ height: 32, marginBottom: 'var(--space-4)', flexShrink: 0 }} />
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
+                <div style={{ height: 48, flexShrink: 0, padding: '0 var(--space-4)', display: 'flex', alignItems: 'center', background: 'var(--lyra-color-bg-surface-shell)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+                  <span style={{ font: '500 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>{localSelected.length} selected</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                  {filteredSelected.length === 0 && (
+                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                  {selectedUsers.length === 0 && (
                     <span style={{ font: '400 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>No recipients selected</span>
                   )}
-                  {filteredSelected.map(u => (
+                  {selectedUsers.map(u => (
                     <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
                       <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</span>
                       <button
@@ -303,8 +292,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 }
 
 /* ─── Inline select chip ─── */
-function DropdownList({ options, value, onSelect, prefix }: {
-  options: string[]; value: string; onSelect: (v: string) => void; prefix?: string
+function DropdownList({ options, value, onSelect, prefix, disabledOptions }: {
+  options: string[]; value: string; onSelect: (v: string) => void; prefix?: string; disabledOptions?: string[]
 }) {
   return (
     <div style={{
@@ -315,137 +304,89 @@ function DropdownList({ options, value, onSelect, prefix }: {
       boxShadow: 'var(--sol-effect-shadowlg)',
       zIndex: 999, minWidth: 160, padding: 'var(--space-1)',
     }}>
-      {options.map(opt => (
-        <button
-          key={opt}
-          onClick={() => onSelect(opt)}
-          style={{
-            display: 'block', width: '100%', textAlign: 'left',
-            padding: '6px var(--space-3)', background: 'none', border: 'none',
-            font: `${opt === value ? 500 : 400} 14px/20px var(--font-sans)`, cursor: 'pointer',
-            color: opt === value ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-default)',
-            borderRadius: 'var(--radius-sm)',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
-        >
-          {prefix ? `${prefix} ${opt}` : opt}
-        </button>
-      ))}
+      {options.map(opt => {
+        const isDisabled = disabledOptions?.includes(opt) ?? false
+        return (
+          <button
+            key={opt}
+            onClick={() => { if (!isDisabled) onSelect(opt) }}
+            disabled={isDisabled}
+            style={{
+              display: 'block', width: '100%', textAlign: 'left',
+              padding: '6px var(--space-3)', background: 'none', border: 'none',
+              font: `${opt === value ? 500 : 400} 14px/20px var(--font-sans)`,
+              cursor: isDisabled ? 'not-allowed' : 'pointer',
+              color: isDisabled ? 'var(--lyra-color-fg-disabled)' : opt === value ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-default)',
+              borderRadius: 'var(--radius-sm)',
+            }}
+            onMouseEnter={e => { if (!isDisabled) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
+          >
+            {prefix ? `${prefix} ${opt}` : opt}
+          </button>
+        )
+      })}
     </div>
   )
 }
 
-function QueryChip({
-  label,
-  value,
-  options,
-  onChange,
-  prefix,
-  status = 'active',
-  operatorValue,
-  operatorOptions,
-  onOperatorChange,
-}: {
-  label?: string
-  value: string
-  options: string[]
-  onChange: (v: string) => void
-  prefix?: string
-  status?: 'active' | 'inactive'
-  operatorValue?: string
-  operatorOptions?: string[]
-  onOperatorChange?: (v: string) => void
+/* ─── Bordered field dropdown — matches Figma condition-row select style ─── */
+function FieldSelect({ value, options, onChange, width, disabledOptions }: {
+  value: string; options: string[]; onChange: (v: string) => void; width: number; disabledOptions?: string[]
 }) {
-  const [openValue, setOpenValue] = useState(false)
-  const [openOperator, setOpenOperator] = useState(false)
-  const isActive = status === 'active'
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!openValue && !openOperator) return
+    if (!open) return
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpenValue(false)
-        setOpenOperator(false)
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [openValue, openOperator])
-
-  const chipStyle: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', height: 32,
-    borderRadius: 'var(--radius-md)', overflow: 'hidden',
-    border: `1px solid ${isActive ? 'var(--lyra-color-border-active)' : 'var(--lyra-color-border-soft)'}`,
-    background: isActive ? 'var(--lyra-color-bg-active-subtle)' : 'rgba(0, 0, 0, 0.02)',
-  }
+  }, [open])
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', display: 'inline-flex' }}>
-      <div style={chipStyle}>
-        {/* Label section — pl-8 pr-4 */}
-        {label && isActive && (
-          <div style={{ paddingLeft: 8, paddingRight: 4, display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-            <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-active-strong)' }}>{label}</span>
-            <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-active-strong)' }}>:</span>
-          </div>
-        )}
-
-        {/* Operator section (inside combined chip) — pl-8 pr-8 */}
-        {operatorValue !== undefined && isActive && (
-          <button
-            onClick={() => { setOpenOperator(v => !v); setOpenValue(false) }}
-            style={{ height: 32, paddingLeft: 8, paddingRight: 8, display: 'flex', alignItems: 'center', gap: 4, border: 'none', background: 'none', cursor: 'pointer', flexShrink: 0 }}
-          >
-            <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-active-strong)' }}>{operatorValue}</span>
-            <ChevronDown size={12} style={{ color: 'var(--lyra-color-fg-active-strong)', flexShrink: 0 }} />
-          </button>
-        )}
-
-        {/* Value section — pl-8 pr-8 */}
-        <button
-          onClick={() => { setOpenValue(v => !v); setOpenOperator(false) }}
-          style={{ height: 32, paddingLeft: 8, paddingRight: 8, display: 'flex', alignItems: 'center', gap: 4, border: 'none', background: 'none', cursor: isActive ? 'pointer' : 'pointer', flexShrink: 0 }}
-        >
-          {isActive ? (
-            <>
-              <span style={{
-                paddingLeft: 4, paddingRight: 4,
-                background: 'var(--lyra-color-state-bg-pressed-active-subtle)',
-                borderRadius: 4, font: '400 14px/20px var(--font-sans)',
-                color: 'var(--lyra-color-fg-active-strong)',
-              }}>
-                {prefix ? `${prefix} ${value}` : value}
-              </span>
-              <ChevronDown size={12} style={{ color: 'var(--lyra-color-fg-active-strong)', flexShrink: 0 }} />
-            </>
-          ) : (
-            <>
-              <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
-                {prefix ? `${prefix} ${value}` : value}
-              </span>
-              <ChevronDown size={12} style={{ color: 'var(--lyra-color-fg-default)', flexShrink: 0 }} />
-            </>
-          )}
-        </button>
-      </div>
-
-      {openOperator && operatorOptions && (
-        <DropdownList
-          options={operatorOptions}
-          value={operatorValue ?? ''}
-          onSelect={v => { onOperatorChange?.(v); setOpenOperator(false) }}
-        />
-      )}
-      {openValue && (
+    <div ref={ref} style={{ position: 'relative', width }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width: '100%', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          paddingLeft: 12, paddingRight: 12,
+          background: 'var(--lyra-color-bg-field)',
+          border: '1px solid var(--lyra-color-border-strong)',
+          borderRadius: 'var(--radius-md)',
+          cursor: 'pointer',
+        }}
+      >
+        <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {value}
+        </span>
+        <ChevronDown size={14} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
+      </button>
+      {open && (
         <DropdownList
           options={options}
           value={value}
-          onSelect={v => { onChange(v); setOpenValue(false) }}
-          prefix={prefix}
+          onSelect={v => { onChange(v); setOpen(false) }}
+          disabledOptions={disabledOptions}
         />
       )}
+    </div>
+  )
+}
+
+/* ─── "Trigger an alert when [any/all] of the following conditions are met" header ─── */
+function MatchTypeHeader({ value }: { value: 'any' | 'all' }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+      <span style={{ font: '500 16px/20px var(--font-sans)', letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>
+        Trigger an alert when
+      </span>
+      <span style={{ font: '700 16px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>{value}</span>
+      <span style={{ font: '500 16px/20px var(--font-sans)', letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>
+        of the following conditions are met
+      </span>
     </div>
   )
 }
@@ -531,15 +472,87 @@ function SummaryDivider() {
 
 type Criterion = { scoreType: string; operator: string; value: string; outOf: string }
 
+/* Zero-padded value options from 01 up to outOf (e.g. '05' -> 01..05, '10' -> 01..10) */
+function valueOptionsFor(outOf: string): string[] {
+  const max = parseInt(outOf, 10) || 5
+  return Array.from({ length: max }, (_, i) => String(i + 1).padStart(2, '0'))
+}
+
+/* "Below 01" and "Above <outOf>" are not meaningful — disable those value options */
+function disabledValuesFor(operator: string, outOf: string): string[] {
+  const disabled: string[] = []
+  if (operator === 'Below') disabled.push('01')
+  if (operator === 'Above') disabled.push(outOf)
+  return disabled
+}
+
+type ConditionIssue = { message: string }
+
+/*
+ * Validates the criteria list for two real usability problems:
+ *  1. Exact duplicates — the same score type + operator + value + scale added twice.
+ *     This is pointless regardless of "any"/"all" and is always flagged.
+ *  2. Contradictions — only possible when matchType is "all" (every condition must hold
+ *     at once). Two conditions on the same score type + scale can define an impossible
+ *     range (e.g. "ASAT below 2" AND "ASAT above 3" can never both be true), which would
+ *     make the alert never fire. Conditions on different score types, or different "any"
+ *     branches, are never contradictory — each is independently sufficient.
+ * Conditions with different operators/values on the same score type + scale (e.g. "Below 2"
+ * and "Above 3" in "any" mode) are a perfectly valid, non-redundant OR — they are NOT flagged.
+ */
+function getConditionIssues(criteria: Criterion[], matchType: 'any' | 'all'): Record<number, ConditionIssue> {
+  const issues: Record<number, ConditionIssue> = {}
+
+  // 1. Exact duplicates
+  const exactGroups: Record<string, number[]> = {}
+  criteria.forEach((c, i) => {
+    const k = `${c.scoreType}|${c.operator}|${c.value}|${c.outOf}`
+    ;(exactGroups[k] ||= []).push(i)
+  })
+  Object.values(exactGroups).forEach(idxs => {
+    if (idxs.length > 1) {
+      idxs.forEach(i => { issues[i] = { message: 'Duplicate condition. This exact condition has already been added.' } })
+    }
+  })
+
+  // 2. Contradictions — only meaningful when every condition must hold simultaneously
+  if (matchType === 'all') {
+    const scaleGroups: Record<string, number[]> = {}
+    criteria.forEach((c, i) => {
+      if (issues[i]) return
+      const k = `${c.scoreType}|${c.outOf}`
+      ;(scaleGroups[k] ||= []).push(i)
+    })
+    Object.values(scaleGroups).forEach(idxs => {
+      if (idxs.length < 2) return
+      let lo = -Infinity
+      let hi = Infinity
+      idxs.forEach(i => {
+        const c = criteria[i]
+        const v = parseInt(c.value, 10)
+        if (c.operator === 'Below') hi = Math.min(hi, v - 0.01)
+        else if (c.operator === 'Above') lo = Math.max(lo, v + 0.01)
+        else if (c.operator === 'Equal to') { lo = Math.max(lo, v); hi = Math.min(hi, v) }
+      })
+      if (lo > hi) {
+        idxs.forEach(i => { issues[i] = { message: 'These conditions can never all be true at once — the alert would never fire.' } })
+      }
+    })
+  }
+
+  return issues
+}
+
 /* ─── Main page ─── */
-export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void; onActivate?: (name: string) => void }) {
+export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void; onActivate?: (data: { name: string; criteria: Criterion[] }) => void }) {
   const [alertName, setAlertName] = useState('')
   const [nameCharError, setNameCharError] = useState(false)
   const [showNameError, setShowNameError] = useState(false)
   const [nameDuplicate, setNameDuplicate] = useState(false)
   const [criteria, setCriteria] = useState<Criterion[]>([
-    { scoreType: 'CSAT', operator: 'At or below', value: '02', outOf: '05' },
+    { scoreType: 'CSAT', operator: 'Below', value: '02', outOf: '05' },
   ])
+  const [matchType, setMatchType] = useState<'any' | 'all'>('any')
   const [notifySupervisor, setNotifySupervisor] = useState(true)
   const [emailNotif, setEmailNotif] = useState(true)
   const [inAppNotif, setInAppNotif] = useState(true)
@@ -547,13 +560,22 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
   const [additionalRecipients, setAdditionalRecipients] = useState<string[]>([])
   const [showCancelModal, setShowCancelModal] = useState(false)
 
-  const scoreTypeCounts = criteria.reduce((acc, c) => { acc[c.scoreType] = (acc[c.scoreType] || 0) + 1; return acc }, {} as Record<string, number>)
-  const hasDuplicates = Object.values(scoreTypeCounts).some(n => n > 1)
+  const conditionIssues = useMemo(() => getConditionIssues(criteria, matchType), [criteria, matchType])
+  const hasDuplicates = Object.keys(conditionIssues).length > 0
 
   const updateCriterion = (idx: number, field: keyof Criterion, val: string) =>
-    setCriteria(prev => prev.map((c, i) => i === idx ? { ...c, [field]: val } : c))
+    setCriteria(prev => prev.map((c, i) => {
+      if (i !== idx) return c
+      const next = { ...c, [field]: val }
+      const options = valueOptionsFor(next.outOf)
+      const disabled = disabledValuesFor(next.operator, next.outOf)
+      if (!options.includes(next.value) || disabled.includes(next.value)) {
+        next.value = options.find(o => !disabled.includes(o)) ?? next.value
+      }
+      return next
+    }))
   const addCriterion = () =>
-    setCriteria(prev => [...prev, { scoreType: 'ASAT', operator: 'At or below', value: '02', outOf: '05' }])
+    setCriteria(prev => [...prev, { scoreType: 'ASAT', operator: 'Below', value: '02', outOf: '05' }])
   const removeCriterion = (idx: number) =>
     setCriteria(prev => prev.filter((_, i) => i !== idx))
 
@@ -612,24 +634,7 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
           >
             Cancel
           </button>
-          {/* Save as draft */}
-          <button
-            disabled={!canSave}
-            onClick={() => { if (!canSave) return }}
-            style={{
-              height: 36, padding: '0 var(--space-4)', borderRadius: 'var(--radius-md)',
-              border: canSave ? '1px solid var(--lyra-color-border-soft)' : 'none',
-              background: canSave ? 'var(--lyra-color-bg-surface-base)' : 'var(--lyra-color-bg-disabled)',
-              font: '500 14px/20px var(--font-sans)',
-              color: canSave ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-disabled)',
-              cursor: canSave ? 'pointer' : 'not-allowed', fontFamily: FONT,
-            }}
-            onMouseEnter={e => { if (canSave) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-            onMouseLeave={e => { if (canSave) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
-          >
-            Save as draft
-          </button>
-          {/* Activate */}
+          {/* Save */}
           <button
             disabled={!canActivate}
             style={{
@@ -642,9 +647,9 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
             }}
             onMouseEnter={e => { if (canActivate) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-primary)' }}
             onMouseLeave={e => { if (canActivate) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-primary)' }}
-            onClick={() => { if (canActivate) onActivate?.(alertName.trim()) }}
+            onClick={() => { if (canActivate) onActivate?.({ name: alertName.trim(), criteria }) }}
           >
-            Activate
+            Save
           </button>
         </div>
       </div>
@@ -759,79 +764,84 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
             </div>
 
             {/* When should a notification be sent? */}
-            <Panel
-              title="When should a notification be sent?"
-              infoText="Define the score conditions that trigger a notification to be sent to the selected recipients."
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {criteria.map((c, idx) => {
-                  const isDup = (scoreTypeCounts[c.scoreType] || 0) > 1
-                  return (
-                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-2)' }}>
-                        <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>If</span>
-                        <QueryChip
-                          label="Score type"
-                          value={c.scoreType}
-                          options={['CSAT', 'ASAT']}
-                          onChange={v => updateCriterion(idx, 'scoreType', v)}
-                        />
-                        <QueryChip
-                          label="Is"
-                          operatorValue={c.operator}
-                          operatorOptions={['At or below', 'Below', 'Equal to', 'At or above', 'Above']}
-                          onOperatorChange={v => updateCriterion(idx, 'operator', v)}
-                          value={c.value}
-                          options={['01', '02', '03', '04', '05']}
-                          onChange={v => updateCriterion(idx, 'value', v)}
-                        />
-                        <div style={{
-                          display: 'inline-flex', alignItems: 'center', height: 32,
-                          padding: '0 8px', gap: 4,
-                          border: '1px solid var(--lyra-color-border-soft)',
-                          borderRadius: 'var(--radius-md)',
-                          background: 'rgba(0,0,0,0.02)',
-                          cursor: 'default',
-                        }}>
-                          <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
-                            Out of: {c.outOf}
-                          </span>
-                          <ChevronDown size={12} style={{ color: 'var(--lyra-color-fg-default)', flexShrink: 0 }} />
+            <div style={{
+              background: 'var(--lyra-color-bg-surface-base)',
+              border: '1px solid var(--lyra-color-border-subtle)',
+              borderRadius: 'var(--radius-lg)',
+            }}>
+              {/* Toolbar */}
+              <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                <MatchTypeHeader value={matchType} />
+              </div>
+              {/* Content */}
+              <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                  {criteria.map((c, idx) => {
+                    const issue = conditionIssues[idx]
+                    return (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-2)' }}>
+                          <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>If</span>
+                          <FieldSelect
+                            value={c.scoreType}
+                            options={['CSAT', 'ASAT']}
+                            onChange={v => updateCriterion(idx, 'scoreType', v)}
+                            width={180}
+                          />
+                          <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>is</span>
+                          <FieldSelect
+                            value={c.operator}
+                            options={['Below', 'Equal to', 'Above']}
+                            onChange={v => updateCriterion(idx, 'operator', v)}
+                            width={140}
+                          />
+                          <FieldSelect
+                            value={c.value}
+                            options={valueOptionsFor(c.outOf)}
+                            disabledOptions={disabledValuesFor(c.operator, c.outOf)}
+                            onChange={v => updateCriterion(idx, 'value', v)}
+                            width={65}
+                          />
+                          <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>out of</span>
+                          <FieldSelect
+                            value={c.outOf}
+                            options={['05', '10']}
+                            onChange={v => updateCriterion(idx, 'outOf', v)}
+                            width={65}
+                          />
+                          {idx > 0 && (
+                            <button
+                              onClick={() => removeCriterion(idx)}
+                              aria-label="Remove criterion"
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                width: 24, height: 24, border: 'none', background: 'none',
+                                cursor: 'pointer', color: 'var(--lyra-color-fg-secondary)',
+                                borderRadius: 'var(--radius-xs)', padding: 0, flexShrink: 0,
+                              }}
+                              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--lyra-color-state-bg-hover-opacity)'; el.style.color = 'var(--lyra-color-fg-default)' }}
+                              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'none'; el.style.color = 'var(--lyra-color-fg-secondary)' }}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
                         </div>
-                        <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>
-                          then send the notification
-                        </span>
-                        {idx > 0 && (
-                          <button
-                            onClick={() => removeCriterion(idx)}
-                            aria-label="Remove criterion"
-                            style={{
-                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                              width: 24, height: 24, border: 'none', background: 'none',
-                              cursor: 'pointer', color: 'var(--lyra-color-fg-secondary)',
-                              borderRadius: 'var(--radius-xs)', padding: 0, flexShrink: 0,
-                            }}
-                            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--lyra-color-state-bg-hover-opacity)'; el.style.color = 'var(--lyra-color-fg-default)' }}
-                            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'none'; el.style.color = 'var(--lyra-color-fg-secondary)' }}
-                          >
-                            <X size={14} />
-                          </button>
+                        {issue && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', paddingLeft: 20 }}>
+                            <Info size={12} style={{ color: 'var(--lyra-color-status-critical-strong)', flexShrink: 0 }} />
+                            <span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-status-critical-strong)', fontFamily: FONT, letterSpacing: '0.01em' }}>
+                              {issue.message}
+                            </span>
+                          </div>
                         )}
                       </div>
-                      {isDup && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', paddingLeft: 20 }}>
-                          <Info size={12} style={{ color: 'var(--lyra-color-status-critical-strong)', flexShrink: 0 }} />
-                          <span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-status-critical-strong)', fontFamily: FONT, letterSpacing: '0.01em' }}>
-                            Duplicate score type. Each score type can only appear once.
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-                <SecBtn label="Add criteria for notification" icon={<Plus size={14} />} disabled={criteria.length >= 5} onClick={addCriterion} />
+                    )
+                  })}
+                </div>
+                <div style={{ height: 0, borderTop: '1px solid var(--lyra-color-border-soft)' }} />
+                <SecBtn label="Add criteria" icon={<Plus size={14} />} disabled={criteria.length >= 5} onClick={addCriterion} width={140} />
               </div>
-            </Panel>
+            </div>
 
             {/* Who is notified? */}
             <Panel title="Who is notified?">
@@ -927,7 +937,7 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
                     </div>
                   </div>
                 )}
-                {!notifySupervisor && (
+                {!notifySupervisor && additionalRecipients.length === 0 && (
                   <div style={{
                     display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)',
                     width: '100%', padding: 'var(--space-3) var(--space-4)',

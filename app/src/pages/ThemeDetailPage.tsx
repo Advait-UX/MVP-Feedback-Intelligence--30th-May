@@ -1230,16 +1230,13 @@ export function ThemeDetailPage({
                 <div
                   key={programName + idx}
                   style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    display: 'flex', alignItems: 'center',
                     padding: '12px 0',
                     borderBottom: idx < (theme.linkedPrograms?.length ?? 0) - 1 ? '1px solid var(--lyra-color-border-subtle)' : 'none',
                   }}
                 >
-                  <span style={{ font: '400 14px/20px ' + F, color: 'var(--lyra-color-fg-default)' }}>
+                  <span style={{ font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-link)', textDecoration: 'none', cursor: 'pointer' }}>
                     {programName}
-                  </span>
-                  <span style={{ font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-link)', cursor: 'pointer' }}>
-                    View
                   </span>
                 </div>
               ))}

@@ -13,7 +13,7 @@ import { ProgramsListPage } from './pages/ProgramsListPage'
 import { ThemesListPage } from './pages/ThemesListPage'
 import { ThemeDetailPage } from './pages/ThemeDetailPage'
 import { AlertsListPage } from './pages/AlertsListPage'
-import type { Alert } from './pages/AlertsListPage'
+import type { Alert, Criterion } from './pages/AlertsListPage'
 import { CreateAlertPage } from './pages/CreateAlertPage'
 import { EditAlertPage } from './pages/EditAlertPage'
 import { ProgramHealthPage } from './pages/ProgramHealthPage'
@@ -404,9 +404,9 @@ export default function App() {
   const [themeId, setThemeId] = useState<string | null>(null)
   const [newThemeId, setNewThemeId] = useState<string | null>(null)
   const [showCreateAlert, setShowCreateAlert] = useState(false)
-  const [activatedAlert, setActivatedAlert] = useState<{ name: string } | null>(null)
+  const [activatedAlert, setActivatedAlert] = useState<{ name: string; criteria: Criterion[] } | null>(null)
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null)
-  const [savedAlert, setSavedAlert] = useState<{ id: string; name: string } | null>(null)
+  const [savedAlert, setSavedAlert] = useState<{ id: string; name: string; criteria: Criterion[] } | null>(null)
 
   // App-switcher routing (nice_world TopBar dropdown).
   const handleAppSwitch = (appLabel: string) => {
@@ -555,7 +555,7 @@ export default function App() {
             onCancel={() => setEditCampaignId(null)}
             onSave={(status, data) => {
               if (data?.editedId) {
-                setSavedProgram({ id: data.editedId, name: data.name, editedBy: 'Advait Patil', action: status === 'draft' ? 'deactivated' : undefined })
+                setSavedProgram({ id: data.editedId, name: data.name, editedBy: 'Jaden Smith', action: status === 'draft' ? 'deactivated' : undefined })
               }
               setEditCampaignId(null)
             }}
@@ -673,13 +673,13 @@ export default function App() {
         showCreateAlert ? (
           <CreateAlertPage
             onCancel={() => setShowCreateAlert(false)}
-            onActivate={(name) => { setShowCreateAlert(false); setActivatedAlert({ name }) }}
+            onActivate={(data) => { setShowCreateAlert(false); setActivatedAlert(data) }}
           />
         ) : editingAlert ? (
           <EditAlertPage
             alert={editingAlert}
             onCancel={() => setEditingAlert(null)}
-            onSave={(name) => { const id = editingAlert.id; setEditingAlert(null); setSavedAlert({ id, name }) }}
+            onSave={(data) => { const id = editingAlert.id; setEditingAlert(null); setSavedAlert({ id, name: data.name, criteria: data.criteria }) }}
           />
         ) : (
           <AlertsListPage

@@ -94,7 +94,7 @@ function Pagination({
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '12px 24px', flexShrink: 0,
+      height: 48, padding: '0 12px', flexShrink: 0,
       borderTop: '1px solid var(--lyra-color-border-subtle)',
       background: 'var(--lyra-color-bg-surface-base)',
     }}>
@@ -587,42 +587,53 @@ export function ProgramsListPage({
       />
 
       {/* ② Scrollable body — search + table */}
-      <div style={{ flex: 1, overflow: 'auto', minHeight: 0, padding: '32px 32px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0, padding: '32px 32px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, flexWrap: 'wrap', flexShrink: 0 }}>
           <SearchInput value={search} onChange={handleSearch} placeholder="Search programs" />
           <StatusDropdown value={statusFilter} onChange={handleFilterChange} />
         </div>
 
         <GridPanel>
           <GridToolbar label="Programs" shown={filtered.length} total={allCampaigns.length} />
-          <TableShell>
-            <thead>
-              <tr>
-                <SortableTh sortKey="priority" active={sortKey === 'priority'} dir={sortDir} width={80} onSort={handleSort}>Priority</SortableTh>
-                <Th>Program</Th>
-                <Th>Survey</Th>
-                <Th>Channels</Th>
-                <Th>Alert</Th>
-                <SortableTh sortKey="updatedOn" active={sortKey === 'updatedOn'} dir={sortDir} onSort={handleSort}>Updated on</SortableTh>
-                <SortableTh sortKey="updatedBy" active={sortKey === 'updatedBy'} dir={sortDir} onSort={handleSort}>Updated by</SortableTh>
-                <SortableTh sortKey="status" active={sortKey === 'status'} dir={sortDir} onSort={handleSort}>Status</SortableTh>
-                <Th align="right" width={40}>{''}</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageRows.length === 0 && <EmptyRow colSpan={9} message="No programs match your search." />}
-              {pageRows.map(c => (
-                <ProgramRow
-                  key={c.id}
-                  campaign={c}
-                  priority={priorityMap.get(c.id) ?? '-'}
-                  onSelect={() => onSelectCampaign(c.id)}
-                  highlighted={highlightedId === c.id}
-                  overrideExtras={activatedExtras.current[c.id]}
-                />
-              ))}
-            </tbody>
-          </TableShell>
+          <div className="flex-1 overflow-auto">
+            <TableShell>
+              <thead>
+                <tr>
+                  <SortableTh sortKey="priority" active={sortKey === 'priority'} dir={sortDir} width={80} onSort={handleSort}>Priority</SortableTh>
+                  <Th>Program</Th>
+                  <Th>Survey</Th>
+                  <Th>Channels</Th>
+                  <Th>Alert</Th>
+                  <SortableTh sortKey="updatedOn" active={sortKey === 'updatedOn'} dir={sortDir} onSort={handleSort}>Updated on</SortableTh>
+                  <SortableTh sortKey="updatedBy" active={sortKey === 'updatedBy'} dir={sortDir} onSort={handleSort}>Updated by</SortableTh>
+                  <SortableTh sortKey="status" active={sortKey === 'status'} dir={sortDir} onSort={handleSort}>Status</SortableTh>
+                  <Th align="right" width={40}>{''}</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageRows.length === 0 && <EmptyRow colSpan={9} message="No programs match your search." />}
+                {pageRows.map(c => (
+                  <ProgramRow
+                    key={c.id}
+                    campaign={c}
+                    priority={priorityMap.get(c.id) ?? '-'}
+                    onSelect={() => onSelectCampaign(c.id)}
+                    highlighted={highlightedId === c.id}
+                    overrideExtras={activatedExtras.current[c.id]}
+                  />
+                ))}
+              </tbody>
+            </TableShell>
+          </div>
+
+          {/* ③ Pagination — always visible at the bottom, never scrolls */}
+          <Pagination
+            page={safePage}
+            totalPages={totalPages}
+            totalItems={filtered.length}
+            pageSize={PAGE_SIZE}
+            onPage={setCurrentPage}
+          />
         </GridPanel>
       </div>
 
@@ -660,15 +671,6 @@ export function ProgramsListPage({
           </button>
         </div>
       )}
-
-      {/* ③ Pagination — always visible at the bottom, never scrolls */}
-      <Pagination
-        page={safePage}
-        totalPages={totalPages}
-        totalItems={filtered.length}
-        pageSize={PAGE_SIZE}
-        onPage={setCurrentPage}
-      />
 
       {/* Priority modal */}
       {priorityModalOpen && (

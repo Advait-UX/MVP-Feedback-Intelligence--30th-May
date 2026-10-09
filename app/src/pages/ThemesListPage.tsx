@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
-import { Lock, MoreVertical, X, ChevronDown } from 'lucide-react'
+import { Lock, MoreVertical, X, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import {
   ListPageHeader, SearchInput, GridPanel, GridToolbar,
   TableShell, Th, Td, EmptyRow,
@@ -10,6 +10,71 @@ import {
 } from '@/lib/themes'
 
 const F = 'var(--lyra-font-sans, var(--font-sans))'
+const PAGE_SIZE = 50
+
+function PagBtn({ children, onClick, disabled, 'aria-label': ariaLabel }: {
+  children: React.ReactNode; onClick: () => void; disabled: boolean; 'aria-label': string
+}) {
+  return (
+    <button
+      onClick={onClick} disabled={disabled} aria-label={ariaLabel}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: 28, height: 28, borderRadius: 'var(--radius-xs)',
+        border: '1px solid var(--lyra-color-border-soft)',
+        background: 'var(--lyra-color-bg-surface-base)',
+        color: disabled ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-default)',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
+      onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function Pagination({
+  page, totalPages, totalItems, pageSize, onPage,
+}: {
+  page: number; totalPages: number; totalItems: number; pageSize: number; onPage: (p: number) => void
+}) {
+  const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
+  const end = Math.min(page * pageSize, totalItems)
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      height: 48, padding: '0 12px', flexShrink: 0,
+      borderTop: '1px solid var(--lyra-color-border-subtle)',
+      background: 'var(--lyra-color-bg-surface-base)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <PagBtn onClick={() => onPage(1)} disabled={page === 1} aria-label="First page"><ChevronsLeft size={14} /></PagBtn>
+        <PagBtn onClick={() => onPage(page - 1)} disabled={page === 1} aria-label="Previous page"><ChevronLeft size={14} /></PagBtn>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, font: '400 14px/20px ' + F, color: 'var(--lyra-color-fg-default)' }}>
+          Page
+          <input
+            type="number" min={1} max={totalPages} value={page}
+            onChange={e => { const v = parseInt(e.target.value); if (v >= 1 && v <= totalPages) onPage(v) }}
+            style={{
+              width: 40, height: 28, textAlign: 'center',
+              border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-xs)',
+              font: '400 14px/20px ' + F, color: 'var(--lyra-color-fg-default)',
+              background: 'var(--lyra-color-bg-surface-base)', outline: 'none',
+            }}
+          />
+          of {totalPages}
+        </span>
+        <PagBtn onClick={() => onPage(page + 1)} disabled={page === totalPages} aria-label="Next page"><ChevronRight size={14} /></PagBtn>
+        <PagBtn onClick={() => onPage(totalPages)} disabled={page === totalPages} aria-label="Last page"><ChevronsRight size={14} /></PagBtn>
+      </div>
+      <span style={{ font: '400 13px/20px ' + F, color: 'var(--lyra-color-fg-secondary)' }}>
+        {start}–{end} of {totalItems} themes
+      </span>
+    </div>
+  )
+}
 
 function WarningIcon() {
   return (
@@ -133,6 +198,7 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
   onClearNewlyCreated?: () => void
 }) {
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [pendingDelete, setPendingDelete] = useState<Theme | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [showLinkedPrograms, setShowLinkedPrograms] = useState(false)
@@ -155,7 +221,7 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
 
   const allThemes = getAllThemes()
 
-  const rows = useMemo(() => {
+  const filtered = useMemo(() => {
     const base = search
       ? allThemes.filter(t => t.nm.toLowerCase().includes(search.toLowerCase()))
       : allThemes
@@ -166,6 +232,9 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
       return bt - at
     })
   }, [search, allThemes])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
 
   function openDuplicate(theme: Theme) {
@@ -209,62 +278,72 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
           tooltipText="Themes control how surveys are presented to customers, including the layout, response style, and messages shown during the survey."
         />
 
-        <div className="flex-1 overflow-auto" style={{ padding: 'var(--space-7)' }}>
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <SearchInput value={search} onChange={setSearch} placeholder="Search theme name" />
+        <div className="flex-1 flex flex-col overflow-hidden" style={{ padding: 'var(--space-7)' }}>
+          <div style={{ marginBottom: 'var(--space-6)', flexShrink: 0 }}>
+            <SearchInput value={search} onChange={v => { setSearch(v); setPage(1) }} placeholder="Search theme name" />
           </div>
 
           <GridPanel>
-            <GridToolbar label="Themes" shown={rows.length} total={allThemes.length} />
-            <TableShell style={{ maxHeight: 400, overflowY: 'auto' }}>
-                <thead>
-                  <tr>
-                    <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Theme</Th>
-                    <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated On</Th>
-                    <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated By</Th>
-                    <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Type</Th>
-                    <Th align="right" style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Actions</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.length === 0 && (
-                    <EmptyRow colSpan={5} message="No themes match your search." />
-                  )}
-                  {rows.map(t => {
-                    const isHighlighted = highlightedId === t.id
-                    const restBg = t.sys ? 'var(--lyra-color-bg-surface-base)' : ''
-                    return (
-                    <tr
-                      key={t.id}
-                      style={{
-                        borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer', transition: 'background 0.8s ease',
-                        background: isHighlighted ? 'var(--lyra-color-bg-active-subtle)' : restBg,
-                        ...(t.sys ? { position: 'sticky', top: 48, zIndex: 1 } : {}),
-                      }}
-                      onClick={() => onSelectTheme(t.id)}
-                      onMouseEnter={e => { if (!isHighlighted) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isHighlighted ? 'var(--lyra-color-bg-active-subtle)' : restBg }}
-                    >
-                      <Td>
-                        <span style={{ fontWeight: 500, color: 'var(--lyra-color-fg-link)', fontFamily: F }}>
-                          {t.nm}
-                        </span>
-                      </Td>
-                      <Td>{t.updatedOn ?? '-'}</Td>
-                      <Td>{t.updatedBy ?? '-'}</Td>
-                      <Td><TypeChip sys={t.sys} /></Td>
-                      <Td align="right">
-                        <ThemeRowMenu
-                          theme={t}
-                          onEdit={() => onSelectTheme(t.id)}
-                          onDuplicate={() => openDuplicate(t)}
-                          onDelete={() => { setPendingDelete(t); setDeleteError(null); setShowLinkedPrograms(false) }}
-                        />
-                      </Td>
+            <GridToolbar label="Themes" shown={filtered.length} total={allThemes.length} />
+            <div className="flex-1 overflow-auto">
+              <TableShell>
+                  <thead>
+                    <tr>
+                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Theme</Th>
+                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated On</Th>
+                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated By</Th>
+                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Type</Th>
+                      <Th align="right" style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Actions</Th>
                     </tr>
-                  )})}
-                </tbody>
-            </TableShell>
+                  </thead>
+                  <tbody>
+                    {rows.length === 0 && (
+                      <EmptyRow colSpan={5} message="No themes match your search." />
+                    )}
+                    {rows.map(t => {
+                      const isHighlighted = highlightedId === t.id
+                      const restBg = t.sys ? 'var(--lyra-color-bg-surface-base)' : ''
+                      return (
+                      <tr
+                        key={t.id}
+                        style={{
+                          borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer', transition: 'background 0.8s ease',
+                          background: isHighlighted ? 'var(--lyra-color-bg-active-subtle)' : restBg,
+                          ...(t.sys ? { position: 'sticky', top: 48, zIndex: 1 } : {}),
+                        }}
+                        onClick={() => onSelectTheme(t.id)}
+                        onMouseEnter={e => { if (!isHighlighted) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isHighlighted ? 'var(--lyra-color-bg-active-subtle)' : restBg }}
+                      >
+                        <Td>
+                          <span style={{ fontWeight: 500, color: 'var(--lyra-color-fg-link)', fontFamily: F }}>
+                            {t.nm}
+                          </span>
+                        </Td>
+                        <Td>{t.updatedOn ?? '-'}</Td>
+                        <Td>{t.updatedBy ?? '-'}</Td>
+                        <Td><TypeChip sys={t.sys} /></Td>
+                        <Td align="right">
+                          <ThemeRowMenu
+                            theme={t}
+                            onEdit={() => onSelectTheme(t.id)}
+                            onDuplicate={() => openDuplicate(t)}
+                            onDelete={() => { setPendingDelete(t); setDeleteError(null); setShowLinkedPrograms(false) }}
+                          />
+                        </Td>
+                      </tr>
+                    )})}
+                  </tbody>
+              </TableShell>
+            </div>
+
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={PAGE_SIZE}
+              onPage={setPage}
+            />
           </GridPanel>
         </div>
       </div>
@@ -295,7 +374,7 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
               background: 'var(--lyra-color-bg-surface-overlay)',
               borderRadius: 'var(--radius-xl)',
               boxShadow: 'var(--sol-effect-shadowlg)',
-              width: '100%', maxWidth: 480,
+              width: '100%', maxWidth: 560,
               padding: 'var(--space-6)',
             }}>
               {/* Header */}
@@ -484,9 +563,8 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
                         </p>
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                           {linked.map(p => (
-                            <div key={p} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                              <span style={{ font: '400 14px/20px ' + F, color: 'var(--lyra-color-fg-default)' }}>{p}</span>
-                              <span style={{ font: '400 14px/20px ' + F, color: 'var(--lyra-color-fg-link)', cursor: 'pointer', flexShrink: 0 }}>View</span>
+                            <div key={p} style={{ display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+                              <span style={{ font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-link)', textDecoration: 'none', cursor: 'pointer' }}>{p}</span>
                             </div>
                           ))}
                         </div>

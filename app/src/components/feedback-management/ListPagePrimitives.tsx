@@ -119,7 +119,7 @@ export function StatusPill({ label, tone }: { label: string; tone: PillTone }) {
 }
 
 /* ── Row kebab menu — status-aware action popover ── */
-export function RowKebabMenu({ status = 'active', onDelete, onEdit }: { status?: 'active' | 'inactive' | 'draft'; onDelete?: () => void; onEdit?: () => void }) {
+export function RowKebabMenu({ status = 'active', onDelete, onEdit, onDuplicate }: { status?: 'active' | 'inactive' | 'draft'; onDelete?: () => void; onEdit?: () => void; onDuplicate?: () => void }) {
   const [open, setOpen] = useState(false)
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
   const ref = useRef<HTMLDivElement>(null)
@@ -216,13 +216,13 @@ export function RowKebabMenu({ status = 'active', onDelete, onEdit }: { status?:
             {status === 'active' && (
               <>
                 <MenuItem label="Edit" onClick={onEdit} />
-                <MenuItem label="Duplicate" />
+                <MenuItem label="Duplicate" onClick={onDuplicate} />
               </>
             )}
             {status === 'inactive' && (
               <>
                 <MenuItem label="Edit" onClick={onEdit} />
-                <MenuItem label="Duplicate" />
+                <MenuItem label="Duplicate" onClick={onDuplicate} />
                 <MenuItem label="Activate" />
               </>
             )}
@@ -416,20 +416,28 @@ export function ListPageHeader({
 /* ── Grid Panel — wrapper with border-radius, clips toolbar + table ── */
 export function GridPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ borderRadius: 'var(--lyra-radius-lg, 12px)', overflow: 'hidden' }}>
+    <div style={{
+      flex: '1 1 0',
+      display: 'flex',
+      flexDirection: 'column',
+      borderRadius: 'var(--radius-lg)',
+      border: '1px solid var(--lyra-color-border-subtle)',
+      background: 'var(--lyra-color-bg-surface-base)',
+      overflow: 'hidden',
+    }}>
       {children}
     </div>
   )
 }
 
-/* ── Grid Toolbar — count row above the table: h-56, control-subtle bg, border-b ── */
+/* ── Grid Toolbar — count row above the table: control-subtle bg, border-b ── */
 export function GridToolbar({ label, shown, total }: { label: string; shown: number; total: number }) {
   const count = shown === total ? total : shown
   return (
     <div style={{
-      height: 44, display: 'flex', alignItems: 'center',
-      padding: '0 var(--space-4)',
-      background: 'var(--lyra-color-bg-surface-base)',
+      display: 'flex', alignItems: 'center',
+      padding: 'var(--space-3) var(--space-4)',
+      background: 'var(--lyra-color-bg-control-subtle, rgba(0,0,0,0.02))',
       borderBottom: '1px solid var(--lyra-color-border-subtle)',
     }}>
       <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT }}>

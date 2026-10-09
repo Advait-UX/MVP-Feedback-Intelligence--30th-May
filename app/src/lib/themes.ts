@@ -137,7 +137,7 @@ export function getControlOptions(ch: ThemeChannel, qType: QType): string[] {
 export function syncTheme(updated: Theme): void {
   const arr = db.lf[updated.ch]
   const idx = arr.findIndex(t => t.id === updated.id)
-  if (idx !== -1) arr[idx] = { ...updated, updatedOn: nowStamp(), updatedBy: 'Advait Patil' }
+  if (idx !== -1) arr[idx] = { ...updated, updatedOn: nowStamp(), updatedBy: 'Jaden Smith' }
 }
 
 function nowStamp(): string {
@@ -160,7 +160,7 @@ export function createTheme(nm: string, ch: ThemeChannel): Theme {
     q:   makeQ(ch),
     msg: makeMsg(),
     updatedOn: nowStamp(),
-    updatedBy: 'Advait Patil',
+    updatedBy: 'Jaden Smith',
   }
   db.lf[ch].push(t)
   return t
@@ -185,7 +185,7 @@ export function saveNewTheme(theme: Theme): Theme {
     id: `t${Date.now()}`,
     nm: sanitizeName(theme.nm).trim().slice(0, 50),
     updatedOn: nowStamp(),
-    updatedBy: 'Advait Patil',
+    updatedBy: 'Jaden Smith',
   }
   db.lf[theme.ch].push(t)
   return t
@@ -218,7 +218,7 @@ export function duplicateTheme(theme: Theme, name?: string): Theme {
     def: false,
     ds:  'Custom digital theme',
     updatedOn: nowStamp(),
-    updatedBy: 'Advait Patil',
+    updatedBy: 'Jaden Smith',
   }
   db.lf[theme.ch].push(copy)
   return copy

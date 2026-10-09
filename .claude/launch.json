@@ -8,6 +8,13 @@
       "port": 5173,
       "autoPort": true,
       "cwd": "/Users/advaitpatil/Documents/MVP Feedback Intelligence/MVP-Feedback-Intelligence-GIT/app"
+    },
+    {
+      "name": "Backup 11-Sep-2026",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5174"],
+      "port": 5174,
+      "cwd": "/Users/advaitpatil/Documents/MVP Feedback Intelligence/Backup/11-Sep-2026/app"
     }
   ]
 }
