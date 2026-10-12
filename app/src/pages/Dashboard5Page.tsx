@@ -38,12 +38,10 @@ function FilterDropdown({ value, options, onChange }: { value: string; options: 
 /* ── Date range picker (Lyra pattern: presets + calendar) ── */
 type DateRange = { start: Date; end: Date }
 const TODAY = new Date(2026, 9, 12)
-const DAY_MS = 86_400_000
 
 const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
 const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-const spanDays = (r: DateRange) => Math.round((dayStart(r.end).getTime() - dayStart(r.start).getTime()) / DAY_MS) + 1
 const fmtDay = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 const fmtRange = (r: DateRange | null) => (r ? `${fmtDay(r.start)} – ${fmtDay(r.end)}` : '')
 
@@ -98,7 +96,6 @@ function DateRangePicker({ value, onChange }: { value: DateRange | null; onChang
 
   function close() { setOpen(false); setPending(null); setHover(null); setXMode(false) }
   function apply(r: DateRange) { onChange(r); setMonth(new Date(r.start.getFullYear(), r.start.getMonth(), 1)); close() }
-  function shift(dir: -1 | 1) { if (!value) return; const n = spanDays(value) * dir; onChange({ start: addDays(value.start, n), end: addDays(value.end, n) }) }
 
   function pickDay(d: Date) {
     if (!pending) { setPending(d); return }
@@ -130,11 +127,6 @@ function DateRangePicker({ value, onChange }: { value: DateRange | null; onChang
         </span>
         <Calendar size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
       </button>
-      <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-field)' }}>
-        <NavButton onClick={() => shift(-1)} disabled={!value} label="Previous period"><ChevronLeft size={16} /></NavButton>
-        <span style={{ width: 1, background: 'var(--lyra-color-border-subtle)' }} />
-        <NavButton onClick={() => shift(1)} disabled={!value} label="Next period"><ChevronRight size={16} /></NavButton>
-      </div>
 
       {open && (
         <div
