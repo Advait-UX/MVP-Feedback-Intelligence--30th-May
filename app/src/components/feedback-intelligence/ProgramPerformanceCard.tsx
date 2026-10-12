@@ -202,7 +202,7 @@ function FunnelTooltip({ id, anchorRef }: { id: string; anchorRef: React.RefObje
   )
 }
 
-export function ProgramPerformanceCard() {
+export function ProgramPerformanceCard({ hideKpiCards = false }: { hideKpiCards?: boolean } = {}) {
   const [hovered, setHovered] = useState<string | null>(null)
   const hoveredRef = useRef<HTMLDivElement | null>(null)
 
@@ -421,6 +421,7 @@ export function ProgramPerformanceCard() {
         </div>
 
         {/* KPI metric cards */}
+        {!hideKpiCards && (
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 'var(--space-3)', marginTop: 'var(--space-7)' }}>
           {KPI_METRICS.map(m => (
             <div
@@ -470,6 +471,7 @@ export function ProgramPerformanceCard() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {hovered && <FunnelTooltip id={hovered} anchorRef={hoveredRef} />}
