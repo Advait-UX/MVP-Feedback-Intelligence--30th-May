@@ -17,6 +17,7 @@ import type { Alert, Criterion } from './pages/AlertsListPage'
 import { CreateAlertPage } from './pages/CreateAlertPage'
 import { EditAlertPage } from './pages/EditAlertPage'
 import { ProgramHealthPage } from './pages/ProgramHealthPage'
+import { Dashboard2Page } from './pages/Dashboard2Page'
 import { SurveyDetailPage } from './pages/SurveyDetailPage'
 import { CampaignInsightDashboard } from './components/feedback-intelligence/CampaignInsightDashboard'
 import { FeedbackIntelligenceDashboard } from './components/feedback-intelligence/FeedbackIntelligenceDashboard'
@@ -387,7 +388,7 @@ export default function App() {
   const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'health'>('programs')
+  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'health'>('programs')
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
@@ -489,6 +490,7 @@ export default function App() {
   // the prototype screens (own chrome hidden via ?embed=full).
   const FI_NAV_ITEMS = [
     { id: 'dashboard', label: 'Dashboard',      icon: LayoutGrid },
+    { id: 'dashboard2', label: 'Dashboard 2',   icon: LayoutGrid },
     { id: 'programs',  label: 'Programs',        icon: Megaphone },
     {
       type: 'group' as const,
@@ -504,6 +506,7 @@ export default function App() {
   ]
   const FI_TITLES: Record<typeof fiSection, string> = {
     dashboard: 'Dashboard',
+    dashboard2: 'Dashboard 2',
     programs: page === 'campaign-portfolio'
       ? 'Programs'
       : page === 'campaign-insight' && selectedCampaign
@@ -534,7 +537,9 @@ export default function App() {
         if (id === 'themes') setThemeId(null)
       }}
     >
-      {fiSection === 'programs' ? (
+      {fiSection === 'dashboard2' ? (
+        <Dashboard2Page />
+      ) : fiSection === 'programs' ? (
         showWizard ? (
           <CreateProgramPage
             key="create-program-new"
