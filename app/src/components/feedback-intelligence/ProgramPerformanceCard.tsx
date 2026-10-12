@@ -338,8 +338,8 @@ export function ProgramPerformanceCard() {
             style={{
               position: 'absolute', left: pct(SPLIT_LEFT), top: 0,
               width: pct(SPLIT_WIDTH), height: CANVAS_H,
-              padding: 12, borderRadius: 12,
-              border: '1px solid var(--lyra-color-border-soft)',
+              padding: '12px 12px 12px 24px',
+              borderLeft: '1px solid var(--lyra-color-border-subtle)',
               display: 'flex', flexDirection: 'column',
               justifyContent: 'space-between',
             }}
