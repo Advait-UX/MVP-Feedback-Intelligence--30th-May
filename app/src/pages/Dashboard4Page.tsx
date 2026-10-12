@@ -246,7 +246,7 @@ export function Dashboard4Page() {
         }}
       >
         <h1 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>
-          Dashboard 1
+          Dashboard 3
         </h1>
       </div>
 
@@ -270,8 +270,8 @@ export function Dashboard4Page() {
 
         <div style={{ marginTop: 'var(--space-6)' }}><HealthBriefingCard /></div>
         <div style={{ marginTop: 'var(--space-6)' }}><ProgramPerformanceCard hideKpiCards /></div>
-        <div style={{ marginTop: 'var(--space-6)' }}><CsatAsatCards /></div>
-        <div style={{ marginTop: 'var(--space-6)' }}><WhySurveysNotSentCard /></div>
+        <div style={{ marginTop: 'var(--space-6)' }}><CsatAsatCards hideLegend /></div>
+        <div style={{ marginTop: 'var(--space-6)' }}><WhySurveysNotSentCard defaultExpanded={false} /></div>
         <div style={{ marginTop: 'var(--space-6)' }}><ProgramsTableCard /></div>
       </div>
     </div>

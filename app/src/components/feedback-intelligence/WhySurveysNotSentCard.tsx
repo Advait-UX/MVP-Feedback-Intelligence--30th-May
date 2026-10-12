@@ -92,8 +92,8 @@ function StatTile({ value, label, color, sub }: {
 }
 
 /* ── Exported card ──────────────────────────────────────── */
-export function WhySurveysNotSentCard() {
-  const [expanded, setExpanded] = useState(true)
+export function WhySurveysNotSentCard({ defaultExpanded = true }: { defaultExpanded?: boolean } = {}) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
 
   return (
     <div style={{
@@ -116,7 +116,7 @@ export function WhySurveysNotSentCard() {
         }}
       >
         <h3 style={{
-          font: `500 14px/20px ${FONT}`, margin: 0,
+          font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0,
           color: 'var(--lyra-color-fg-default)',
         }}>
           Why surveys were not sent?

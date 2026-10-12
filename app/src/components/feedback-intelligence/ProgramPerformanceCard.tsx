@@ -205,6 +205,7 @@ function FunnelTooltip({ id, anchorRef }: { id: string; anchorRef: React.RefObje
 export function ProgramPerformanceCard({ hideKpiCards = false }: { hideKpiCards?: boolean } = {}) {
   const [hovered, setHovered] = useState<string | null>(null)
   const hoveredRef = useRef<HTMLDivElement | null>(null)
+  const [hoveredConnector, setHoveredConnector] = useState<number | null>(null)
 
   const handleEnter = useCallback((id: string, el: HTMLDivElement) => {
     hoveredRef.current = el
@@ -231,7 +232,7 @@ export function ProgramPerformanceCard({ hideKpiCards = false }: { hideKpiCards?
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <h3 style={{ font: `500 14px/20px ${FONT}`, margin: 0, color: 'var(--lyra-color-fg-default)' }}>
+        <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>
           Program performance
         </h3>
         <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
@@ -305,17 +306,22 @@ export function ProgramPerformanceCard({ hideKpiCards = false }: { hideKpiCards?
                 </div>
               </div>
 
-              {/* Trapezoid connector — tapers from this bar height to next bar height */}
+              {/* Trapezoid connector — tapers from this bar height to next bar height. Hover reveals the drop-off annotation. */}
               {s.connectorWidth > 0 && (
-                <div style={{
-                  width: gpct(s.connectorWidth), height: s.barHeight,
-                  background: CONNECTOR_COLOR,
-                  clipPath: `polygon(0 0, 100% ${taperTopPct}%, 100% 100%, 0 100%)`,
-                }} />
+                <div
+                  style={{
+                    width: gpct(s.connectorWidth), height: s.barHeight,
+                    background: CONNECTOR_COLOR,
+                    clipPath: `polygon(0 0, 100% ${taperTopPct}%, 100% 100%, 0 100%)`,
+                    cursor: s.annotation ? 'default' : undefined,
+                  }}
+                  onMouseEnter={() => s.annotation && setHoveredConnector(idx)}
+                  onMouseLeave={() => setHoveredConnector(null)}
+                />
               )}
 
-              {/* Annotation text in the gap between the value row (ends at local y≈44) and the bar top — fixed top clears the value row, tight line-height keeps the 3-line block clear of the bar. white-space:pre (not pre-line) keeps exactly our 3 explicit lines without re-wrapping at spaces when the column is narrow. */}
-              {s.annotation && (
+              {/* Annotation text in the gap between the value row (ends at local y≈44) and the bar top — fixed top clears the value row, tight line-height keeps the 3-line block clear of the bar. white-space:pre (not pre-line) keeps exactly our 3 explicit lines without re-wrapping at spaces when the column is narrow. Only shown while the connector below is hovered. */}
+              {s.annotation && hoveredConnector === idx && (
                 <div
                   style={{
                     position: 'absolute',
@@ -324,6 +330,7 @@ export function ProgramPerformanceCard({ hideKpiCards = false }: { hideKpiCards?
                     font: `400 12px/13px ${FONT}`, letterSpacing: '0.2px',
                     color: 'var(--lyra-color-fg-secondary)',
                     whiteSpace: 'pre',
+                    pointerEvents: 'none',
                   }}
                 >
                   {s.annotation.text}

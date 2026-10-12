@@ -491,8 +491,9 @@ export default function App() {
   // Dashboard renders the native nice_world dashboard; the other three render
   // the prototype screens (own chrome hidden via ?embed=full).
   const FI_NAV_ITEMS = [
-    { id: 'dashboard4', label: 'Dashboard 1',   icon: LayoutGrid },
+    { id: 'dashboard3', label: 'Dashboard 1',   icon: LayoutGrid },
     { id: 'dashboard2', label: 'Dashboard 2',   icon: LayoutGrid },
+    { id: 'dashboard4', label: 'Dashboard 3',   icon: LayoutGrid },
     { id: 'programs',  label: 'Programs',        icon: Megaphone },
     {
       type: 'group' as const,
@@ -509,8 +510,8 @@ export default function App() {
   const FI_TITLES: Record<typeof fiSection, string> = {
     dashboard: 'Dashboard',
     dashboard2: 'Dashboard 2',
-    dashboard3: 'Dashboard 3',
-    dashboard4: 'Dashboard 1',
+    dashboard3: 'Dashboard 1',
+    dashboard4: 'Dashboard 3',
     programs: page === 'campaign-portfolio'
       ? 'Programs'
       : page === 'campaign-insight' && selectedCampaign
