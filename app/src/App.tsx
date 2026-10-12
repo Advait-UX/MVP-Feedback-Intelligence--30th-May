@@ -20,6 +20,7 @@ import { ProgramHealthPage } from './pages/ProgramHealthPage'
 import { Dashboard2Page } from './pages/Dashboard2Page'
 import { Dashboard3Page } from './pages/Dashboard3Page'
 import { Dashboard4Page } from './pages/Dashboard4Page'
+import { Dashboard5Page } from './pages/Dashboard5Page'
 import { SurveyDetailPage } from './pages/SurveyDetailPage'
 import { CampaignInsightDashboard } from './components/feedback-intelligence/CampaignInsightDashboard'
 import { FeedbackIntelligenceDashboard } from './components/feedback-intelligence/FeedbackIntelligenceDashboard'
@@ -390,7 +391,7 @@ export default function App() {
   const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'health'>('programs')
+  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'health'>('programs')
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
@@ -491,9 +492,19 @@ export default function App() {
   // Dashboard renders the native nice_world dashboard; the other three render
   // the prototype screens (own chrome hidden via ?embed=full).
   const FI_NAV_ITEMS = [
-    { id: 'dashboard3', label: 'Dashboard 1',   icon: LayoutGrid },
-    { id: 'dashboard2', label: 'Dashboard 2',   icon: LayoutGrid },
-    { id: 'dashboard4', label: 'Dashboard 3',   icon: LayoutGrid },
+    { id: 'dashboard5', label: 'Program Health', icon: LayoutGrid },
+    {
+      type: 'group' as const,
+      id: 'old-dashboards',
+      label: 'Old Dashboards',
+      icon: LayoutGrid,
+      defaultCollapsed: true,
+      children: [
+        { id: 'dashboard3', label: 'Dashboard 1' },
+        { id: 'dashboard2', label: 'Dashboard 2' },
+        { id: 'dashboard4', label: 'Dashboard 3' },
+      ],
+    },
     { id: 'programs',  label: 'Programs',        icon: Megaphone },
     {
       type: 'group' as const,
@@ -512,6 +523,7 @@ export default function App() {
     dashboard2: 'Dashboard 2',
     dashboard3: 'Dashboard 1',
     dashboard4: 'Dashboard 3',
+    dashboard5: 'Program Health',
     programs: page === 'campaign-portfolio'
       ? 'Programs'
       : page === 'campaign-insight' && selectedCampaign
@@ -534,6 +546,7 @@ export default function App() {
       activeNav={fiSection}
       hidePageHeader={true}
       onNavSelect={(id) => {
+        if (id === 'old-dashboards' || id === 'library') return
         setFiSection(id as typeof fiSection)
         // Clicking Programs always returns to the portfolio top-level
         if (id === 'programs') { setPage('campaign-portfolio'); setShowWizard(false); setEditCampaignId(null) }
@@ -548,6 +561,8 @@ export default function App() {
         <Dashboard3Page />
       ) : fiSection === 'dashboard4' ? (
         <Dashboard4Page />
+      ) : fiSection === 'dashboard5' ? (
+        <Dashboard5Page />
       ) : fiSection === 'programs' ? (
         showWizard ? (
           <CreateProgramPage

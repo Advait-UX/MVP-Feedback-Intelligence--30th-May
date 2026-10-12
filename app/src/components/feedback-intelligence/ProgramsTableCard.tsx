@@ -18,15 +18,52 @@ interface ProgramRow {
   csat: number
   csatUp: boolean
   alerts: number
+  needsAttention?: boolean
+  responseRateDropPp?: number
+  csatDropPp?: number
 }
 
 const PROGRAMS: ProgramRow[] = [
   { name: 'Flight disruption recovery', eligible: 2308, coverage: 86, coverageUp: true, surveysSent: 1985, responseRate: 61, responseRateUp: true, responsesReceived: 1211, completionRate: 72, completionRateUp: true, completed: 872, partial: 339, csat: 81, csatUp: true, alerts: 8 },
   { name: 'Negative sentiment catcher', eligible: 1542, coverage: 89, coverageUp: true, surveysSent: 1372, responseRate: 45, responseRateUp: false, responsesReceived: 617, completionRate: 53, completionRateUp: false, completed: 327, partial: 290, csat: 77, csatUp: false, alerts: 12 },
   { name: 'Omnichannel escalation recovery', eligible: 1435, coverage: 93, coverageUp: true, surveysSent: 1335, responseRate: 62, responseRateUp: true, responsesReceived: 828, completionRate: 70, completionRateUp: true, completed: 580, partial: 248, csat: 76, csatUp: false, alerts: 14 },
-  { name: 'Complaint resolution follow up', eligible: 1106, coverage: 96, coverageUp: false, surveysSent: 1062, responseRate: 30, responseRateUp: false, responsesReceived: 319, completionRate: 43, completionRateUp: false, completed: 137, partial: 182, csat: 58, csatUp: false, alerts: 28 },
+  { name: 'Complaint resolution follow up', eligible: 1106, coverage: 96, coverageUp: false, surveysSent: 1062, responseRate: 30, responseRateUp: false, responsesReceived: 319, completionRate: 43, completionRateUp: false, completed: 137, partial: 182, csat: 58, csatUp: false, alerts: 28, needsAttention: true, responseRateDropPp: 9, csatDropPp: 6 },
   { name: 'Product feedback', eligible: 834, coverage: 83, coverageUp: false, surveysSent: 692, responseRate: 66, responseRateUp: true, responsesReceived: 457, completionRate: 72, completionRateUp: true, completed: 329, partial: 128, csat: 74, csatUp: true, alerts: 8 },
 ]
+
+function NeedsAttentionChip() {
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '2px 10px',
+      borderRadius: 'var(--radius-full)',
+      border: '1px solid var(--lyra-color-status-critical-medium)',
+      background: 'var(--lyra-color-status-critical-subtle)',
+      font: `500 12px/16px ${FONT}`,
+      color: 'var(--lyra-color-status-critical-strong)',
+      whiteSpace: 'nowrap',
+    }}>
+      Needs attention
+    </span>
+  )
+}
+
+function PpDrop({ value }: { value: number }) {
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 2,
+      marginLeft: 'var(--space-2)',
+      font: `500 12px/16px ${FONT}`,
+      color: 'var(--lyra-color-status-critical-strong)',
+      whiteSpace: 'nowrap',
+    }}>
+      ▼ {value}pp
+    </span>
+  )
+}
 
 const THRESHOLDS = {
   coverage: 90,
@@ -156,12 +193,15 @@ export function ProgramsTableCard({ hideTargets }: { hideTargets?: boolean } = {
             {PROGRAMS.map(row => (
               <tr key={row.name} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 <td style={{ padding: 'var(--space-4)', whiteSpace: 'nowrap' }}>
-                  <span style={{
-                    font: `500 14px/20px ${FONT}`,
-                    color: 'var(--lyra-color-fg-link)',
-                    cursor: 'pointer',
-                  }}>
-                    {row.name}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                    <span style={{
+                      font: `500 14px/20px ${FONT}`,
+                      color: 'var(--lyra-color-fg-link)',
+                      cursor: 'pointer',
+                    }}>
+                      {row.name}
+                    </span>
+                    {row.needsAttention && <NeedsAttentionChip />}
                   </span>
                 </td>
                 <td style={{ padding: 'var(--space-3) var(--space-4)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
@@ -175,6 +215,7 @@ export function ProgramsTableCard({ hideTargets }: { hideTargets?: boolean } = {
                 </td>
                 <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
                   <RatePill value={row.responseRate} threshold={THRESHOLDS.responseRate} up={row.responseRateUp} hideTargets={hideTargets} />
+                  {row.responseRateDropPp != null && <PpDrop value={row.responseRateDropPp} />}
                 </td>
                 <td style={{ padding: 'var(--space-3) var(--space-4)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
                   {row.responsesReceived.toLocaleString()}
@@ -190,6 +231,7 @@ export function ProgramsTableCard({ hideTargets }: { hideTargets?: boolean } = {
                 </td>
                 <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
                   <RatePill value={row.csat} threshold={THRESHOLDS.csat} up={row.csatUp} hideTargets={hideTargets} />
+                  {row.csatDropPp != null && <PpDrop value={row.csatDropPp} />}
                 </td>
                 <td style={{
                   padding: 'var(--space-3) var(--space-4)',

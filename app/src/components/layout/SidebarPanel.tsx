@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 export type SidebarNavItem =
   | { type?: 'item'; id: string; label: string; icon: LucideIcon; badge?: string }
   | { type: 'section'; label: string }
-  | { type: 'group'; id: string; label: string; icon: LucideIcon; children: { id: string; label: string }[]; badge?: string }
+  | { type: 'group'; id: string; label: string; icon: LucideIcon; children: { id: string; label: string }[]; badge?: string; defaultCollapsed?: boolean }
 
 const DEFAULT_NAV_ITEMS: SidebarNavItem[] = [
   { id: 'dashboard', label: 'Dashboard',        icon: LayoutGrid },
@@ -33,7 +33,7 @@ export function SidebarPanel({ open, items, activeKey, onSelect }: SidebarPanelP
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {}
     navItems.forEach(item => {
-      if (item.type === 'group') init[item.id] = true
+      if (item.type === 'group') init[item.id] = !item.defaultCollapsed
     })
     return init
   })
