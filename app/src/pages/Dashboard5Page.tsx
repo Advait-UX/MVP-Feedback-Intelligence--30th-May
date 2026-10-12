@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Bell, Calendar, ChevronDown, ChevronLeft, ChevronRight, Info, Mail, Phone, Sparkles, Star, X } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
 
@@ -35,11 +35,203 @@ function FilterDropdown({ value, options, onChange }: { value: string; options: 
   )
 }
 
-function DateRangeField({ value }: { value: string }) {
+/* ── Date range picker (Lyra pattern: presets + calendar) ── */
+type DateRange = { start: Date; end: Date }
+const TODAY = new Date(2026, 9, 12)
+const DAY_MS = 86_400_000
+
+const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
+const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+const spanDays = (r: DateRange) => Math.round((dayStart(r.end).getTime() - dayStart(r.start).getTime()) / DAY_MS) + 1
+const fmtDay = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const fmtRange = (r: DateRange | null) => (r ? `${fmtDay(r.start)} – ${fmtDay(r.end)}` : '')
+
+const lastN = (n: number): DateRange => ({ start: addDays(TODAY, -(n - 1)), end: TODAY })
+const previousN = (n: number): DateRange => ({ start: addDays(TODAY, -n), end: addDays(TODAY, -1) })
+const nextN = (n: number): DateRange => ({ start: addDays(TODAY, 1), end: addDays(TODAY, n) })
+
+const RANGE_PRESETS: { label: string; range: () => DateRange }[] = [
+  { label: 'Current day', range: () => ({ start: TODAY, end: TODAY }) },
+  { label: 'Previous day', range: () => previousN(1) },
+  { label: 'Next day', range: () => nextN(1) },
+  { label: 'Last 2 days', range: () => lastN(2) },
+  { label: 'Previous 2 days', range: () => previousN(2) },
+  { label: 'Next 2 days', range: () => nextN(2) },
+  { label: 'Last 5 days', range: () => lastN(5) },
+  { label: 'Last 7 days', range: () => lastN(7) },
+  { label: 'This week', range: () => { const s = addDays(TODAY, -TODAY.getDay()); return { start: s, end: addDays(s, 6) } } },
+]
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function NavButton({ onClick, disabled, label, children }: { onClick: () => void; disabled?: boolean; label: string; children: React.ReactNode }) {
   return (
-    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 36, paddingLeft: 12, paddingRight: 12, width: 177, background: 'var(--lyra-color-bg-field)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)' }}>
-      <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{value}</span>
-      <Calendar size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
+    <button
+      type="button" onClick={onClick} disabled={disabled} aria-label={label}
+      style={{ width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', borderRadius: 'var(--radius-md)', color: disabled ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-secondary)', cursor: disabled ? 'default' : 'pointer' }}
+      onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function DateRangePicker({ value, onChange }: { value: DateRange | null; onChange: (r: DateRange | null) => void }) {
+  const [open, setOpen] = useState(false)
+  const [month, setMonth] = useState(() => new Date((value?.start ?? TODAY).getFullYear(), (value?.start ?? TODAY).getMonth(), 1))
+  const [pending, setPending] = useState<Date | null>(null)
+  const [hover, setHover] = useState<Date | null>(null)
+  const [xMode, setXMode] = useState(false)
+  const [xDays, setXDays] = useState('14')
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => { if (rootRef.current && !rootRef.current.contains(e.target as Node)) close() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [open])
+
+  function close() { setOpen(false); setPending(null); setHover(null); setXMode(false) }
+  function apply(r: DateRange) { onChange(r); setMonth(new Date(r.start.getFullYear(), r.start.getMonth(), 1)); close() }
+  function shift(dir: -1 | 1) { if (!value) return; const n = spanDays(value) * dir; onChange({ start: addDays(value.start, n), end: addDays(value.end, n) }) }
+
+  function pickDay(d: Date) {
+    if (!pending) { setPending(d); return }
+    apply(pending <= d ? { start: pending, end: d } : { start: d, end: pending })
+  }
+
+  // The band shown in the grid: a committed range, or the in-progress start→hover preview.
+  const preview: DateRange | null = pending
+    ? (hover ? (pending <= hover ? { start: pending, end: hover } : { start: hover, end: pending }) : { start: pending, end: pending })
+    : value
+
+  const y = month.getFullYear(), m = month.getMonth()
+  const firstDow = new Date(y, m, 1).getDay()
+  const daysInMonth = new Date(y, m + 1, 0).getDate()
+  const cells: (Date | null)[] = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => new Date(y, m, i + 1))]
+  while (cells.length % 7) cells.push(null)
+
+  const inBand = (d: Date) => !!preview && dayStart(d) >= dayStart(preview.start) && dayStart(d) <= dayStart(preview.end)
+  const isEdge = (d: Date) => !!preview && (sameDay(d, preview.start) || sameDay(d, preview.end))
+
+  return (
+    <div ref={rootRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+      <button
+        type="button" onClick={() => (open ? close() : setOpen(true))} aria-haspopup="dialog" aria-expanded={open} aria-label="Select date range"
+        style={{ display: 'flex', alignItems: 'center', height: 36, paddingLeft: 12, paddingRight: 12, width: 220, background: 'var(--lyra-color-bg-field)', border: `1px solid ${open ? 'var(--lyra-color-border-active)' : 'var(--lyra-color-border-soft)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer', textAlign: 'left' }}
+      >
+        <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: value ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-disabled)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {value ? fmtRange(value) : 'Start Date – End Date'}
+        </span>
+        <Calendar size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
+      </button>
+      <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-field)' }}>
+        <NavButton onClick={() => shift(-1)} disabled={!value} label="Previous period"><ChevronLeft size={16} /></NavButton>
+        <span style={{ width: 1, background: 'var(--lyra-color-border-subtle)' }} />
+        <NavButton onClick={() => shift(1)} disabled={!value} label="Next period"><ChevronRight size={16} /></NavButton>
+      </div>
+
+      {open && (
+        <div
+          role="dialog" aria-label="Date range"
+          style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 300, display: 'flex', background: 'var(--lyra-color-bg-surface-overlay)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--sol-effect-shadowlg)', overflow: 'hidden' }}
+        >
+          {/* Presets */}
+          <div style={{ width: 168, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--lyra-color-border-subtle)' }}>
+            <div style={{ flex: 1, padding: 'var(--space-2)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {RANGE_PRESETS.map(p => {
+                const r = p.range()
+                const active = !!value && sameDay(value.start, r.start) && sameDay(value.end, r.end)
+                return (
+                  <button
+                    key={p.label} type="button" onClick={() => apply(r)}
+                    style={{ textAlign: 'left', padding: '6px 10px', border: 'none', borderRadius: 'var(--radius-sm)', font: `${active ? 500 : 400} 14px/20px ${FONT}`, color: active ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-default)', background: active ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', cursor: 'pointer' }}
+                    onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                    onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
+                  >
+                    {p.label}
+                  </button>
+                )
+              })}
+            </div>
+            <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', padding: 'var(--space-2)' }}>
+              {xMode ? (
+                <form
+                  noValidate
+                  onSubmit={e => { e.preventDefault(); const n = Math.max(1, Math.min(365, parseInt(xDays, 10) || 1)); apply(lastN(n)) }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}
+                >
+                  Last
+                  <input
+                    autoFocus type="number" min={1} max={365} value={xDays} onChange={e => setXDays(e.target.value)} aria-label="Number of days"
+                    style={{ width: 52, height: 28, padding: '0 6px', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', background: 'var(--lyra-color-bg-field)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-sm)', outline: 'none' }}
+                  />
+                  days
+                  <button type="submit" aria-label="Apply" style={{ marginLeft: 'auto', border: 'none', background: 'transparent', font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-link)', cursor: 'pointer', padding: 0 }}>Apply</button>
+                </form>
+              ) : (
+                <button
+                  type="button" onClick={() => setXMode(true)}
+                  style={{ width: '100%', padding: '6px 10px', border: 'none', borderRadius: 'var(--radius-sm)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', background: 'transparent', cursor: 'pointer' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  Last X days
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Calendar */}
+          <div style={{ width: 328, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: 'var(--space-3) var(--space-4) var(--space-2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <NavButton onClick={() => setMonth(new Date(y, m - 1, 1))} label="Previous month"><ChevronLeft size={16} /></NavButton>
+              <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+              <NavButton onClick={() => setMonth(new Date(y, m + 1, 1))} label="Next month"><ChevronRight size={16} /></NavButton>
+            </div>
+            <div style={{ padding: '0 var(--space-4) var(--space-3)', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', rowGap: 2 }} onMouseLeave={() => setHover(null)}>
+              {WEEKDAYS.map(w => (
+                <div key={w} style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{w}</div>
+              ))}
+              {cells.map((d, i) => {
+                if (!d) return <div key={`e${i}`} />
+                const edge = isEdge(d), band = inBand(d), today = sameDay(d, TODAY)
+                const bandStart = !!preview && sameDay(d, preview.start), bandEnd = !!preview && sameDay(d, preview.end)
+                return (
+                  <div key={d.getTime()} style={{ position: 'relative', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {band && !(bandStart && bandEnd) && (
+                      <span aria-hidden="true" style={{ position: 'absolute', top: 2, bottom: 2, left: bandStart ? '50%' : 0, right: bandEnd ? '50%' : 0, background: 'var(--lyra-color-bg-active-subtle)' }} />
+                    )}
+                    <button
+                      type="button" onClick={() => pickDay(d)} onMouseEnter={() => setHover(d)} aria-label={d.toDateString()} aria-pressed={edge}
+                      style={{ position: 'relative', width: 32, height: 32, border: today && !edge ? '1px solid var(--lyra-color-border-active)' : '1px solid transparent', borderRadius: 'var(--radius-full)', background: edge ? 'var(--lyra-color-bg-primary)' : 'transparent', color: edge ? 'var(--lyra-color-fg-on-primary)' : 'var(--lyra-color-fg-default)', font: `${edge ? 500 : 400} 14px/20px ${FONT}`, cursor: 'pointer' }}
+                      onMouseOver={e => { if (!edge) e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                      onMouseOut={e => { if (!edge) e.currentTarget.style.background = 'transparent' }}
+                    >
+                      {d.getDate()}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ marginTop: 'auto', borderTop: '1px solid var(--lyra-color-border-subtle)', padding: 'var(--space-2)', display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button" onClick={() => setMonth(new Date(TODAY.getFullYear(), TODAY.getMonth(), 1))}
+                style={{ padding: '6px 16px', border: 'none', borderRadius: 'var(--radius-sm)', font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-link)', background: 'transparent', cursor: 'pointer' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                Today
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -937,6 +1129,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const [custType, setCustType] = useState('All Customer Types')
   const [channel, setChannel] = useState('All Channels')
   const [tab, setTab] = useState('All')
+  const [range, setRange] = useState<DateRange | null>({ start: new Date(2026, 9, 1), end: TODAY })
   const [openRow, setOpenRow] = useState<ResponseRow | null>(null)
 
   const override = DETAIL_OVERRIDES[program.n]
@@ -946,8 +1139,6 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
     part: program.rec - program.comp, csat: program.csat, alerts: program.alerts,
   }
   const status = program.tags.find(t => t === 'Active' || t === 'Inactive') || ''
-  const questionType = program.tags.find(t => t === 'AI questions' || t === 'Static questions') || ''
-  const isAI = questionType === 'AI questions'
 
   const q = search.trim().toLowerCase()
   const rows = DETAIL_RESPONSES.filter(r =>
@@ -981,18 +1172,6 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
           {status && <StatusPill status={status} />}
-          {questionType && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 10px', borderRadius: 'var(--radius-full)',
-              font: `500 12px/18px ${FONT}`, whiteSpace: 'nowrap',
-              background: isAI ? 'var(--lyra-color-bg-ai)' : 'var(--lyra-slate-100)',
-              color: isAI ? 'var(--lyra-purple-700)' : 'var(--lyra-slate-600)',
-              border: isAI ? '1px solid var(--lyra-color-border-subtle)' : '1px solid var(--lyra-color-border-soft)',
-            }}>
-              {isAI && <Sparkles style={{ width: 10, height: 10, fill: 'currentColor', stroke: 'none' }} />}
-              {questionType}
-            </span>
-          )}
           <span>·</span>
           <span style={{ whiteSpace: 'nowrap' }}>30 days running</span>
           <span>·</span>
@@ -1009,7 +1188,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         {/* Filter Bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <SearchInput value={search} onChange={setSearch} placeholder="Search" />
-          <DateRangeField value="Oct 1 to Oct 12" />
+          <DateRangePicker value={range} onChange={setRange} />
           <FilterDropdown value={intent} options={['All Intents', 'Refund Processing', 'Technical Troubleshooting', 'Account Access', 'Service Outage']} onChange={setIntent} />
           <FilterDropdown value={custType} options={['All Customer Types', 'New', 'Returning', 'VIP']} onChange={setCustType} />
           <FilterDropdown value={channel} options={['All Channels', 'SMS', 'WhatsApp', 'Email']} onChange={setChannel} />
@@ -1019,9 +1198,9 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         <div style={{ marginTop: 'var(--space-5)' }}>
           <ProgramPerformanceFunnel
             data={funnel}
-            subtitle="Oct 1 – Oct 12"
+            subtitle={range ? fmtRange(range) : 'No period selected'}
             deltas={override?.deltas}
-            footnote="Trends compared to Oct 1, the start of the selected period."
+            footnote={range ? `Trends compared to ${fmtDay(range.start)}, the start of the selected period.` : undefined}
           />
         </div>
 
@@ -1161,6 +1340,7 @@ export function Dashboard5Page() {
   const [program, setProgram] = useState('All Programs')
   const [channel, setChannel] = useState('All Channels')
   const [category, setCategory] = useState('All Categories')
+  const [range, setRange] = useState<DateRange | null>({ start: new Date(2026, 9, 1), end: TODAY })
   const [selected, setSelected] = useState<typeof PROGRAMS[0] | null>(null)
 
   const data = useSlicedData({ prog: program, ch: channel, cat: category })
@@ -1181,7 +1361,7 @@ export function Dashboard5Page() {
         {/* Filter Bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <SearchInput value={search} onChange={setSearch} placeholder="Search programs" />
-          <DateRangeField value="Oct 1 – Oct 12" />
+          <DateRangePicker value={range} onChange={setRange} />
           <FilterDropdown
             value={program}
             options={['All Programs', ...PROGRAMS.map(p => p.n)]}
