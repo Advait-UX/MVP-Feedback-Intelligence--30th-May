@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Bell, Calendar, ChevronDown, ChevronLeft, ChevronRight, Info, Mail, Phone, Sparkles, Star, X } from 'lucide-react'
+import { Bell, Calendar, ChevronDown, ChevronLeft, ChevronRight, Info, Mail, Phone, Power, PowerOff, Sparkles, Star, X } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
 
 const FONT = 'var(--font-sans)'
@@ -542,17 +542,15 @@ function PpDrop({ value }: { value: string }) {
 
 function StatusPill({ status }: { status: string }) {
   const isActive = status === 'Active'
+  const Icon = isActive ? Power : PowerOff
   return (
     <span style={{
-      display: 'inline-block',
-      font: `500 12px/18px ${FONT}`,
-      padding: '2px 10px',
-      borderRadius: 'var(--radius-full)',
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      font: `500 12px/16px ${FONT}`, letterSpacing: '0.01em',
       whiteSpace: 'nowrap',
-      background: isActive ? 'var(--lyra-color-status-success-subtle)' : 'var(--lyra-slate-100)',
-      color: isActive ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-slate-600)',
-      border: isActive ? undefined : '1px solid var(--lyra-color-border-soft)',
+      color: isActive ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-status-warning-strong)',
     }}>
+      <Icon size={13} strokeWidth={2} style={{ flexShrink: 0 }} />
       {status}
     </span>
   )
