@@ -15,7 +15,7 @@ export const DEFAULT_CRITERION: Criterion = { scoreType: 'CSAT', operator: 'Belo
 const NEW_CRITERION: Criterion = { scoreType: 'ASAT', operator: 'Below', value: '02', outOf: '05' }
 
 export function newGroup(criteria: Criterion[] = [DEFAULT_CRITERION]): ConditionGroup {
-  return { match: 'any', join: 'And', criteria }
+  return { match: 'any', join: GROUP_JOIN, criteria }
 }
 
 export function flattenCriteria(conditions: AlertConditions): Criterion[] {
@@ -26,18 +26,20 @@ export function formatCriterionCondition(c: Criterion) {
   return `is ${c.operator.toLowerCase()} ${parseInt(c.value, 10)} out of ${parseInt(c.outOf, 10)}`
 }
 
+/* Groups are always combined with And; only the match type inside a group varies. */
+export const GROUP_JOIN: GroupJoin = 'And'
+
 /* Short form used in the "Notify when" summary — e.g. "(CSAT < 2/5 or CSAT < 5/10) and (ASAT < 2/5)" */
 export function formatNotifyWhen(conditions: AlertConditions): string {
   const symbol = (op: string) => op === 'Below' ? '<' : op === 'Above' ? '>' : '='
   return conditions.groups
-    .map((g, i) => {
+    .map(g => {
       const inner = g.criteria
         .map(c => `${c.scoreType} ${symbol(c.operator)} ${parseInt(c.value, 10)}/${parseInt(c.outOf, 10)}`)
         .join(g.match === 'any' ? ' or ' : ' and ')
-      const wrapped = conditions.groups.length > 1 ? `(${inner})` : inner
-      return i === 0 ? wrapped : `${g.join.toLowerCase()} ${wrapped}`
+      return conditions.groups.length > 1 ? `(${inner})` : inner
     })
-    .join(' ')
+    .join(` ${GROUP_JOIN.toLowerCase()} `)
 }
 
 /* Zero-padded value options from 01 up to outOf (e.g. '05' -> 01..05, '10' -> 01..10) */
@@ -329,7 +331,17 @@ export function ConditionsBuilder({ value, onChange }: { value: AlertConditions;
         {value.groups.map((g, gi) => (
           <div key={gi} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {gi > 0 && (
-              <FieldSelect value={g.join} options={['And', 'Or']} onChange={v => updateGroup(gi, { join: v as GroupJoin })} width={80} />
+              <span
+                aria-label="Groups are combined with And"
+                style={{
+                  alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center',
+                  height: 28, padding: '0 var(--space-3)',
+                  background: 'var(--lyra-slate-100)', borderRadius: 'var(--radius-full)',
+                  font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT,
+                }}
+              >
+                {GROUP_JOIN}
+              </span>
             )}
 
             <div style={{
@@ -452,7 +464,7 @@ function SummaryGroups({ groups }: { groups: ConditionGroup[] }) {
       {groups.map((g, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
           {i > 0 && (
-            <span style={{ font: '600 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT, textAlign: 'center' }}>{g.join}</span>
+            <span style={{ font: '600 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT, textAlign: 'center' }}>{GROUP_JOIN}</span>
           )}
           <SummaryGroupBox group={g} />
         </div>

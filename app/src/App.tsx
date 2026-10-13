@@ -17,6 +17,11 @@ import type { Alert } from './pages/AlertsListPage'
 import type { AlertFormData } from './pages/CreateAlertPage'
 import { CreateAlertPage } from './pages/CreateAlertPage'
 import { EditAlertPage } from './pages/EditAlertPage'
+import { Alert2ListPage } from './pages/Alert2ListPage'
+import type { Alert2 } from './pages/Alert2ListPage'
+import type { Alert2FormData } from './pages/CreateAlert2Page'
+import { CreateAlert2Page } from './pages/CreateAlert2Page'
+import { EditAlert2Page } from './pages/EditAlert2Page'
 import { ProgramHealthPage } from './pages/ProgramHealthPage'
 import { Dashboard2Page } from './pages/Dashboard2Page'
 import { Dashboard3Page } from './pages/Dashboard3Page'
@@ -392,7 +397,7 @@ export default function App() {
   const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'health'>('programs')
+  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'alert2' | 'health'>('programs')
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
@@ -412,6 +417,10 @@ export default function App() {
   const [activatedAlert, setActivatedAlert] = useState<AlertFormData | null>(null)
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null)
   const [savedAlert, setSavedAlert] = useState<(AlertFormData & { id: string }) | null>(null)
+  const [showCreateAlert2, setShowCreateAlert2] = useState(false)
+  const [activatedAlert2, setActivatedAlert2] = useState<Alert2FormData | null>(null)
+  const [editingAlert2, setEditingAlert2] = useState<Alert2 | null>(null)
+  const [savedAlert2, setSavedAlert2] = useState<(Alert2FormData & { id: string }) | null>(null)
 
   // App-switcher routing (nice_world TopBar dropdown).
   const handleAppSwitch = (appLabel: string) => {
@@ -515,7 +524,8 @@ export default function App() {
       children: [
         { id: 'surveys', label: 'Surveys' },
         { id: 'themes',  label: 'Themes' },
-        { id: 'alerts',  label: 'Alerts' },
+        { id: 'alerts',  label: 'Alert 1' },
+        { id: 'alert2',  label: 'Alert 2' },
       ],
     },
   ]
@@ -535,6 +545,7 @@ export default function App() {
     surveys: 'Surveys',
     themes:  'Themes',
     alerts:  'Alerts',
+    alert2:  'Alerts',
     health:  'Program health',
   }
 
@@ -719,6 +730,28 @@ export default function App() {
             onEditAlert={(alert) => setEditingAlert(alert)}
             savedAlert={savedAlert}
             onClearSaved={() => setSavedAlert(null)}
+          />
+        )
+      ) : fiSection === 'alert2' ? (
+        showCreateAlert2 ? (
+          <CreateAlert2Page
+            onCancel={() => setShowCreateAlert2(false)}
+            onActivate={(data) => { setShowCreateAlert2(false); setActivatedAlert2(data) }}
+          />
+        ) : editingAlert2 ? (
+          <EditAlert2Page
+            alert={editingAlert2}
+            onCancel={() => setEditingAlert2(null)}
+            onSave={(data) => { const id = editingAlert2.id; setEditingAlert2(null); setSavedAlert2({ id, ...data }) }}
+          />
+        ) : (
+          <Alert2ListPage
+            onCreateAlert={() => setShowCreateAlert2(true)}
+            activatedAlert={activatedAlert2}
+            onClearActivated={() => setActivatedAlert2(null)}
+            onEditAlert={(alert) => setEditingAlert2(alert)}
+            savedAlert={savedAlert2}
+            onClearSaved={() => setSavedAlert2(null)}
           />
         )
       ) : (
