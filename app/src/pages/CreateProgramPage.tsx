@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   CheckCircle2, Info, Search, Monitor, Phone, Clock,
-  ChevronUp, ChevronDown, ChevronRight, Check, ClipboardList, Power, UserRoundCheck, FlaskConical,
+  ChevronUp, ChevronDown, ChevronRight, Check, ClipboardList, Power, UserRoundCheck, FlaskConical, Bell, X,
 } from 'lucide-react'
-import { Toggle, SurveyPickerDrawer, ThemePickerDrawer, ThemeDetailDrawer, FiDatePicker } from '../components/campaign-wizard/WizardPrimitives'
+import { Toggle, SurveyPickerDrawer, ThemePickerDrawer, ThemeDetailDrawer, ActionPickerDrawer, alertDescription, FiDatePicker } from '../components/campaign-wizard/WizardPrimitives'
+import { ALERTS } from './AlertsListPage'
 import { SURVEY_DESIGNS, DIGITAL_THEMES } from '../lib/campaignWizard'
 import type { Campaign } from '../lib/campaigns'
 
@@ -735,6 +736,7 @@ function campaignToForm(c: Campaign): Form {
 export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
   const [form, setForm] = useState<Form>(() => editCampaign ? campaignToForm(editCampaign) : DEFAULT_FORM)
   const [surveyDrawerOpen, setSurveyDrawerOpen] = useState(false)
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(false)
   const [themeDrawerOpen, setThemeDrawerOpen] = useState(false)
   const [themeDetailOpen, setThemeDetailOpen] = useState(false)
   const [showProgramTooltip, setShowProgramTooltip] = useState(false)
@@ -772,6 +774,8 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
   const nameChars = form.name.length
 
   const surveyDone = !!form.surveyId
+  const selectedAlert = ALERTS.find(a => a.id === form.actionSetId)
+  const actionsDone = !!selectedAlert
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const startDatePast = !!form.startDate && new Date(form.startDate + 'T00:00:00') < today
@@ -780,7 +784,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
 
   const deliveryError = startDatePast || endDateBeforeStart
   const deliveryDone = !!form.startDate && !startDatePast && (form.ongoing || (!!form.endDate && !endDateBeforeStart))
-  const stepsOk = [surveyDone, true, deliveryDone].filter(Boolean).length
+  const stepsOk = [surveyDone, true, deliveryDone, actionsDone].filter(Boolean).length
 
   function scrollTo(ref: React.RefObject<HTMLDivElement | null>) {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -816,7 +820,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
   const navDeliveryStatus = isExpiredInactive ? 'error' : ((isEditActive || isManuallyInactive) && !hasChanges) ? 'ok' : (deliveryDone ? 'ok' : deliveryError ? 'error' : 'warn')
   const navAudienceStatus = ((isEditActive || isManuallyInactive) && !hasChanges) ? 'ok' : (audienceError ? 'error' : 'ok')
   const navSurveyStatus   = ((isEditActive || isManuallyInactive) && !hasChanges) ? 'ok' : (surveyDone ? 'ok' : 'warn')
-  const navStepsOk = [navDeliveryStatus, navAudienceStatus, navSurveyStatus].filter(s => s === 'ok').length
+  const navStepsOk = [navDeliveryStatus, navAudienceStatus, navSurveyStatus].filter(s => s === 'ok').length + (actionsDone ? 1 : 0)
 
   const canSave = editCampaign
     ? hasChanges && !!form.name && !nameCharError && !deliveryError && !endDateMissing && !audienceError
@@ -1029,7 +1033,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
             <StepItem label="Delivery" status={editCampaign ? navDeliveryStatus : (deliveryDone ? 'ok' : deliveryError ? 'error' : 'warn')} onClick={() => scrollTo(deliveryRef)} />
             <StepItem label="Audience" status={editCampaign ? navAudienceStatus : (audienceError ? 'error' : 'ok')} onClick={() => scrollTo(audienceRef)} />
             <StepItem label="Survey" status={editCampaign ? navSurveyStatus : (surveyDone ? 'ok' : 'warn')} onClick={() => scrollTo(surveyRef)} />
-            <StepItem label="Actions" sublabel="(optional)" status="warn" onClick={() => scrollTo(actionsRef)} />
+            <StepItem label="Actions" sublabel="(optional)" status={actionsDone ? 'ok' : 'warn'} onClick={() => scrollTo(actionsRef)} />
           </div>
           <div style={{ paddingTop: 8, paddingBottom: 8 }}>
             <div style={{ height: 0, outline: '1px solid var(--lyra-color-border-subtle)', outlineOffset: -0.5 }} />
@@ -1552,10 +1556,44 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
               <SectionHeader
                 label={<>Actions <span style={{ fontWeight: 400, lineHeight: '24px', color: 'var(--lyra-color-fg-secondary)' }}>(optional)</span></>}
                 infoTip="Optional. Who gets notified when a response needs attention. Pick a reusable set from the library."
-                status="warn"
+                status={actionsDone ? 'ok' : 'warn'}
               />
+              {selectedAlert ? (
+                <div style={{ border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-shell)', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Bell size={16} style={{ color: 'var(--lyra-color-fg-action)' }} />
+                      </div>
+                      <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {selectedAlert.name}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      <button
+                        onClick={() => setActionDrawerOpen(true)}
+                        style={{ display: 'inline-flex', alignItems: 'center', height: 36, padding: '0 16px', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-action)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
+                      >Change action</button>
+                      <button
+                        onClick={() => set('actionSetId', '')}
+                        aria-label="Remove action"
+                        style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-color-fg-action)', cursor: 'pointer' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
+                      ><X size={16} /></button>
+                    </div>
+                  </div>
+                  <div style={{ padding: '0 16px 16px', font: '400 12px/16px var(--font-sans)', letterSpacing: '0.2px' }}>
+                    <span style={{ color: 'var(--lyra-color-fg-secondary)' }}>Description: </span>
+                    <span style={{ color: 'var(--lyra-color-fg-default)' }}>{alertDescription(selectedAlert)}</span>
+                  </div>
+                </div>
+              ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
                 <button
+                  onClick={() => setActionDrawerOpen(true)}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     height: 36, padding: '0 16px',
@@ -1574,6 +1612,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
                   Select action set from library
                 </button>
               </div>
+              )}
             </div>
 
           </div>
@@ -1640,6 +1679,15 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
           currentId={form.surveyId}
           onClose={() => setSurveyDrawerOpen(false)}
           onSelect={id => { set('surveyId', id); setSurveyDrawerOpen(false) }}
+        />
+      )}
+
+      {/* Action picker drawer */}
+      {actionDrawerOpen && (
+        <ActionPickerDrawer
+          currentId={form.actionSetId}
+          onClose={() => setActionDrawerOpen(false)}
+          onSelect={id => { set('actionSetId', id); setActionDrawerOpen(false) }}
         />
       )}
 

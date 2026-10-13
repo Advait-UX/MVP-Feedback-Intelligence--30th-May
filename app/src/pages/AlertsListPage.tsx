@@ -63,7 +63,7 @@ function SortableTh({
   )
 }
 
-const ALERTS: Alert[] = [
+export const ALERTS: Alert[] = [
   {
     id: 'billing-context',
     name: 'Billing context',

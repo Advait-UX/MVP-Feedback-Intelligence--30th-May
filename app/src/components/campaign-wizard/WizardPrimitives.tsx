@@ -568,6 +568,155 @@ export function SurveyPickerDrawer({
   )
 }
 
+/* ── ActionPickerDrawer — lists the alerts from the Alerts library ── */
+import { ALERTS, type Alert } from '../../pages/AlertsListPage'
+
+export function alertDescription(a: Alert): string {
+  return a.description || `An alert will be triggered when ${a.notifyWhen}`
+}
+
+export function ActionPickerDrawer({
+  currentId, onClose, onSelect
+}: {
+  currentId: string; onClose: () => void; onSelect: (id: string) => void
+}) {
+  const [search, setSearch] = useState('')
+  const panelRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose()
+    }
+    const t = setTimeout(() => document.addEventListener('mousedown', handler), 0)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', handler) }
+  }, [onClose])
+
+  const q = search.trim().toLowerCase()
+  const filtered = ALERTS.filter(a =>
+    !q || a.name.toLowerCase().includes(q) || alertDescription(a).toLowerCase().includes(q)
+  )
+
+  return (
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="action-picker-title"
+      style={{
+        position: 'fixed',
+        top: 56,
+        right: 24,
+        bottom: 24,
+        width: 650,
+        maxWidth: 'calc(100vw - 48px)',
+        zIndex: 400,
+        background: 'var(--lyra-color-bg-surface-overlay)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--sol-effect-shadowxl)',
+        border: '1px solid var(--lyra-color-border-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '0 24px', height: 80, flexShrink: 0 }}>
+        <h2 id="action-picker-title" style={{ flex: 1, margin: 0, font: '500 16px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
+          Select an action
+        </h2>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            width: 24, height: 24, borderRadius: 'var(--radius-sm)',
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--lyra-color-fg-default)', padding: 0, flexShrink: 0,
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div style={{ flex: 1, overflow: 'hidden', padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* Search */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            height: 32, padding: '0 12px',
+            background: 'var(--lyra-color-bg-field)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--lyra-color-border-strong)',
+            maxWidth: 422,
+          }}>
+            <Search size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
+            <input
+              ref={inputRef}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search actions"
+              aria-label="Search actions"
+              style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
+            />
+          </div>
+        </div>
+
+        {/* Alert list */}
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {filtered.length === 0 ? (
+            <p style={{ margin: 0, padding: '40px 0', textAlign: 'center', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>
+              No actions match your search.
+            </p>
+          ) : filtered.map(a => {
+            const selected = a.id === currentId
+            return (
+              <div key={a.id} style={{ borderRadius: 'var(--radius-lg)', border: '1px solid var(--lyra-color-border-soft)', overflow: 'hidden', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 24, padding: '12px 16px', minHeight: 56, borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+                  <span style={{ flex: 1, minWidth: 0, font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {a.name}
+                  </span>
+                  <button
+                    onClick={() => { onSelect(a.id); onClose() }}
+                    style={{
+                      height: 32, minWidth: 72, padding: '0 12px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--lyra-color-border-soft)',
+                      background: selected ? 'var(--lyra-color-bg-active-subtle)' : 'var(--lyra-color-bg-surface-base)',
+                      font: '500 14px/20px var(--font-sans)',
+                      color: selected ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-action)',
+                      cursor: 'pointer', flexShrink: 0,
+                    }}
+                    onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                    onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'var(--lyra-color-bg-surface-base)' }}
+                  >
+                    {selected ? 'Selected' : 'Select'}
+                  </button>
+                </div>
+                <div style={{ padding: '12px 16px', font: '400 12px/16px var(--font-sans)', letterSpacing: '0.2px' }}>
+                  <span style={{ color: 'var(--lyra-color-fg-secondary)' }}>Description: </span>
+                  <span style={{ color: 'var(--lyra-color-fg-default)' }}>{alertDescription(a)}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── ThemeQuestionPreview ── */
 const RATING_LABELS = ['Very dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very satisfied']
 
