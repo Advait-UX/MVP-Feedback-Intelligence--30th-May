@@ -13,7 +13,8 @@ import { ProgramsListPage } from './pages/ProgramsListPage'
 import { ThemesListPage } from './pages/ThemesListPage'
 import { ThemeDetailPage } from './pages/ThemeDetailPage'
 import { AlertsListPage } from './pages/AlertsListPage'
-import type { Alert, Criterion } from './pages/AlertsListPage'
+import type { Alert } from './pages/AlertsListPage'
+import type { AlertFormData } from './pages/CreateAlertPage'
 import { CreateAlertPage } from './pages/CreateAlertPage'
 import { EditAlertPage } from './pages/EditAlertPage'
 import { ProgramHealthPage } from './pages/ProgramHealthPage'
@@ -408,9 +409,9 @@ export default function App() {
   const [themeId, setThemeId] = useState<string | null>(null)
   const [newThemeId, setNewThemeId] = useState<string | null>(null)
   const [showCreateAlert, setShowCreateAlert] = useState(false)
-  const [activatedAlert, setActivatedAlert] = useState<{ name: string; criteria: Criterion[] } | null>(null)
+  const [activatedAlert, setActivatedAlert] = useState<AlertFormData | null>(null)
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null)
-  const [savedAlert, setSavedAlert] = useState<{ id: string; name: string; criteria: Criterion[] } | null>(null)
+  const [savedAlert, setSavedAlert] = useState<(AlertFormData & { id: string }) | null>(null)
 
   // App-switcher routing (nice_world TopBar dropdown).
   const handleAppSwitch = (appLabel: string) => {
@@ -708,7 +709,7 @@ export default function App() {
           <EditAlertPage
             alert={editingAlert}
             onCancel={() => setEditingAlert(null)}
-            onSave={(data) => { const id = editingAlert.id; setEditingAlert(null); setSavedAlert({ id, name: data.name, criteria: data.criteria }) }}
+            onSave={(data) => { const id = editingAlert.id; setEditingAlert(null); setSavedAlert({ id, ...data }) }}
           />
         ) : (
           <AlertsListPage

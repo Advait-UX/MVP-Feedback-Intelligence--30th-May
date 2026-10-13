@@ -4,6 +4,8 @@ import {
   ListPageHeader, SearchInput, GridPanel, GridToolbar, RowKebabMenu,
   TableShell, Th, Td, EmptyRow,
 } from '@/components/feedback-management/ListPagePrimitives'
+import { formatNotifyWhen, type AlertConditions } from '@/components/feedback-management/AlertConditions'
+import type { AlertFormData } from './CreateAlertPage'
 
 const PAGE_SIZE = 50
 
@@ -15,26 +17,7 @@ export type Alert = {
   notifyWhen: string
   description: string
   linkedPrograms?: string[]
-}
-
-export type Criterion = { scoreType: string; operator: string; value: string; outOf: string }
-
-/* Short form used in the "Notify when" summary — e.g. "CSAT < 2/5" */
-export function formatNotifyWhen(criteria: Criterion[]): string {
-  const symbol = (op: string) => op === 'Below' ? '<' : op === 'Above' ? '>' : '='
-  return criteria
-    .map(c => `${c.scoreType} ${symbol(c.operator)} ${parseInt(c.value, 10)}/${parseInt(c.outOf, 10)}`)
-    .join(', ')
-}
-
-/* Full sentence shown in the alerts table's Description column — kept in sync with the
- * criteria configured on the Create/Edit Alert page, using the same phrasing as the
- * per-condition summary ("<scoreType> is <operator> <value> out of <outOf>"). */
-export function formatAlertDescription(criteria: Criterion[]): string {
-  const parts = criteria.map(c =>
-    `${c.scoreType} is ${c.operator.toLowerCase()} ${parseInt(c.value, 10)} out of ${parseInt(c.outOf, 10)}`
-  )
-  return `Alert will be triggered when: ${parts.join(', ')}`
+  conditions?: AlertConditions
 }
 
 const FONT = '"Inter", system-ui, -apple-system, sans-serif'
@@ -87,7 +70,7 @@ const ALERTS: Alert[] = [
     updatedOn: 'May 12, 2026 10:55:06 AM',
     updatedBy: 'Jaden Smith',
     notifyWhen: 'CSAT ≤ 2/5, ASAT ≤ 3/5',
-    description: 'Alert will be triggered when: CSAT is 2/5 or below, CSAT is 5/10 or below, ASAT is 2/10 or below, Response Tag is Agent',
+    description: 'Flags low CSAT or ASAT on billing-related surveys so supervisors can follow up with the customer the same day.',
     linkedPrograms: ['Billing Effort Score', 'Home service feedback survey', 'Tech support satisfaction survey'],
   },
   {
@@ -96,7 +79,7 @@ const ALERTS: Alert[] = [
     updatedOn: 'May 11, 2026 11:06:39 AM',
     updatedBy: 'Maria Cohen',
     notifyWhen: 'CSAT ≤ 2/5, ASAT ≤ 3/5',
-    description: 'Alert will be triggered when: CSAT is 2/5 or below, ASAT is 2/10 or below',
+    description: 'Catches unhappy home-service customers right after the visit so the field team can schedule a recovery call.',
     linkedPrograms: ['Home service feedback survey', 'Tech support satisfaction survey'],
   },
   {
@@ -105,7 +88,7 @@ const ALERTS: Alert[] = [
     updatedOn: 'May 10, 2026 09:21:59 PM',
     updatedBy: 'Jessica',
     notifyWhen: 'CSAT ≤ 2/5, ASAT ≤ 3/5',
-    description: 'Alert will be triggered when: CSAT is 2/5 or below, ASAT is 2/10 or below',
+    description: 'Notifies the tech support lead when a customer rates the agent poorly after a support interaction.',
     linkedPrograms: [],
   },
   {
@@ -114,7 +97,7 @@ const ALERTS: Alert[] = [
     updatedOn: 'May 9, 2026 08:45:00 AM',
     updatedBy: 'John Smith',
     notifyWhen: 'CSAT ≤ 2/5, ASAT ≤ 3/5',
-    description: 'Alert will be triggered when: CSAT is 2/5 or below, ASAT is 2/10 or below',
+    description: 'Surfaces product quality complaints early so the product team can spot defects before they spread.',
     linkedPrograms: ['Product Quality Pulse', 'Post-Purchase Feedback'],
   },
   {
@@ -123,7 +106,7 @@ const ALERTS: Alert[] = [
     updatedOn: 'May 8, 2026 07:30:00 PM',
     updatedBy: 'Emily Johnson',
     notifyWhen: 'CSAT ≤ 2/5, ASAT ≤ 3/5',
-    description: 'Alert will be triggered when: CSAT is 2/5 or below, ASAT is 2/10 or below',
+    description: '',
     linkedPrograms: ['Fitness Program NPS'],
   },
 ]
@@ -361,7 +344,11 @@ function AlertRow({ alert, highlighted, onDelete, onEdit, onDuplicate }: { alert
       <Td style={{ width: 300 }}><span style={{ fontWeight: 500, color: 'var(--lyra-color-fg-link)' }}>{alert.name}</span></Td>
       <Td style={{ width: 230 }}>{alert.updatedOn}</Td>
       <Td style={{ width: 160 }}>{alert.updatedBy}</Td>
-      <Td style={{ width: 581, maxWidth: 581 }}><TruncatedTextWithPopover text={alert.description} /></Td>
+      <Td style={{ width: 581, maxWidth: 581 }}>
+        {alert.description
+          ? <TruncatedTextWithPopover text={alert.description} />
+          : <span style={{ color: 'var(--lyra-color-fg-secondary)' }}>—</span>}
+      </Td>
       <Td align="right" style={{ width: 82 }}><RowKebabMenu status="active" onDelete={onDelete} onEdit={onEdit} onDuplicate={onDuplicate} /></Td>
     </tr>
   )
@@ -376,10 +363,10 @@ export function AlertsListPage({
   onClearSaved,
 }: {
   onCreateAlert?: () => void
-  activatedAlert?: { name: string; criteria: Criterion[] } | null
+  activatedAlert?: AlertFormData | null
   onClearActivated?: () => void
   onEditAlert?: (alert: Alert) => void
-  savedAlert?: { id: string; name: string; criteria: Criterion[] } | null
+  savedAlert?: (AlertFormData & { id: string }) | null
   onClearSaved?: () => void
 }) {
   const [search, setSearch] = useState('')
@@ -414,8 +401,9 @@ export function AlertsListPage({
         name: activatedAlert.name,
         updatedOn: todayStr,
         updatedBy: 'Jaden Smith',
-        notifyWhen: formatNotifyWhen(activatedAlert.criteria),
-        description: formatAlertDescription(activatedAlert.criteria),
+        notifyWhen: formatNotifyWhen(activatedAlert.conditions),
+        description: activatedAlert.description,
+        conditions: activatedAlert.conditions,
       }
       setExtraAlerts(prev => [newAlert, ...prev])
       setHighlightedId(newId)
@@ -440,8 +428,9 @@ export function AlertsListPage({
       ...prev,
       [savedAlert.id]: {
         name: savedAlert.name,
-        notifyWhen: formatNotifyWhen(savedAlert.criteria),
-        description: formatAlertDescription(savedAlert.criteria),
+        notifyWhen: formatNotifyWhen(savedAlert.conditions),
+        description: savedAlert.description,
+        conditions: savedAlert.conditions,
         updatedOn: todayStr,
         updatedBy: 'Jaden Smith',
       },

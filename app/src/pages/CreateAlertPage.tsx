@@ -1,6 +1,10 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
-import { Check, ChevronDown, Plus, Info, X, Search, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
-import { ListPageHeader } from '@/components/feedback-management/ListPagePrimitives'
+import { useState, useMemo } from 'react'
+import { Check, Plus, Info, X, Search, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
+import {
+  ConditionsBuilder, ConditionsSummary, NotifiedToSummary, DescriptionField, SecBtn,
+  getAllConditionIssues, getGroupIssues, newGroup,
+  type AlertConditions,
+} from '@/components/feedback-management/AlertConditions'
 
 const FONT = 'var(--font-sans)'
 
@@ -291,106 +295,6 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   )
 }
 
-/* ─── Inline select chip ─── */
-function DropdownList({ options, value, onSelect, prefix, disabledOptions }: {
-  options: string[]; value: string; onSelect: (v: string) => void; prefix?: string; disabledOptions?: string[]
-}) {
-  return (
-    <div style={{
-      position: 'absolute', top: 'calc(100% + 4px)', left: 0,
-      background: 'var(--lyra-color-bg-surface-overlay)',
-      border: '1px solid var(--lyra-color-border-soft)',
-      borderRadius: 'var(--radius-md)',
-      boxShadow: 'var(--sol-effect-shadowlg)',
-      zIndex: 999, minWidth: 160, padding: 'var(--space-1)',
-    }}>
-      {options.map(opt => {
-        const isDisabled = disabledOptions?.includes(opt) ?? false
-        return (
-          <button
-            key={opt}
-            onClick={() => { if (!isDisabled) onSelect(opt) }}
-            disabled={isDisabled}
-            style={{
-              display: 'block', width: '100%', textAlign: 'left',
-              padding: '6px var(--space-3)', background: 'none', border: 'none',
-              font: `${opt === value ? 500 : 400} 14px/20px var(--font-sans)`,
-              cursor: isDisabled ? 'not-allowed' : 'pointer',
-              color: isDisabled ? 'var(--lyra-color-fg-disabled)' : opt === value ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-default)',
-              borderRadius: 'var(--radius-sm)',
-            }}
-            onMouseEnter={e => { if (!isDisabled) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
-          >
-            {prefix ? `${prefix} ${opt}` : opt}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/* ─── Bordered field dropdown — matches Figma condition-row select style ─── */
-function FieldSelect({ value, options, onChange, width, disabledOptions }: {
-  value: string; options: string[]; onChange: (v: string) => void; width: number; disabledOptions?: string[]
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  return (
-    <div ref={ref} style={{ position: 'relative', width }}>
-      <button
-        onClick={() => setOpen(v => !v)}
-        style={{
-          width: '100%', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          paddingLeft: 12, paddingRight: 12,
-          background: 'var(--lyra-color-bg-field)',
-          border: '1px solid var(--lyra-color-border-strong)',
-          borderRadius: 'var(--radius-md)',
-          cursor: 'pointer',
-        }}
-      >
-        <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {value}
-        </span>
-        <ChevronDown size={14} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }} />
-      </button>
-      {open && (
-        <DropdownList
-          options={options}
-          value={value}
-          onSelect={v => { onChange(v); setOpen(false) }}
-          disabledOptions={disabledOptions}
-        />
-      )}
-    </div>
-  )
-}
-
-/* ─── "Trigger an alert when [any/all] of the following conditions are met" header ─── */
-function MatchTypeHeader({ value }: { value: 'any' | 'all' }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
-      <span style={{ font: '500 16px/20px var(--font-sans)', letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>
-        Trigger an alert when
-      </span>
-      <span style={{ font: '700 16px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>{value}</span>
-      <span style={{ font: '500 16px/20px var(--font-sans)', letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>
-        of the following conditions are met
-      </span>
-    </div>
-  )
-}
-
 /* ─── Section panel ─── */
 function Panel({ title, infoText, children }: { title: string; infoText?: string; children: React.ReactNode }) {
   const [showInfo, setShowInfo] = useState(false)
@@ -439,120 +343,21 @@ function Panel({ title, infoText, children }: { title: string; infoText?: string
   )
 }
 
-/* ─── Secondary button ─── */
-function SecBtn({ label, icon, onClick, width = 228, disabled = false }: { label: string; icon?: React.ReactNode; onClick?: () => void; width?: number; disabled?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)',
-        width, height: 32, padding: '0 var(--space-3)',
-        border: '1px solid var(--lyra-color-border-soft)',
-        borderRadius: 'var(--radius-md)',
-        background: 'var(--lyra-color-bg-surface-base)',
-        font: '500 14px/20px var(--font-sans)',
-        color: disabled ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-action)',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
-      }}
-      onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
-    >
-      {icon}
-      {label}
-    </button>
-  )
-}
-
 /* ─── Summary divider ─── */
 function SummaryDivider() {
   return <div style={{ height: 1, background: 'var(--lyra-color-border-subtle)', margin: 'var(--space-2) 0' }} />
 }
 
-type Criterion = { scoreType: string; operator: string; value: string; outOf: string }
-
-/* Zero-padded value options from 01 up to outOf (e.g. '05' -> 01..05, '10' -> 01..10) */
-function valueOptionsFor(outOf: string): string[] {
-  const max = parseInt(outOf, 10) || 5
-  return Array.from({ length: max }, (_, i) => String(i + 1).padStart(2, '0'))
-}
-
-/* "Below 01" and "Above <outOf>" are not meaningful — disable those value options */
-function disabledValuesFor(operator: string, outOf: string): string[] {
-  const disabled: string[] = []
-  if (operator === 'Below') disabled.push('01')
-  if (operator === 'Above') disabled.push(outOf)
-  return disabled
-}
-
-type ConditionIssue = { message: string }
-
-/*
- * Validates the criteria list for two real usability problems:
- *  1. Exact duplicates — the same score type + operator + value + scale added twice.
- *     This is pointless regardless of "any"/"all" and is always flagged.
- *  2. Contradictions — only possible when matchType is "all" (every condition must hold
- *     at once). Two conditions on the same score type + scale can define an impossible
- *     range (e.g. "ASAT below 2" AND "ASAT above 3" can never both be true), which would
- *     make the alert never fire. Conditions on different score types, or different "any"
- *     branches, are never contradictory — each is independently sufficient.
- * Conditions with different operators/values on the same score type + scale (e.g. "Below 2"
- * and "Above 3" in "any" mode) are a perfectly valid, non-redundant OR — they are NOT flagged.
- */
-function getConditionIssues(criteria: Criterion[], matchType: 'any' | 'all'): Record<number, ConditionIssue> {
-  const issues: Record<number, ConditionIssue> = {}
-
-  // 1. Exact duplicates
-  const exactGroups: Record<string, number[]> = {}
-  criteria.forEach((c, i) => {
-    const k = `${c.scoreType}|${c.operator}|${c.value}|${c.outOf}`
-    ;(exactGroups[k] ||= []).push(i)
-  })
-  Object.values(exactGroups).forEach(idxs => {
-    if (idxs.length > 1) {
-      idxs.forEach(i => { issues[i] = { message: 'Duplicate condition. This exact condition has already been added.' } })
-    }
-  })
-
-  // 2. Contradictions — only meaningful when every condition must hold simultaneously
-  if (matchType === 'all') {
-    const scaleGroups: Record<string, number[]> = {}
-    criteria.forEach((c, i) => {
-      if (issues[i]) return
-      const k = `${c.scoreType}|${c.outOf}`
-      ;(scaleGroups[k] ||= []).push(i)
-    })
-    Object.values(scaleGroups).forEach(idxs => {
-      if (idxs.length < 2) return
-      let lo = -Infinity
-      let hi = Infinity
-      idxs.forEach(i => {
-        const c = criteria[i]
-        const v = parseInt(c.value, 10)
-        if (c.operator === 'Below') hi = Math.min(hi, v - 0.01)
-        else if (c.operator === 'Above') lo = Math.max(lo, v + 0.01)
-        else if (c.operator === 'Equal to') { lo = Math.max(lo, v); hi = Math.min(hi, v) }
-      })
-      if (lo > hi) {
-        idxs.forEach(i => { issues[i] = { message: 'These conditions can never all be true at once — the alert would never fire.' } })
-      }
-    })
-  }
-
-  return issues
-}
-
 /* ─── Main page ─── */
-export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void; onActivate?: (data: { name: string; criteria: Criterion[] }) => void }) {
+export type AlertFormData = { name: string; description: string; conditions: AlertConditions }
+
+export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void; onActivate?: (data: AlertFormData) => void }) {
   const [alertName, setAlertName] = useState('')
+  const [description, setDescription] = useState('')
   const [nameCharError, setNameCharError] = useState(false)
   const [showNameError, setShowNameError] = useState(false)
   const [nameDuplicate, setNameDuplicate] = useState(false)
-  const [criteria, setCriteria] = useState<Criterion[]>([
-    { scoreType: 'CSAT', operator: 'Below', value: '02', outOf: '05' },
-  ])
-  const [matchType, setMatchType] = useState<'any' | 'all'>('any')
+  const [conditions, setConditions] = useState<AlertConditions>({ groups: [newGroup()] })
   const [notifySupervisor, setNotifySupervisor] = useState(true)
   const [emailNotif, setEmailNotif] = useState(true)
   const [inAppNotif, setInAppNotif] = useState(true)
@@ -560,35 +365,15 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
   const [additionalRecipients, setAdditionalRecipients] = useState<string[]>([])
   const [showCancelModal, setShowCancelModal] = useState(false)
 
-  const conditionIssues = useMemo(() => getConditionIssues(criteria, matchType), [criteria, matchType])
-  const hasDuplicates = Object.keys(conditionIssues).length > 0
-
-  const updateCriterion = (idx: number, field: keyof Criterion, val: string) =>
-    setCriteria(prev => prev.map((c, i) => {
-      if (i !== idx) return c
-      const next = { ...c, [field]: val }
-      const options = valueOptionsFor(next.outOf)
-      const disabled = disabledValuesFor(next.operator, next.outOf)
-      if (!options.includes(next.value) || disabled.includes(next.value)) {
-        next.value = options.find(o => !disabled.includes(o)) ?? next.value
-      }
-      return next
-    }))
-  const addCriterion = () =>
-    setCriteria(prev => [...prev, { scoreType: 'ASAT', operator: 'Below', value: '02', outOf: '05' }])
-  const removeCriterion = (idx: number) =>
-    setCriteria(prev => prev.filter((_, i) => i !== idx))
+  const hasConditionIssues = useMemo(() => Object.keys(getAllConditionIssues(conditions)).length > 0 || Object.keys(getGroupIssues(conditions)).length > 0, [conditions])
 
   const noNotifyMethod = !emailNotif && !inAppNotif
-  const canSave = alertName.trim().length > 0 && !nameCharError && !nameDuplicate && !hasDuplicates
+  const canSave = alertName.trim().length > 0 && !nameCharError && !nameDuplicate && !hasConditionIssues
   const canActivate = canSave && !noNotifyMethod
 
-  const formatCriterionCondition = (c: Criterion) =>
-    `is ${c.operator.toLowerCase()} ${parseInt(c.value)} out of ${parseInt(c.outOf)}`
   const summaryVia = [emailNotif && 'email', inAppNotif && 'in app'].filter(Boolean).join(' & ') || '—'
   const additionalRecipientNames = additionalRecipients.map(id => ALL_USERS.find(u => u.id === id)?.name).filter(Boolean) as string[]
   const summaryToList = [notifySupervisor ? "Agent's supervisor" : null, ...additionalRecipientNames].filter(Boolean) as string[]
-  const summaryTo = summaryToList.length > 0 ? summaryToList.join(', ') : '—'
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'var(--lyra-color-bg-surface-base)' }}>
@@ -647,7 +432,7 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
             }}
             onMouseEnter={e => { if (canActivate) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-primary)' }}
             onMouseLeave={e => { if (canActivate) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-primary)' }}
-            onClick={() => { if (canActivate) onActivate?.({ name: alertName.trim(), criteria }) }}
+            onClick={() => { if (canActivate) onActivate?.({ name: alertName.trim(), description: description.trim(), conditions }) }}
           >
             Save
           </button>
@@ -761,87 +546,12 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
                   )
                 })()}
               </div>
+              <div style={{ marginTop: 'var(--space-4)' }}>
+                <DescriptionField value={description} onChange={setDescription} />
+              </div>
             </div>
 
-            {/* When should a notification be sent? */}
-            <div style={{
-              background: 'var(--lyra-color-bg-surface-base)',
-              border: '1px solid var(--lyra-color-border-subtle)',
-              borderRadius: 'var(--radius-lg)',
-            }}>
-              {/* Toolbar */}
-              <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
-                <MatchTypeHeader value={matchType} />
-              </div>
-              {/* Content */}
-              <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                  {criteria.map((c, idx) => {
-                    const issue = conditionIssues[idx]
-                    return (
-                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-2)' }}>
-                          <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>If</span>
-                          <FieldSelect
-                            value={c.scoreType}
-                            options={['CSAT', 'ASAT']}
-                            onChange={v => updateCriterion(idx, 'scoreType', v)}
-                            width={180}
-                          />
-                          <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>is</span>
-                          <FieldSelect
-                            value={c.operator}
-                            options={['Below', 'Equal to', 'Above']}
-                            onChange={v => updateCriterion(idx, 'operator', v)}
-                            width={140}
-                          />
-                          <FieldSelect
-                            value={c.value}
-                            options={valueOptionsFor(c.outOf)}
-                            disabledOptions={disabledValuesFor(c.operator, c.outOf)}
-                            onChange={v => updateCriterion(idx, 'value', v)}
-                            width={65}
-                          />
-                          <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>out of</span>
-                          <FieldSelect
-                            value={c.outOf}
-                            options={['05', '10']}
-                            onChange={v => updateCriterion(idx, 'outOf', v)}
-                            width={65}
-                          />
-                          {idx > 0 && (
-                            <button
-                              onClick={() => removeCriterion(idx)}
-                              aria-label="Remove criterion"
-                              style={{
-                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                width: 24, height: 24, border: 'none', background: 'none',
-                                cursor: 'pointer', color: 'var(--lyra-color-fg-secondary)',
-                                borderRadius: 'var(--radius-xs)', padding: 0, flexShrink: 0,
-                              }}
-                              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--lyra-color-state-bg-hover-opacity)'; el.style.color = 'var(--lyra-color-fg-default)' }}
-                              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'none'; el.style.color = 'var(--lyra-color-fg-secondary)' }}
-                            >
-                              <X size={14} />
-                            </button>
-                          )}
-                        </div>
-                        {issue && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', paddingLeft: 20 }}>
-                            <Info size={12} style={{ color: 'var(--lyra-color-status-critical-strong)', flexShrink: 0 }} />
-                            <span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-status-critical-strong)', fontFamily: FONT, letterSpacing: '0.01em' }}>
-                              {issue.message}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-                <div style={{ height: 0, borderTop: '1px solid var(--lyra-color-border-soft)' }} />
-                <SecBtn label="Add criteria" icon={<Plus size={14} />} disabled={criteria.length >= 5} onClick={addCriterion} width={140} />
-              </div>
-            </div>
+            <ConditionsBuilder value={conditions} onChange={setConditions} />
 
             {/* Who is notified? */}
             <Panel title="Who is notified?">
@@ -1000,65 +710,7 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
                 Summary
               </span>
 
-              {/* Notify when */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
-                <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT }}>
-                  Notify when
-                </span>
-                {(() => {
-                  const visibleCriteria = criteria.slice(0, 2)
-                  const hiddenCriteria = criteria.slice(2)
-                  return (
-                    <>
-                      {visibleCriteria.map((c, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-                          <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT, flexShrink: 0 }}>
-                            {c.scoreType} score:
-                          </span>
-                          <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT, textAlign: 'right' }}>
-                            {formatCriterionCondition(c)}
-                          </span>
-                        </div>
-                      ))}
-                      {hiddenCriteria.length > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          <span style={{ position: 'relative', display: 'inline-block' }}>
-                            <span
-                              style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-link)', fontFamily: FONT, cursor: 'pointer', textDecoration: 'underline' }}
-                              onMouseEnter={e => {
-                                const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement | null
-                                if (tip) tip.style.display = 'block'
-                              }}
-                              onMouseLeave={e => {
-                                const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement | null
-                                if (tip) tip.style.display = 'none'
-                              }}
-                            >
-                              +{hiddenCriteria.length} more
-                            </span>
-                            <div style={{
-                              display: 'none',
-                              position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
-                              background: 'var(--lyra-color-bg-surface-inverse)',
-                              borderRadius: 'var(--radius-sm)',
-                              boxShadow: 'var(--sol-effect-shadowmd)',
-                              padding: '6px var(--space-3)',
-                              minWidth: 200, zIndex: 200,
-                              pointerEvents: 'none',
-                            }}>
-                              {hiddenCriteria.map((c, i) => (
-                                <div key={i} style={{ font: '400 12px/20px var(--font-sans)', color: 'var(--lyra-color-fg-inverse)', fontFamily: FONT, whiteSpace: 'nowrap' }}>
-                                  {c.scoreType} score: {formatCriterionCondition(c)}
-                                </div>
-                              ))}
-                            </div>
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )
-                })()}
-              </div>
+              <ConditionsSummary conditions={conditions} />
 
               <SummaryDivider />
 
@@ -1072,57 +724,7 @@ export function CreateAlertPage({ onCancel, onActivate }: { onCancel: () => void
                     {summaryVia}
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-                  <span style={{ font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)', fontFamily: FONT, flexShrink: 0 }}>
-                    Notified to:
-                  </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                    {summaryToList.length > 0 ? (() => {
-                      const visible = summaryToList.slice(0, 2)
-                      const hidden = summaryToList.slice(2)
-                      return (
-                        <>
-                          {visible.map((name, i) => (
-                            <span key={i} style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT, textAlign: 'right' }}>{name}</span>
-                          ))}
-                          {hidden.length > 0 && (
-                            <span style={{ position: 'relative', display: 'inline-block' }}>
-                              <span
-                                style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-link)', fontFamily: FONT, cursor: 'pointer', textDecoration: 'underline' }}
-                                onMouseEnter={e => {
-                                  const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement | null
-                                  if (tip) tip.style.display = 'block'
-                                }}
-                                onMouseLeave={e => {
-                                  const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement | null
-                                  if (tip) tip.style.display = 'none'
-                                }}
-                              >
-                                +{hidden.length} more
-                              </span>
-                              <div style={{
-                                display: 'none',
-                                position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
-                                background: 'var(--lyra-color-bg-surface-inverse)',
-                                borderRadius: 'var(--radius-sm)',
-                                boxShadow: 'var(--sol-effect-shadowmd)',
-                                padding: '6px var(--space-3)',
-                                minWidth: 160, zIndex: 200,
-                                pointerEvents: 'none',
-                              }}>
-                                {hidden.map((name, i) => (
-                                  <div key={i} style={{ font: '400 12px/20px var(--font-sans)', color: 'var(--lyra-color-fg-inverse)', fontFamily: FONT, whiteSpace: 'nowrap' }}>{name}</div>
-                                ))}
-                              </div>
-                            </span>
-                          )}
-                        </>
-                      )
-                    })() : (
-                      <span style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT }}>—</span>
-                    )}
-                  </div>
-                </div>
+                <NotifiedToSummary names={summaryToList} />
               </div>
             </div>
           </div>
