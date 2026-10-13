@@ -258,22 +258,22 @@ function ProgramPerformanceFunnel({ data, subtitle, deltas = DEFAULT_DELTAS, foo
     const h = hgt(v), x = i * CW
     if (i < 4) {
       const nextH = hgt(stages[i + 1][1])
-      bandSvg += `<rect x="${x}" y="${(50 - h / 2).toFixed(1)}" width="${BW}" height="${h.toFixed(1)}" rx="5" fill="${COLS[i]}"/>`
+      bandSvg += `<rect x="${x}" y="${(50 - h / 2).toFixed(1)}" width="${BW}" height="${h.toFixed(1)}" rx="0" fill="${COLS[i]}"/>`
       bandSvg += `<path d="M${x + BW} ${(50 - h / 2).toFixed(1)} L${x + CW} ${(50 - nextH / 2).toFixed(1)} L${x + CW} ${(50 + nextH / 2).toFixed(1)} L${x + BW} ${(50 + h / 2).toFixed(1)} Z" fill="#DCE8F8"/>`
     } else {
       const hf = rec ? h * comp / rec : 0, hp = h - hf, top = 50 - h / 2
-      bandSvg += `<rect x="${x}" y="${top.toFixed(1)}" width="${BW}" height="${hf.toFixed(1)}" rx="5" fill="#1F4E99"/>`
-      bandSvg += `<rect x="${x}" y="${(top + hf).toFixed(1)}" width="${BW}" height="${hp.toFixed(1)}" rx="5" fill="#9BB9E6"/>`
+      bandSvg += `<rect x="${x}" y="${top.toFixed(1)}" width="${BW}" height="${hf.toFixed(1)}" rx="0" fill="#1F4E99"/>`
+      bandSvg += `<rect x="${x}" y="${(top + hf).toFixed(1)}" width="${BW}" height="${hp.toFixed(1)}" rx="0" fill="#9BB9E6"/>`
     }
   })
 
   const crit = Math.round(alerts * 10 / 27), warn = Math.round(alerts * 6 / 27), info = Math.max(0, alerts - crit - warn)
 
   return (
-    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)', padding: '14px 20px 12px' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '18px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
         <h3 style={{ font: `600 17px/24px ${FONT}`, margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program performance</h3>
-        <span style={{ font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{subtitle}</span>
+        <span style={{ font: `400 12px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{subtitle}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 230px', gap: 24 }}>
@@ -290,7 +290,7 @@ function ProgramPerformanceFunnel({ data, subtitle, deltas = DEFAULT_DELTAS, foo
                   <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
                     {label}
                     {i === 4 && (
-                      <span style={{ display: 'block', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>
+                      <span style={{ display: 'block', font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>
                         <i style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: '#1F4E99', margin: '0 4px 0 2px', verticalAlign: 'middle' }} />{fmt(comp)} full
                         <i style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: '#9BB9E6', margin: '0 4px 0 6px', verticalAlign: 'middle' }} />{fmt(part)} partial
                       </span>
@@ -339,14 +339,14 @@ function ProgramPerformanceFunnel({ data, subtitle, deltas = DEFAULT_DELTAS, foo
                 }}
               >
                 <span style={{ font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-status-success-strong)' }}>↑ {delta}</span>
-                <span style={{ font: `500 10px/14px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
+                <span style={{ font: `500 12px/14px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Side cards */}
-        <div style={{ borderLeft: '1px solid var(--lyra-color-border-soft)', paddingLeft: 24, display: 'grid', gridTemplateColumns: '1fr', rowGap: 12, alignContent: 'start', paddingTop: 6 }}>
+        <div style={{ borderLeft: '1px solid var(--lyra-color-border-subtle)', paddingLeft: 24, display: 'grid', gridTemplateColumns: '1fr', rowGap: 12, alignContent: 'start', paddingTop: 6 }}>
           {/* CSAT */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 6, columnGap: 10, alignItems: 'end' }}>
             <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)', gridColumn: '1 / 3' }}>CSAT</span>
@@ -405,10 +405,10 @@ function WhySurveysNotSent({ inter, elig }: { inter: number; elig: number }) {
     chartSvg += `<text x="${(x + cbw / 2).toFixed(1)}" y="${H - 24}" text-anchor="middle" font-size="12.5" fill="var(--lyra-color-fg-secondary)" font-family="Inter,sans-serif">${nm}</text>`
     chartSvg += `<text x="${(x + cbw / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="12" fill="var(--lyra-color-fg-secondary)" font-family="Inter,sans-serif">${pct(v, skipped)}%</text>`
   })
-  chartSvg += `<line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="var(--lyra-color-border-soft)"/>`
+  chartSvg += `<line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="var(--lyra-color-border-subtle)"/>`
 
   return (
-    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)' }}>
+    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
       <div
         onClick={() => setOpen(!open)}
         style={{ padding: '12px 20px', display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', userSelect: 'none' }}
@@ -416,7 +416,7 @@ function WhySurveysNotSent({ inter, elig }: { inter: number; elig: number }) {
         <ChevronRight size={18} style={{ color: 'var(--lyra-color-fg-secondary)', marginTop: 2, flexShrink: 0, transition: 'transform 0.15s', transform: open ? 'rotate(90deg)' : 'none' }} />
         <div style={{ flex: 1 }}>
           <h3 style={{ font: `600 15px/20px ${FONT}`, margin: '0 0 3px', color: 'var(--lyra-color-fg-default)' }}>Why surveys were not sent</h3>
-          <div style={{ font: `400 12px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+          <div style={{ font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
             {fmt(skipped)} of {fmt(inter)} interactions ({pct(skipped, inter)}%) never became eligible. {fmt(tun)} sit behind program settings you can change.
           </div>
         </div>
@@ -426,14 +426,14 @@ function WhySurveysNotSent({ inter, elig }: { inter: number; elig: number }) {
       </div>
 
       {open && (
-        <div style={{ padding: '4px 20px 12px', borderTop: '1px solid var(--lyra-color-border-soft)' }}>
+        <div style={{ padding: '4px 20px 12px', borderTop: '1px solid var(--lyra-color-border-subtle)' }}>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             style={{ width: '100%', display: 'block', paddingTop: 10 }}
             aria-label="Reasons surveys were not sent"
             dangerouslySetInnerHTML={{ __html: chartSvg }}
           />
-          <div style={{ borderTop: '1px solid var(--lyra-color-border-soft)', marginTop: 12, paddingTop: 10, display: 'flex', alignItems: 'center', gap: 18, font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+          <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', marginTop: 12, paddingTop: 10, display: 'flex', alignItems: 'center', gap: 18, font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: '#0F8C7C' }} />Tunable – you can change
             </span>
@@ -565,12 +565,12 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
   const filtered = programs.filter(p => p.n.toLowerCase().includes(q))
 
   return (
-    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)' }}>
+    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
       <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
         <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Programs</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Group by</span>
-          <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
             {(['Program', 'Channel', 'Topic'] as const).map((g, i) => (
               <button
                 key={g}
@@ -748,7 +748,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                     style={{
                       padding: 'var(--space-3) var(--space-2)',
                       textAlign: 'left',
-                      font: `500 12px/16px ${FONT}`,
+                      font: `500 14px/16px ${FONT}`,
                       color: 'var(--lyra-color-fg-default)',
                       verticalAlign: 'top',
                       ...(col.label === 'Program Name' ? { paddingLeft: 'var(--space-4)' } : {}),
@@ -969,7 +969,7 @@ const CUSTOMER_DETAILS: Record<string, CustomerDetail> = {
 function DrawerSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ font: `500 10px/14px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginBottom: 'var(--space-2)' }}>{label}</div>
+      <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginBottom: 'var(--space-2)' }}>{label}</div>
       <div style={{ border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-base)' }}>
         {children}
       </div>
@@ -979,7 +979,7 @@ function DrawerSection({ label, children }: { label: string; children: React.Rea
 
 function AiChip() {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '1px 6px', borderRadius: 'var(--radius-full)', background: 'var(--lyra-color-bg-ai)', border: '1px solid var(--lyra-color-border-subtle)', font: `500 10px/14px ${FONT}`, color: 'var(--lyra-purple-700)', flexShrink: 0 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '1px 6px', borderRadius: 'var(--radius-full)', background: 'var(--lyra-color-bg-ai)', border: '1px solid var(--lyra-color-border-subtle)', font: `500 11px/14px ${FONT}`, color: 'var(--lyra-purple-700)', flexShrink: 0 }}>
       <Sparkles style={{ width: 9, height: 9, fill: 'currentColor', stroke: 'none' }} />AI
     </span>
   )
@@ -996,7 +996,7 @@ function CustomerDrawer({ row, onClose }: { row: ResponseRow; onClose: () => voi
 
   const surveySent = row.sent !== null
   const emptyNote = (text: string) => (
-    <div style={{ padding: 'var(--space-4)', font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{text}</div>
+    <div style={{ padding: 'var(--space-4)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{text}</div>
   )
 
   return (
@@ -1011,7 +1011,7 @@ function CustomerDrawer({ row, onClose }: { row: ResponseRow; onClose: () => voi
         <div style={{ padding: 'var(--space-4)', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
           <div>
             <div style={{ font: `600 16px/20px ${FONT}`, letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>{row.customer}</div>
-            <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{row.id} · Chat</div>
+            <div style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{row.id} · Chat</div>
           </div>
           <button
             onClick={onClose}
@@ -1025,16 +1025,16 @@ function CustomerDrawer({ row, onClose }: { row: ResponseRow; onClose: () => voi
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
           <DrawerSection label="Primary topic">
             {row.topic ? (
               <div style={{ padding: 'var(--space-4)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                  <span style={{ font: `600 15px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{row.topic}</span>
-                  <span style={{ padding: '1px 8px', borderRadius: 'var(--radius-full)', background: 'var(--lyra-purple-700)', font: `600 9px/14px ${FONT}`, letterSpacing: '0.06em', color: 'var(--lyra-color-fg-inverse)' }}>PRIMARY</span>
+                  <span style={{ font: `500 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{row.topic}</span>
+                  <span style={{ padding: '1px 8px', borderRadius: 'var(--radius-full)', background: 'var(--lyra-purple-700)', font: `600 10px/14px ${FONT}`, letterSpacing: '0.06em', color: 'var(--lyra-color-fg-inverse)' }}>PRIMARY</span>
                 </div>
                 {d.summary && (
-                  <p style={{ margin: 'var(--space-2) 0 0', font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{d.summary}</p>
+                  <p style={{ margin: 'var(--space-2) 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{d.summary}</p>
                 )}
                 {d.alsoFound.length > 0 && (
                   <>
@@ -1042,10 +1042,10 @@ function CustomerDrawer({ row, onClose }: { row: ResponseRow; onClose: () => voi
                     <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Also found in the transcript</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-1)', marginTop: 'var(--space-2)' }}>
                       {d.alsoFound.map(t => (
-                        <span key={t} style={{ padding: '2px 8px', borderRadius: 'var(--radius-xs)', background: 'var(--lyra-slate-100)', font: `400 11px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{t}</span>
+                        <span key={t} style={{ padding: '2px 8px', borderRadius: 'var(--radius-xs)', background: 'var(--lyra-slate-100)', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{t}</span>
                       ))}
                     </div>
-                    <p style={{ margin: 'var(--space-3) 0 0', font: `400 11px/16px ${FONT}`, fontStyle: 'italic', color: 'var(--lyra-color-fg-secondary)' }}>
+                    <p style={{ margin: 'var(--space-3) 0 0', font: `400 12px/16px ${FONT}`, fontStyle: 'italic', color: 'var(--lyra-color-fg-secondary)' }}>
                       {row.topic} carried the strongest signal of the {d.alsoFound.length + 1} topics found, so it drove the survey question.
                     </p>
                   </>
@@ -1072,13 +1072,13 @@ function CustomerDrawer({ row, onClose }: { row: ResponseRow; onClose: () => voi
               <div>
                 {d.questions.map((item, i) => (
                   <div key={i} style={{ padding: 'var(--space-3) var(--space-4)', display: 'flex', gap: 'var(--space-2)', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined }}>
-                    <span style={{ font: `500 11px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', flexShrink: 0, width: 18 }}>Q{i + 1}</span>
+                    <span style={{ font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', flexShrink: 0, width: 20 }}>Q{i + 1}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
-                        <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{item.q}</span>
+                        <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{item.q}</span>
                         <AiChip />
                       </div>
-                      <div style={{ marginTop: 'var(--space-2)', font: `${item.a ? 500 : 400} 12px/16px ${FONT}`, color: item.a ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-disabled)' }}>
+                      <div style={{ marginTop: 'var(--space-2)', font: `${item.a ? 500 : 400} 14px/20px ${FONT}`, color: item.a ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-disabled)' }}>
                         {item.a ?? 'No answer'}
                       </div>
                     </div>
@@ -1090,14 +1090,14 @@ function CustomerDrawer({ row, onClose }: { row: ResponseRow; onClose: () => voi
 
           <DrawerSection label="Contact">
             <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                <Phone size={12} style={{ color: 'var(--lyra-color-fg-secondary)' }} />{d.phone}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                <Phone size={14} style={{ color: 'var(--lyra-color-fg-secondary)' }} />{d.phone}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)', marginTop: 'var(--space-2)' }}>
-                <Mail size={12} style={{ color: 'var(--lyra-color-fg-secondary)' }} />{d.email}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', marginTop: 'var(--space-2)' }}>
+                <Mail size={14} style={{ color: 'var(--lyra-color-fg-secondary)' }} />{d.email}
               </div>
               <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: 'var(--space-3) 0' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', font: `400 12px/16px ${FONT}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', font: `400 14px/20px ${FONT}` }}>
                 <span style={{ color: 'var(--lyra-color-fg-secondary)' }}>Agent</span>
                 <span style={{ fontWeight: 500, color: 'var(--lyra-color-fg-default)' }}>{row.agent}</span>
               </div>
@@ -1106,7 +1106,7 @@ function CustomerDrawer({ row, onClose }: { row: ResponseRow; onClose: () => voi
         </div>
 
         {/* Footer */}
-        <div style={{ padding: 'var(--space-3) var(--space-4)', borderTop: '1px solid var(--lyra-color-border-subtle)', display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start', font: `400 11px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+        <div style={{ padding: 'var(--space-3) var(--space-4)', borderTop: '1px solid var(--lyra-color-border-subtle)', display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
           <Info size={12} style={{ flexShrink: 0, marginTop: 2 }} />
           <span>Illustrative. The interaction read is produced upstream, and full verbatim analysis lives in a separate consuming app.</span>
         </div>
@@ -1162,18 +1162,8 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
           <span style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.02em', color: 'var(--lyra-color-fg-default)' }}>{program.n}</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-          {status && <StatusPill status={status} />}
-          <span>·</span>
-          <span style={{ whiteSpace: 'nowrap' }}>30 days running</span>
-          <span>·</span>
-          <span>Chat</span>
-          <span>·</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
-            <Bell size={12} />
-            {program.alerts} detractor alerts sent
-          </span>
-        </div>
+
+
       </div>
 
       <div className="flex-1 min-h-0" style={{ paddingTop: 'var(--space-7)', paddingLeft: 'var(--space-7)', paddingRight: 'var(--space-7)', paddingBottom: 'var(--space-2)', overflowY: 'auto' }}>
@@ -1184,7 +1174,18 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
           <FilterDropdown value={intent} options={['All Intents', 'Refund Processing', 'Technical Troubleshooting', 'Account Access', 'Service Outage']} onChange={setIntent} />
           <FilterDropdown value={custType} options={['All Customer Types', 'New', 'Returning', 'VIP']} onChange={setCustType} />
           <FilterDropdown value={channel} options={['All Channels', 'SMS', 'WhatsApp', 'Email']} onChange={setChannel} />
-          <span style={{ marginLeft: 'auto', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>Oct 12, 2026 · 08:05</span>
+          <div style={{ marginLeft: 'auto', borderLeft: '1px solid var(--lyra-color-border-subtle)', paddingLeft: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
+            {status && <StatusPill status={status} />}
+            <span>·</span>
+            <span>30 days running</span>
+            <span>·</span>
+            <span>Chat</span>
+            <span>·</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--lyra-color-status-critical-strong)' }}>
+              <Bell size={14} />
+              {program.alerts} detractor alerts sent
+            </span>
+          </div>
         </div>
 
         <div style={{ marginTop: 'var(--space-5)' }}>
@@ -1197,13 +1198,13 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
 
         {/* Customer responses */}
-        <div style={{ marginTop: 'var(--space-6)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)' }}>
+        <div style={{ marginTop: 'var(--space-6)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
           <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
             <div>
               <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Customer responses</h3>
-              <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>Every interaction in the period, whether or not a survey was sent.</div>
+              <div style={{ font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>Every interaction in the period, whether or not a survey was sent.</div>
             </div>
-            <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
               {RESPONSE_TABS.map(([t, count], i) => (
                 <button
                   key={t}
