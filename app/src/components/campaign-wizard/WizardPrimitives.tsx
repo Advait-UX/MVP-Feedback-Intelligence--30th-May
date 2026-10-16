@@ -257,16 +257,16 @@ export function MultiSelectField({
       <button
         onClick={() => setOpen(o => !o)}
         style={{
-          width: '100%', textAlign: 'left', padding: '6px 36px 6px 12px',
-          font: '400 14px/24px var(--font-sans)',
+          width: '100%', height: 36, display: 'flex', alignItems: 'center', textAlign: 'left', padding: '0 36px 0 12px',
+          font: '400 14px/20px var(--font-sans)',
           color: value.length === 0 && mutedPlaceholder ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-default)',
           background: 'var(--lyra-color-bg-field)',
           border: `1px solid ${error ? 'var(--lyra-color-status-critical-strong)' : open ? 'var(--lyra-color-border-active)' : (borderColor ?? 'var(--lyra-color-border-soft)')}`,
           borderRadius: radius ?? 'var(--radius-sm)', cursor: 'pointer', outline: 'none',
-          boxSizing: 'border-box',
+          boxSizing: 'border-box', overflow: 'hidden',
         }}
       >
-        {label}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
       </button>
       <ChevronDown size={14} style={{
         position: 'absolute', right: 10, top: '50%', transform: `translateY(-50%) rotate(${open ? 180 : 0}deg)`,

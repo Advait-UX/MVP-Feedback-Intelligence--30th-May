@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Activity, ArrowRight, Bell, Calendar, ChevronDown, ChevronLeft, ChevronRight, Info, Mail, Phone, Power, PowerOff, Smile, Sparkles, Star, UserMinus, X } from 'lucide-react'
+import { Activity, ArrowRight, Bell, Calendar, ChevronDown, ChevronLeft, ChevronRight, Headphones, Info, Mail, Phone, Power, PowerOff, Smile, Sparkles, Star, UserMinus, X } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
 import { MultiSelectField } from '../components/campaign-wizard/WizardPrimitives'
 
@@ -7,11 +7,11 @@ const FONT = 'var(--font-sans)'
 
 /* ── Data ── */
 const PROGRAMS = [
-  { n: 'Complaint Resolution Follow-Up', tags: ['Active', 'AI questions', 'Needs attention'], cat: 'Service Recovery', ch: { SMS: 0.6, Email: 0.4 }, inter: 3350, elig: 1106, sent: 1062, rec: 319, comp: 137, csat: 59, csatD: '↓ 6pp', rrD: '↓ 9pp', alerts: 10, coverageUp: false, responseRateUp: false, completionRateUp: false, csatUp: false },
-  { n: 'Flight Disruption Recovery', tags: ['Active', 'AI questions'], cat: 'Service Disruption', ch: { WhatsApp: 0.5, SMS: 0.3, Email: 0.2 }, inter: 6990, elig: 2308, sent: 1985, rec: 1211, comp: 872, csat: 86, alerts: 3, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
-  { n: 'Billing and Refund Recovery · All Digital', tags: ['Active', 'AI questions'], cat: 'Billing Recovery', ch: { Email: 0.55, SMS: 0.45 }, inter: 4675, elig: 1542, sent: 1372, rec: 617, comp: 327, csat: 81, alerts: 4, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
-  { n: 'Omnichannel Escalation Recovery', tags: ['Active', 'AI questions'], cat: 'Service Recovery', ch: { Email: 0.4, WhatsApp: 0.35, SMS: 0.25 }, inter: 4350, elig: 1435, sent: 1335, rec: 828, comp: 580, csat: 80, alerts: 5, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
-  { n: 'Product Feedback - Beta Testers', tags: ['Inactive', 'Static questions'], cat: 'Product', ch: { Email: 0.7, WhatsApp: 0.3 }, inter: 2555, elig: 834, sent: 692, rec: 457, comp: 329, csat: 75, alerts: 5, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
+  { n: 'Complaint Resolution Follow-Up', tags: ['Active', 'AI questions', 'Needs attention'], cat: 'Service Recovery', ch: { SMS: 0.6, Email: 0.4 }, inter: 3350, elig: 1106, sent: 1062, rec: 319, comp: 137, csat: 59, asat: 72, csatD: '↓ 6pp', rrD: '↓ 9pp', alerts: 10, coverageUp: false, responseRateUp: false, completionRateUp: false, csatUp: false },
+  { n: 'Flight Disruption Recovery', tags: ['Active', 'AI questions'], cat: 'Service Disruption', ch: { WhatsApp: 0.5, SMS: 0.3, Email: 0.2 }, inter: 6990, elig: 2308, sent: 1985, rec: 1211, comp: 872, csat: 86, asat: 88, alerts: 3, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
+  { n: 'Billing and Refund Recovery · All Digital', tags: ['Active', 'AI questions'], cat: 'Billing Recovery', ch: { Email: 0.55, SMS: 0.45 }, inter: 4675, elig: 1542, sent: 1372, rec: 617, comp: 327, csat: 81, asat: 83, alerts: 4, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
+  { n: 'Omnichannel Escalation Recovery', tags: ['Active', 'AI questions'], cat: 'Service Recovery', ch: { Email: 0.4, WhatsApp: 0.35, SMS: 0.25 }, inter: 4350, elig: 1435, sent: 1335, rec: 828, comp: 580, csat: 80, asat: 82, alerts: 5, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
+  { n: 'Product Feedback - Beta Testers', tags: ['Inactive', 'Static questions'], cat: 'Product', ch: { Email: 0.7, WhatsApp: 0.3 }, inter: 2555, elig: 834, sent: 692, rec: 457, comp: 329, csat: 75, asat: 80, alerts: 5, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
 ]
 
 const REASONS: [string, number, string][] = [
@@ -232,8 +232,8 @@ const DEFAULT_RANGE = (): DateRange => lastN(7)
 const isDefaultRange = (r: DateRange | null) => !!r && sameDay(r.start, DEFAULT_RANGE().start) && sameDay(r.end, DEFAULT_RANGE().end)
 
 /* ── Deltas ── */
-type PerfDeltas = { total: string; elig: string; eligRate: string; sent: string; rec: string; comp: string; part: string; csat: string; alerts: string }
-const OVERVIEW_DELTAS: PerfDeltas = { total: '+13%', elig: '+8%', eligRate: '+3%', sent: '+4%', rec: '+2%', comp: '+9%', part: '-6%', csat: '+3%', alerts: '-2%' }
+type PerfDeltas = { total: string; elig: string; eligRate: string; sent: string; rec: string; comp: string; part: string; csat: string; asat: string; alerts: string }
+const OVERVIEW_DELTAS: PerfDeltas = { total: '+13%', elig: '+8%', eligRate: '+3%', sent: '+4%', rec: '+2%', comp: '+9%', part: '-6%', csat: '+3%', asat: '+1%', alerts: '-2%' }
 
 const isDown = (d: string) => d.trim().startsWith('-')
 function Delta({ value, size = 13, inverse = false }: { value: string; size?: number; inverse?: boolean }) {
@@ -246,7 +246,7 @@ function Delta({ value, size = 13, inverse = false }: { value: string; size?: nu
   )
 }
 
-type PerfData = { inter: number; elig: number; sent: number; rec: number; comp: number; csat: number; alerts: number }
+type PerfData = { inter: number; elig: number; sent: number; rec: number; comp: number; csat: number; asat: number; alerts: number }
 
 /* ── Program Performance (total → eligible / non-eligible) ── */
 const EL_COLOR = 'var(--lyra-brand-700)'
@@ -267,7 +267,7 @@ function MetricRow({ label, value, delta, icon, tone }: { label: string; value: 
 
 function ProgramPerformance({ programNames, data, deltas, periodNote }: { programNames: string[]; data: PerfData; deltas: PerfDeltas; periodNote: string }) {
   const [open, setOpen] = useState<'el' | 'ne' | null>('el')
-  const { inter, elig, sent, rec, comp, csat, alerts } = data
+  const { inter, elig, sent, rec, comp, csat, asat, alerts } = data
   const part = rec - comp, skipped = inter - elig
   const er = pct(elig, inter), cov = pct(sent, elig), rr = pct(rec, sent), cp = pct(comp, rec)
 
@@ -321,7 +321,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
 
   return (
     <section style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '18px 22px 22px' }}>
-      <div style={{ paddingBottom: 14, borderBottom: '1px solid var(--lyra-color-border-subtle)', marginBottom: 14 }}>
+      <div style={{ paddingBottom: 14, borderBottom: '1px solid var(--lyra-color-border-subtle)', marginBottom: 'var(--space-6)' }}>
         <h3 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program Performance</h3>
         <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
           {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map((n, i) => (
@@ -348,7 +348,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
       )}
 
       {open === 'el' && (
-        <div style={{ marginTop: 34, paddingTop: 6 }}>
+        <div style={{ marginTop: 'var(--space-4)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 250px 244px', gap: 16, alignItems: 'end' }}>
             {/* Step chart */}
             <div style={{ position: 'relative' }}>
@@ -403,9 +403,11 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
               </div>
             </div>
 
-            {/* CSAT + Alerts */}
+            {/* ASAT + CSAT + Alerts */}
             <div style={{ borderLeft: '1px solid var(--lyra-color-border-subtle)', paddingLeft: 16, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
               <div style={{ width: '100%', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--sol-effect-shadowsm)', overflow: 'hidden' }}>
+                <MetricRow label="ASAT" value={`${asat}%`} delta={deltas.asat} tone="brand" icon={<Headphones size={20} />} />
+                <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)' }} />
                 <MetricRow label="CSAT" value={`${csat}%`} delta={deltas.csat} tone="brand" icon={<Smile size={20} />} />
                 <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)' }} />
                 <MetricRow label="Alerts" value={fmt(alerts)} delta={deltas.alerts} tone="critical" icon={<Bell size={20} />} />
@@ -417,7 +419,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
       )}
 
       {open === 'ne' && (
-        <div style={{ marginTop: 34, paddingTop: 6 }}>
+        <div style={{ marginTop: 'var(--space-4)' }}>
           <div style={{ display: 'grid', rowGap: 3, marginBottom: 16 }}>
             <b style={{ font: `600 17px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Why surveys were not sent</b>
             <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
@@ -468,7 +470,7 @@ function TodaysHighlights({ programs, inter, elig }: { programs: typeof PROGRAMS
   const skipped = inter - elig, ratio = inter ? skipped / inter : 0
 
   return (
-    <section aria-label="Today's highlights" style={{ background: 'var(--lyra-color-bg-ai)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '12px 16px 14px' }}>
+    <section aria-label="Today's highlights" style={{ background: 'rgba(143,115,227,0.10)', borderRadius: 'var(--radius-lg)', padding: '12px 16px 14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
           <h2 style={{ font: `600 20px/24px ${FONT}`, margin: 0, color: 'var(--lyra-color-fg-default)' }}>{greet}, James.</h2>
@@ -529,6 +531,7 @@ const PROGRAM_COLUMNS: { label: string; lines: string[] }[] = [
   { label: 'Completed', lines: ['Completed'] },
   { label: 'Partial', lines: ['Partial'] },
   { label: 'CSAT', lines: ['CSAT'] },
+  { label: 'ASAT', lines: ['ASAT'] },
   { label: 'Alerts', lines: ['Alerts'] },
 ]
 
@@ -543,13 +546,14 @@ const CHANNEL_COLUMNS: { label: string; lines: string[] }[] = [
   { label: 'Completed', lines: ['Completed'] },
   { label: 'Partial', lines: ['Partial'] },
   { label: 'CSAT', lines: ['CSAT'] },
+  { label: 'ASAT', lines: ['ASAT'] },
   { label: 'Alerts', lines: ['Alerts'] },
 ]
 
 const CHANNEL_DATA = [
-  { channel: 'SMS', elig: 2745, coverage: 89, sent: 2452, responseRate: 66, rec: 1618, completionRate: 70, comp: 1133, partial: 485, csat: 78, alerts: 10 },
-  { channel: 'WhatsApp', elig: 1590, coverage: 89, sent: 1423, responseRate: 59, rec: 837, completionRate: 65, comp: 545, partial: 292, csat: 77, alerts: 6 },
-  { channel: 'Email', elig: 2890, coverage: 89, sent: 2571, responseRate: 38, rec: 977, completionRate: 58, comp: 567, partial: 410, csat: 72, alerts: 11 },
+  { channel: 'SMS', elig: 2745, coverage: 89, sent: 2452, responseRate: 66, rec: 1618, completionRate: 70, comp: 1133, partial: 485, csat: 78, asat: 82, alerts: 10 },
+  { channel: 'WhatsApp', elig: 1590, coverage: 89, sent: 1423, responseRate: 59, rec: 837, completionRate: 65, comp: 545, partial: 292, csat: 77, asat: 80, alerts: 6 },
+  { channel: 'Email', elig: 2890, coverage: 89, sent: 2571, responseRate: 38, rec: 977, completionRate: 58, comp: 567, partial: 410, csat: 72, asat: 79, alerts: 11 },
 ]
 
 const TOPIC_COLUMNS: { label: string; lines: string[] }[] = [
@@ -563,19 +567,20 @@ const TOPIC_COLUMNS: { label: string; lines: string[] }[] = [
   { label: 'Completed', lines: ['Completed'] },
   { label: 'Partial', lines: ['Partial'] },
   { label: 'CSAT', lines: ['CSAT'] },
+  { label: 'ASAT', lines: ['ASAT'] },
   { label: 'Alerts', lines: ['Alerts'] },
 ]
 
 const TOPIC_DATA = [
-  { topic: 'Service Outage', elig: 1192, coverage: 90, sent: 1077, responseRate: 44, rec: 475, completionRate: 57, comp: 269, partial: 206, csat: 74, alerts: 6 },
-  { topic: 'Rebooking', elig: 816, coverage: 86, sent: 702, responseRate: 65, rec: 459, completionRate: 74, comp: 338, partial: 121, csat: 81, alerts: 4 },
-  { topic: 'Refund Processing', elig: 644, coverage: 89, sent: 570, responseRate: 57, rec: 325, completionRate: 69, comp: 225, partial: 100, csat: 73, alerts: 4 },
-  { topic: 'Delivery Delay', elig: 619, coverage: 86, sent: 533, responseRate: 64, rec: 339, completionRate: 75, comp: 255, partial: 84, csat: 78, alerts: 2 },
-  { topic: 'Technical Troubleshooting', elig: 571, coverage: 93, sent: 533, responseRate: 61, rec: 323, completionRate: 73, comp: 237, partial: 86, csat: 70, alerts: 3 },
-  { topic: 'Billing Dispute', elig: 432, coverage: 93, sent: 402, responseRate: 72, rec: 289, completionRate: 78, comp: 225, partial: 64, csat: 80, alerts: 2 },
-  { topic: 'Account Access', elig: 272, coverage: 95, sent: 258, responseRate: 51, rec: 132, completionRate: 59, comp: 78, partial: 54, csat: 70, alerts: 4 },
-  { topic: 'Bot Transfer Friction', elig: 221, coverage: 86, sent: 190, responseRate: 48, rec: 91, completionRate: 58, comp: 53, partial: 38, csat: 86, alerts: 1 },
-  { topic: 'Other topics', elig: 2458, coverage: 89, sent: 2181, responseRate: 46, rec: 999, completionRate: 57, comp: 565, partial: 434, csat: 75, alerts: 1 },
+  { topic: 'Service Outage', elig: 1192, coverage: 90, sent: 1077, responseRate: 44, rec: 475, completionRate: 57, comp: 269, partial: 206, csat: 74, asat: 79, alerts: 6 },
+  { topic: 'Rebooking', elig: 816, coverage: 86, sent: 702, responseRate: 65, rec: 459, completionRate: 74, comp: 338, partial: 121, csat: 81, asat: 84, alerts: 4 },
+  { topic: 'Refund Processing', elig: 644, coverage: 89, sent: 570, responseRate: 57, rec: 325, completionRate: 69, comp: 225, partial: 100, csat: 73, asat: 78, alerts: 4 },
+  { topic: 'Delivery Delay', elig: 619, coverage: 86, sent: 533, responseRate: 64, rec: 339, completionRate: 75, comp: 255, partial: 84, csat: 78, asat: 83, alerts: 2 },
+  { topic: 'Technical Troubleshooting', elig: 571, coverage: 93, sent: 533, responseRate: 61, rec: 323, completionRate: 73, comp: 237, partial: 86, csat: 70, asat: 76, alerts: 3 },
+  { topic: 'Billing Dispute', elig: 432, coverage: 93, sent: 402, responseRate: 72, rec: 289, completionRate: 78, comp: 225, partial: 64, csat: 80, asat: 85, alerts: 2 },
+  { topic: 'Account Access', elig: 272, coverage: 95, sent: 258, responseRate: 51, rec: 132, completionRate: 59, comp: 78, partial: 54, csat: 70, asat: 77, alerts: 4 },
+  { topic: 'Bot Transfer Friction', elig: 221, coverage: 86, sent: 190, responseRate: 48, rec: 91, completionRate: 58, comp: 53, partial: 38, csat: 86, asat: 88, alerts: 1 },
+  { topic: 'Other topics', elig: 2458, coverage: 89, sent: 2181, responseRate: 46, rec: 999, completionRate: 57, comp: 565, partial: 434, csat: 75, asat: 81, alerts: 1 },
 ]
 
 function NeedsAttentionChip() {
@@ -661,7 +666,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
           <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: '28%' }} />
-              {Array.from({ length: 10 }, (_, i) => <col key={i} style={{ width: '7.2%' }} />)}
+              {Array.from({ length: 11 }, (_, i) => <col key={i} style={{ width: '6.54%' }} />)}
             </colgroup>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
@@ -670,14 +675,13 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                     key={col.label}
                     scope="col"
                     style={{
-                      padding: 'var(--space-3) var(--space-2)',
+                      padding: `var(--space-3) var(--space-2) var(--space-3) ${col.label === 'Channel' ? 'var(--space-4)' : 'var(--space-2)'}`,
                       textAlign: 'left',
                       font: `500 12px/16px ${FONT}`,
                       color: 'var(--lyra-color-fg-secondary)',
                       letterSpacing: '0.01em',
                       textTransform: 'uppercase',
                       verticalAlign: 'top',
-                      ...(col.label === 'Channel' ? { paddingLeft: 'var(--space-4)' } : {}),
                     }}
                   >
                     {col.lines.map((line, li) => <span key={li} style={{ display: 'block', whiteSpace: 'nowrap' }}>{line}</span>)}
@@ -718,6 +722,9 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                   <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
                     {c.csat}%
                   </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                    {c.asat}%
+                  </td>
                   <td style={{ padding: 'var(--space-3) var(--space-2)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>
                     {c.alerts}
                   </td>
@@ -731,7 +738,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
           <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: '28%' }} />
-              {Array.from({ length: 10 }, (_, i) => <col key={i} style={{ width: '7.2%' }} />)}
+              {Array.from({ length: 11 }, (_, i) => <col key={i} style={{ width: '6.54%' }} />)}
             </colgroup>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
@@ -740,14 +747,13 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                     key={col.label}
                     scope="col"
                     style={{
-                      padding: 'var(--space-3) var(--space-2)',
+                      padding: `var(--space-3) var(--space-2) var(--space-3) ${col.label === 'Topic' ? 'var(--space-4)' : 'var(--space-2)'}`,
                       textAlign: 'left',
                       font: `500 12px/16px ${FONT}`,
                       color: 'var(--lyra-color-fg-secondary)',
                       letterSpacing: '0.01em',
                       textTransform: 'uppercase',
                       verticalAlign: 'top',
-                      ...(col.label === 'Topic' ? { paddingLeft: 'var(--space-4)' } : {}),
                     }}
                   >
                     {col.lines.map((line, li) => <span key={li} style={{ display: 'block', whiteSpace: 'nowrap' }}>{line}</span>)}
@@ -788,6 +794,9 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                   <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
                     {t.csat}%
                   </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                    {t.asat}%
+                  </td>
                   <td style={{ padding: 'var(--space-3) var(--space-2)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>
                     {t.alerts}
                   </td>
@@ -803,8 +812,8 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
         <div>
           <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
             <colgroup>
-              <col style={{ width: '28%' }} />
-              {Array.from({ length: 11 }, (_, i) => <col key={i} style={{ width: '6.55%' }} />)}
+              <col style={{ width: '23%' }} />
+              {Array.from({ length: 12 }, (_, i) => <col key={i} style={{ width: '6.4%' }} />)}
             </colgroup>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
@@ -813,12 +822,11 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                     key={col.label}
                     scope="col"
                     style={{
-                      padding: 'var(--space-3) var(--space-2)',
+                      padding: `var(--space-3) var(--space-2) var(--space-3) ${col.label === 'Program Name' ? 'var(--space-4)' : 'var(--space-2)'}`,
                       textAlign: 'left',
                       font: `500 14px/16px ${FONT}`,
                       color: 'var(--lyra-color-fg-default)',
                       verticalAlign: 'top',
-                      ...(col.label === 'Program Name' ? { paddingLeft: 'var(--space-4)' } : {}),
                     }}
                   >
                     {col.lines.map((line, li) => <span key={li} style={{ display: 'block', whiteSpace: 'nowrap' }}>{line}</span>)}
@@ -882,6 +890,9 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                         {p.csat}%
                         {p.csatD && <PpDrop value={p.csatD} />}
                       </td>
+                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                        {p.asat}%
+                      </td>
                       <td style={{ padding: 'var(--space-3) var(--space-2)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>
                         {p.alerts}
                       </td>
@@ -900,28 +911,28 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
 /* ── Program detail ── */
 const PROGRAM_INTER_OVERRIDE: Record<string, number> = { 'Complaint Resolution Follow-Up': 2572 }
 const PROGRAM_DELTAS: Record<string, PerfDeltas> = {
-  'Complaint Resolution Follow-Up': { total: '+10%', elig: '+5%', eligRate: '-2%', sent: '+3%', rec: '-9%', comp: '-11%', part: '+4%', csat: '-6%', alerts: '+18%' },
-  'Flight Disruption Recovery': { total: '+12%', elig: '+9%', eligRate: '+2%', sent: '+5%', rec: '+6%', comp: '+8%', part: '-3%', csat: '+2%', alerts: '-5%' },
-  'Billing and Refund Recovery · All Digital': { total: '+7%', elig: '+6%', eligRate: '+1%', sent: '+4%', rec: '+3%', comp: '+5%', part: '-2%', csat: '+1%', alerts: '-4%' },
-  'Omnichannel Escalation Recovery': { total: '+9%', elig: '+7%', eligRate: '+2%', sent: '+3%', rec: '+4%', comp: '+6%', part: '-1%', csat: '+2%', alerts: '-3%' },
-  'Product Feedback - Beta Testers': { total: '+4%', elig: '+3%', eligRate: '+1%', sent: '+2%', rec: '+2%', comp: '+3%', part: '-1%', csat: '+1%', alerts: '-1%' },
+  'Complaint Resolution Follow-Up': { total: '+10%', elig: '+5%', eligRate: '-2%', sent: '+3%', rec: '-9%', comp: '-11%', part: '+4%', csat: '-6%', asat: '-3%', alerts: '+18%' },
+  'Flight Disruption Recovery': { total: '+12%', elig: '+9%', eligRate: '+2%', sent: '+5%', rec: '+6%', comp: '+8%', part: '-3%', csat: '+2%', asat: '+2%', alerts: '-5%' },
+  'Billing and Refund Recovery · All Digital': { total: '+7%', elig: '+6%', eligRate: '+1%', sent: '+4%', rec: '+3%', comp: '+5%', part: '-2%', csat: '+1%', asat: '+1%', alerts: '-4%' },
+  'Omnichannel Escalation Recovery': { total: '+9%', elig: '+7%', eligRate: '+2%', sent: '+3%', rec: '+4%', comp: '+6%', part: '-1%', csat: '+2%', asat: '+1%', alerts: '-3%' },
+  'Product Feedback - Beta Testers': { total: '+4%', elig: '+3%', eligRate: '+1%', sent: '+2%', rec: '+2%', comp: '+3%', part: '-1%', csat: '+1%', asat: '+1%', alerts: '-1%' },
 }
 
-type ResponseRow = { customer: string; id: string; agent: string; topic: string | null; sent: string | null; response: string | null; completed: string | null; csat: number | null; status: string }
+type ResponseRow = { customer: string; id: string; agent: string; topic: string | null; sent: string | null; response: string | null; completed: string | null; csat: number | null; asat: number | null; status: string }
 const DETAIL_RESPONSES: ResponseRow[] = [
-  { customer: 'Sophie Patel', id: 'INT-4064903', agent: 'Ben K.', topic: null, sent: null, response: null, completed: null, csat: null, status: 'Program Not Found' },
-  { customer: 'Olivia Smith', id: 'INT-6257112', agent: 'Tomás R.', topic: 'Technical Troubleshooting', sent: 'Jul 1, 15:32', response: 'Jul 1, 15:35', completed: 'Jul 1, 16:13', csat: 5, status: 'Response Received' },
-  { customer: 'Marcus Wright', id: 'INT-4789800', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 2, 08:35', response: 'Jul 2, 08:55', completed: 'Jul 2, 09:08', csat: 2, status: 'Response Received' },
-  { customer: 'Ava Johnson', id: 'INT-1601280', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 18, 08:05', response: 'Jul 18, 08:22', completed: null, csat: 1, status: 'Partially Responded' },
-  { customer: 'Olivia Smith', id: 'INT-3002077', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 5, 11:53', response: 'Jul 5, 12:06', completed: 'Jul 5, 12:30', csat: 5, status: 'Response Received' },
-  { customer: 'Daniel Chen', id: 'INT-1249933', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 12, 16:19', response: 'Jul 12, 16:44', completed: null, csat: 1, status: 'Partially Responded' },
-  { customer: 'Liam Al-Farsi', id: 'INT-5180251', agent: 'Priya M.', topic: 'Service Outage', sent: 'Jul 9, 13:54', response: null, completed: null, csat: null, status: 'Not Started' },
-  { customer: 'Marcus Smith', id: 'INT-2249741', agent: 'Rajat S.', topic: 'Technical Troubleshooting', sent: 'Jul 11, 14:35', response: 'Jul 11, 14:57', completed: 'Jul 11, 15:14', csat: 5, status: 'Response Received' },
-  { customer: 'Noah Garcia', id: 'INT-7339243', agent: 'Priya M.', topic: 'Technical Troubleshooting', sent: null, response: null, completed: null, csat: null, status: 'No Matching Skill or Team' },
-  { customer: 'Noah Patel', id: 'INT-5451225', agent: 'Priya M.', topic: null, sent: 'Jul 9, 16:08', response: 'Jul 9, 16:18', completed: 'Jul 9, 16:49', csat: 4, status: 'Response Received' },
+  { customer: 'Sophie Patel', id: 'INT-4064903', agent: 'Ben K.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
+  { customer: 'Olivia Smith', id: 'INT-6257112', agent: 'Tomás R.', topic: 'Technical Troubleshooting', sent: 'Jul 1, 15:32', response: 'Jul 1, 15:35', completed: 'Jul 1, 16:13', csat: 5, asat: 5, status: 'Response Received' },
+  { customer: 'Marcus Wright', id: 'INT-4789800', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 2, 08:35', response: 'Jul 2, 08:55', completed: 'Jul 2, 09:08', csat: 2, asat: 3, status: 'Response Received' },
+  { customer: 'Ava Johnson', id: 'INT-1601280', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 18, 08:05', response: 'Jul 18, 08:22', completed: null, csat: 1, asat: 2, status: 'Partially Responded' },
+  { customer: 'Olivia Smith', id: 'INT-3002077', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 5, 11:53', response: 'Jul 5, 12:06', completed: 'Jul 5, 12:30', csat: 5, asat: 4, status: 'Response Received' },
+  { customer: 'Daniel Chen', id: 'INT-1249933', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 12, 16:19', response: 'Jul 12, 16:44', completed: null, csat: 1, asat: null, status: 'Partially Responded' },
+  { customer: 'Liam Al-Farsi', id: 'INT-5180251', agent: 'Priya M.', topic: 'Service Outage', sent: 'Jul 9, 13:54', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
+  { customer: 'Marcus Smith', id: 'INT-2249741', agent: 'Rajat S.', topic: 'Technical Troubleshooting', sent: 'Jul 11, 14:35', response: 'Jul 11, 14:57', completed: 'Jul 11, 15:14', csat: 5, asat: 5, status: 'Response Received' },
+  { customer: 'Noah Garcia', id: 'INT-7339243', agent: 'Priya M.', topic: 'Technical Troubleshooting', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
+  { customer: 'Noah Patel', id: 'INT-5451225', agent: 'Priya M.', topic: null, sent: 'Jul 9, 16:08', response: 'Jul 9, 16:18', completed: 'Jul 9, 16:49', csat: 4, asat: 4, status: 'Response Received' },
 ]
 
-const RESPONSE_COLUMNS = ['Customer', 'Interaction ID', 'Agent', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'Status']
+const RESPONSE_COLUMNS = ['Customer', 'Interaction ID', 'Agent', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'ASAT', 'Status']
 const RESPONSE_TABS: [string, number][] = [['All', 60], ['Survey sent', 45], ['Not sent', 15]]
 
 function ResponseStatus({ status }: { status: string }) {
@@ -1197,7 +1208,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const perf: PerfData = {
     inter: (PROGRAM_INTER_OVERRIDE[program.n] ?? program.inter) * k,
     elig: program.elig * k, sent: program.sent * k, rec: program.rec * k, comp: program.comp * k,
-    csat: program.csat, alerts: program.alerts,
+    csat: program.csat, asat: program.asat, alerts: program.alerts,
   }
   const status = program.tags.find(t => t === 'Active' || t === 'Inactive') || ''
 
@@ -1257,12 +1268,12 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
           </div>
         </div>
 
-        <div style={{ marginTop: 'var(--space-5)' }}>
+        <div style={{ marginTop: 'var(--space-7)' }}>
           <ProgramPerformance programNames={[program.n]} data={perf} deltas={PROGRAM_DELTAS[program.n] ?? OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
         {/* Customer responses */}
-        <div style={{ marginTop: 'var(--space-6)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
+        <div style={{ marginTop: 'var(--space-7)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
           <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
             <div>
               <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Customer responses</h3>
@@ -1296,15 +1307,13 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                     key={col}
                     scope="col"
                     style={{
-                      padding: 'var(--space-3) var(--space-2)',
+                      padding: `var(--space-3) ${col === 'Status' ? 'var(--space-4)' : 'var(--space-2)'} var(--space-3) ${col === 'Customer' ? 'var(--space-4)' : 'var(--space-2)'}`,
                       textAlign: col === 'Status' ? 'right' : 'left',
                       font: `500 12px/16px ${FONT}`,
                       color: 'var(--lyra-color-fg-secondary)',
                       letterSpacing: '0.01em',
                       textTransform: 'uppercase',
                       whiteSpace: 'nowrap',
-                      ...(col === 'Customer' ? { paddingLeft: 'var(--space-4)' } : {}),
-                      ...(col === 'Status' ? { paddingRight: 'var(--space-4)' } : {}),
                     }}
                   >
                     {col}
@@ -1327,7 +1336,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--lyra-color-state-bg-hover-opacity)' }}
                   onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
                 >
-                  <td style={{ ...cell(), paddingLeft: 'var(--space-4)', fontWeight: 500 }}>{r.customer}</td>
+                  <td style={{ ...cell(), padding: 'var(--space-3) var(--space-2) var(--space-3) var(--space-4)', fontWeight: 500 }}>{r.customer}</td>
                   <td style={cell(true)}>{r.id}</td>
                   <td style={cell(true)}>{r.agent}</td>
                   <td style={cell()}>{r.topic ?? <Muted>No topic detected</Muted>}</td>
@@ -1342,7 +1351,15 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                       </span>
                     )}
                   </td>
-                  <td style={{ ...cell(), textAlign: 'right', paddingRight: 'var(--space-4)' }}><ResponseStatus status={r.status} /></td>
+                  <td style={cell()}>
+                    {r.asat === null ? <Muted>n/a</Muted> : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 500 }}>
+                        <Star size={12} style={{ color: 'var(--lyra-color-status-warning-medium)', fill: 'currentColor' }} />
+                        {r.asat} of 5
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ ...cell(), textAlign: 'right', padding: 'var(--space-3) var(--space-4) var(--space-3) var(--space-2)' }}><ResponseStatus status={r.status} /></td>
                 </tr>
               ))}
             </tbody>
@@ -1391,8 +1408,9 @@ function useSlicedData(filters: { progs: string[]; chs: string[]; cats: string[]
     const inter = sum('inter'), elig = sum('elig'), sent = sum('sent'), rec = sum('rec'), comp = sum('comp'), alerts = sum('alerts')
     const isAll = S.length === PROGRAMS.length && allCh && filters.days === 7
     const csat = isAll ? 76 : rec ? Math.round(S.reduce((a, p) => a + p.csat * p.rec, 0) / rec) : 0
+    const asat = isAll ? 81 : rec ? Math.round(S.reduce((a, p) => a + p.asat * p.rec, 0) / rec) : 0
 
-    return { inter, elig, sent, rec, comp, csat, alerts, programs: S }
+    return { inter, elig, sent, rec, comp, csat, asat, alerts, programs: S }
   }, [filters.progs, filters.chs, filters.cats, filters.days])
 }
 
@@ -1427,8 +1445,10 @@ export function Dashboard5Page() {
       </div>
 
       <div className="flex-1 min-h-0" style={{ paddingTop: 'var(--space-6)', paddingLeft: 'var(--space-7)', paddingRight: 'var(--space-7)', paddingBottom: 'var(--space-6)', overflowY: 'auto' }}>
+        <TodaysHighlights programs={data.programs} inter={data.inter} elig={data.elig} />
+
         {/* Filter Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: 'var(--space-7)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
           <SearchInput value={search} onChange={setSearch} placeholder="Search program name" />
           <DateRangePicker value={range} onChange={setRange} />
           <div style={{ width: 230 }}>
@@ -1468,15 +1488,11 @@ export function Dashboard5Page() {
           </div>
         )}
 
-        <div style={{ marginTop: 'var(--space-5)' }}>
-          <TodaysHighlights programs={data.programs} inter={data.inter} elig={data.elig} />
-        </div>
-
-        <div style={{ marginTop: 'var(--space-4)' }}>
+        <div style={{ marginTop: 'var(--space-7)' }}>
           <ProgramPerformance programNames={data.programs.map(p => p.n)} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
-        <div style={{ marginTop: 'var(--space-4)' }}>
+        <div style={{ marginTop: 'var(--space-7)' }}>
           <ProgramsTable programs={data.programs} searchQuery={search} onSelectProgram={setSelected} />
         </div>
       </div>
