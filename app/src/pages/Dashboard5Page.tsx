@@ -236,11 +236,11 @@ type PerfDeltas = { total: string; elig: string; eligRate: string; sent: string;
 const OVERVIEW_DELTAS: PerfDeltas = { total: '+13%', elig: '+8%', eligRate: '+3%', sent: '+4%', rec: '+2%', comp: '+9%', part: '-6%', csat: '+3%', asat: '+1%', alerts: '-2%' }
 
 const isDown = (d: string) => d.trim().startsWith('-')
-function Delta({ value, size = 13, inverse = false }: { value: string; size?: number; inverse?: boolean }) {
+function Delta({ value, size = 13, color }: { value: string; size?: number; color?: string }) {
   const down = isDown(value)
-  const color = inverse ? 'var(--lyra-color-fg-inverse)' : down ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-status-success-strong)'
+  const resolvedColor = color ?? (down ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-status-success-strong)')
   return (
-    <span style={{ font: `500 ${size}px/1.2 ${FONT}`, color, whiteSpace: 'nowrap', textShadow: inverse ? '0 1px 2px var(--lyra-brand-900)' : undefined }}>
+    <span style={{ font: `600 ${size}px/1.2 ${FONT}`, color: resolvedColor, whiteSpace: 'nowrap' }}>
       {down ? '↓' : '↑'} {value}
     </span>
   )
@@ -352,7 +352,8 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
 
       {open === 'el' && (
         <div style={{ marginTop: 'var(--space-4)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 250px 244px', gap: 16, alignItems: 'end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 244px', gap: 16, alignItems: 'end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 290px', gap: 16, alignItems: 'stretch' }}>
             {/* Step chart */}
             <div style={{ position: 'relative' }}>
               <span aria-hidden="true" style={{ position: 'absolute', right: -23, bottom: 12, width: 30, height: 30, borderRadius: 'var(--radius-full)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-slate-300)', color: 'var(--lyra-color-fg-secondary)', display: 'grid', placeItems: 'center', boxShadow: 'var(--sol-effect-shadowsm)', zIndex: 3 }}>
@@ -377,8 +378,8 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
                 ))}
                 {steps.map(([v, d], i) => (
                   <div key={i} style={{ position: 'absolute', left: pctOf(i * CW + 12), bottom: 9, display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
-                    <b style={{ font: `600 18px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-brand-900)' }}>{fmt(v)}</b>
-                    <Delta value={d} size={12} inverse />
+                    <b style={{ font: `700 19px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-brand-900)' }}>{fmt(v)}</b>
+                    <Delta value={d} size={13} color="var(--lyra-brand-900)" />
                   </div>
                 ))}
                 <svg viewBox={`0 0 ${VW} ${H}`} preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }} aria-hidden="true" dangerouslySetInnerHTML={{ __html: stepSvg }} />
@@ -386,12 +387,14 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
             </div>
 
             {/* Split of responses */}
-            <div style={{ paddingLeft: 16 }}>
-              <div style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 14 }}>Split of responses received</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
-                {([["Survey's completed", comp, deltas.comp, EL_COLOR], ['Partially completed', part, deltas.part, NE_COLOR]] as [string, number, string, string][]).map(([l, v, d, c]) => (
-                  <div key={l}>
-                    <span style={{ display: 'block', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', marginBottom: 4 }}>{l}</span>
+            <div style={{ paddingLeft: 16, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ minHeight: 36, marginBottom: 8, display: 'flex', alignItems: 'center' }}>
+                <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>Split of responses received</span>
+              </div>
+              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', gap: 6, marginBottom: 14 }}>
+                {([["Survey's completed", comp, deltas.comp, EL_COLOR, false], ['Partially completed', part, deltas.part, NE_COLOR, true]] as [string, number, string, string, boolean][]).map(([l, v, d, c, right]) => (
+                  <div key={l} style={{ display: 'flex', flexDirection: 'column', alignItems: right ? 'flex-end' : 'flex-start' }}>
+                    <span style={{ display: 'block', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', marginBottom: 4, textAlign: right ? 'right' : 'left' }}>{l}</span>
                     <b style={{ display: 'flex', alignItems: 'center', gap: 6, font: `500 18px/22px ${FONT}`, whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-default)' }}>
                       <i style={{ width: 14, height: 14, borderRadius: 2, background: c, flexShrink: 0 }} />
                       {fmt(v)}
@@ -405,9 +408,10 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
                 <i style={{ width: `${100 - cp}%`, background: NE_COLOR }} />
               </div>
             </div>
+          </div>
 
             {/* ASAT + CSAT + Alerts */}
-            <div style={{ borderLeft: '1px solid var(--lyra-color-border-subtle)', paddingLeft: 16, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
+            <div style={{ paddingLeft: 16, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
               <div style={{ width: '100%', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--sol-effect-shadowsm)', overflow: 'hidden' }}>
                 <MetricRow label="ASAT" value={`${asat}%`} delta={deltas.asat} tone="brand" icon={<Headphones size={20} />} />
                 <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)' }} />
@@ -523,35 +527,35 @@ function AppliedChip({ group, value, onRemove }: { group: string; value: string;
   )
 }
 
-const PROGRAM_COLUMNS: { label: string; lines: string[] }[] = [
-  { label: 'Program', lines: ['Program'] },
-  { label: 'Status', lines: ['Status'] },
-  { label: 'Eligible', lines: ['Eligible'] },
-  { label: 'Coverage', lines: ['Coverage'] },
-  { label: 'Surveys Sent', lines: ['Surveys Sent'] },
-  { label: 'Response Rate', lines: ['Response Rate'] },
-  { label: 'Responses Rec.', lines: ['Responses Rec.'] },
-  { label: 'Completion Rate', lines: ['Completion Rate'] },
-  { label: 'Completed', lines: ['Completed'] },
-  { label: 'Partial', lines: ['Partial'] },
-  { label: 'CSAT', lines: ['CSAT'] },
-  { label: 'ASAT', lines: ['ASAT'] },
-  { label: 'Alerts', lines: ['Alerts'] },
+const PROGRAM_COLUMNS: { label: string; key: string }[] = [
+  { label: 'Program', key: 'n' },
+  { label: 'Status', key: 'status' },
+  { label: 'Eligible', key: 'elig' },
+  { label: 'Coverage', key: 'coverage' },
+  { label: 'Surveys Sent', key: 'sent' },
+  { label: 'Response Rate', key: 'responseRate' },
+  { label: 'Responses Rec.', key: 'rec' },
+  { label: 'Completion Rate', key: 'completionRate' },
+  { label: 'Completed', key: 'comp' },
+  { label: 'Partial', key: 'partial' },
+  { label: 'CSAT', key: 'csat' },
+  { label: 'ASAT', key: 'asat' },
+  { label: 'Alerts', key: 'alerts' },
 ]
 
-const CHANNEL_COLUMNS: { label: string; lines: string[] }[] = [
-  { label: 'Channel', lines: ['Channel'] },
-  { label: 'Eligible', lines: ['Eligible'] },
-  { label: 'Coverage', lines: ['Coverage'] },
-  { label: 'Surveys Sent', lines: ['Surveys Sent'] },
-  { label: 'Response Rate', lines: ['Response Rate'] },
-  { label: 'Responses Rec.', lines: ['Responses Rec.'] },
-  { label: 'Completion Rate', lines: ['Completion Rate'] },
-  { label: 'Completed', lines: ['Completed'] },
-  { label: 'Partial', lines: ['Partial'] },
-  { label: 'CSAT', lines: ['CSAT'] },
-  { label: 'ASAT', lines: ['ASAT'] },
-  { label: 'Alerts', lines: ['Alerts'] },
+const CHANNEL_COLUMNS: { label: string; key: string }[] = [
+  { label: 'Channel', key: 'channel' },
+  { label: 'Eligible', key: 'elig' },
+  { label: 'Coverage', key: 'coverage' },
+  { label: 'Surveys Sent', key: 'sent' },
+  { label: 'Response Rate', key: 'responseRate' },
+  { label: 'Responses Rec.', key: 'rec' },
+  { label: 'Completion Rate', key: 'completionRate' },
+  { label: 'Completed', key: 'comp' },
+  { label: 'Partial', key: 'partial' },
+  { label: 'CSAT', key: 'csat' },
+  { label: 'ASAT', key: 'asat' },
+  { label: 'Alerts', key: 'alerts' },
 ]
 
 const CHANNEL_DATA = [
@@ -560,19 +564,19 @@ const CHANNEL_DATA = [
   { channel: 'Email', elig: 2890, coverage: 89, sent: 2571, responseRate: 38, rec: 977, completionRate: 58, comp: 567, partial: 410, csat: 72, asat: 79, alerts: 11 },
 ]
 
-const TOPIC_COLUMNS: { label: string; lines: string[] }[] = [
-  { label: 'Topic', lines: ['Topic'] },
-  { label: 'Eligible', lines: ['Eligible'] },
-  { label: 'Coverage', lines: ['Coverage'] },
-  { label: 'Surveys Sent', lines: ['Surveys Sent'] },
-  { label: 'Response Rate', lines: ['Response Rate'] },
-  { label: 'Responses Rec.', lines: ['Responses Rec.'] },
-  { label: 'Completion Rate', lines: ['Completion Rate'] },
-  { label: 'Completed', lines: ['Completed'] },
-  { label: 'Partial', lines: ['Partial'] },
-  { label: 'CSAT', lines: ['CSAT'] },
-  { label: 'ASAT', lines: ['ASAT'] },
-  { label: 'Alerts', lines: ['Alerts'] },
+const TOPIC_COLUMNS: { label: string; key: string }[] = [
+  { label: 'Topic', key: 'topic' },
+  { label: 'Eligible', key: 'elig' },
+  { label: 'Coverage', key: 'coverage' },
+  { label: 'Surveys Sent', key: 'sent' },
+  { label: 'Response Rate', key: 'responseRate' },
+  { label: 'Responses Rec.', key: 'rec' },
+  { label: 'Completion Rate', key: 'completionRate' },
+  { label: 'Completed', key: 'comp' },
+  { label: 'Partial', key: 'partial' },
+  { label: 'CSAT', key: 'csat' },
+  { label: 'ASAT', key: 'asat' },
+  { label: 'Alerts', key: 'alerts' },
 ]
 
 const TOPIC_DATA = [
@@ -649,11 +653,69 @@ function StatusPill({ status }: { status: string }) {
   )
 }
 
+/* ── Sortable table headers ── */
+type SortDir = 'asc' | 'desc'
+type SortState = { key: string; dir: SortDir } | null
+
+function compareValues(a: unknown, b: unknown, dir: SortDir) {
+  const cmp = typeof a === 'string' && typeof b === 'string'
+    ? a.localeCompare(b)
+    : (a as number) - (b as number)
+  return dir === 'asc' ? cmp : -cmp
+}
+
+function sortRows<T extends Record<string, unknown>>(rows: T[], sort: SortState) {
+  if (!sort) return rows
+  return [...rows].sort((a, b) => compareValues(a[sort.key], b[sort.key], sort.dir))
+}
+
+function SortableTh({ label, sortKey, sort, onSort, padding }: { label: string; sortKey: string; sort: SortState; onSort: (key: string) => void; padding: string }) {
+  const active = sort?.key === sortKey
+  return (
+    <th
+      scope="col"
+      onClick={() => onSort(sortKey)}
+      style={{
+        padding,
+        textAlign: 'left',
+        font: `400 14px/20px ${FONT}`,
+        color: active ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-secondary)',
+        whiteSpace: 'nowrap',
+        cursor: 'pointer',
+        userSelect: 'none',
+      }}
+    >
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        <ChevronDown
+          size={14}
+          style={{
+            color: active ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-disabled)',
+            transform: active && sort.dir === 'asc' ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.15s',
+            flexShrink: 0,
+          }}
+        />
+      </span>
+    </th>
+  )
+}
+
 /* ── Programs Table ── */
 function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: typeof PROGRAMS; searchQuery: string; onSelectProgram: (p: typeof PROGRAMS[0]) => void }) {
   const [groupBy, setGroupBy] = useState<'Program' | 'Channel' | 'Topic'>('Program')
+  const [sort, setSort] = useState<SortState>(null)
+  const handleSort = (key: string) => setSort(s => s?.key === key ? (s.dir === 'desc' ? { key, dir: 'asc' } : null) : { key, dir: 'desc' })
   const q = searchQuery.trim().toLowerCase()
   const filtered = programs.filter(p => p.n.toLowerCase().includes(q))
+  const programRows = sortRows(filtered.map(p => ({
+    ...p,
+    status: p.tags.find(t => t === 'Active' || t === 'Inactive') || '',
+    coverage: pct(p.sent, p.elig),
+    responseRate: pct(p.rec, p.sent),
+    completionRate: pct(p.comp, p.rec),
+    partial: p.rec - p.comp,
+  })), sort)
 
   return (
     <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
@@ -665,7 +727,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
             {(['Program', 'Channel', 'Topic'] as const).map((g, i) => (
               <button
                 key={g}
-                onClick={() => setGroupBy(g)}
+                onClick={() => { setGroupBy(g); setSort(null) }}
                 style={{
                   padding: '6px 16px', font: `500 12px/16px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
                   background: groupBy === g ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
@@ -686,24 +748,19 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 {CHANNEL_COLUMNS.map(col => (
-                  <th
+                  <SortableTh
                     key={col.label}
-                    scope="col"
-                    style={{
-                      padding: `var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Channel' ? 'var(--space-6)' : 'var(--space-3)'}`,
-                      textAlign: 'left',
-                      font: `400 14px/20px ${FONT}`,
-                      color: 'var(--lyra-color-fg-secondary)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {col.label}
-                  </th>
+                    label={col.label}
+                    sortKey={col.key}
+                    sort={sort}
+                    onSort={handleSort}
+                    padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Channel' ? 'var(--space-6)' : 'var(--space-3)'}`}
+                  />
                 ))}
               </tr>
             </thead>
             <tbody>
-              {CHANNEL_DATA.map(c => (
+              {sortRows(CHANNEL_DATA, sort).map(c => (
                 <tr key={c.channel} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                   <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {c.channel}
@@ -752,24 +809,19 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 {TOPIC_COLUMNS.map(col => (
-                  <th
+                  <SortableTh
                     key={col.label}
-                    scope="col"
-                    style={{
-                      padding: `var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Topic' ? 'var(--space-6)' : 'var(--space-3)'}`,
-                      textAlign: 'left',
-                      font: `400 14px/20px ${FONT}`,
-                      color: 'var(--lyra-color-fg-secondary)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {col.label}
-                  </th>
+                    label={col.label}
+                    sortKey={col.key}
+                    sort={sort}
+                    onSort={handleSort}
+                    padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Topic' ? 'var(--space-6)' : 'var(--space-3)'}`}
+                  />
                 ))}
               </tr>
             </thead>
             <tbody>
-              {TOPIC_DATA.map(t => (
+              {sortRows(TOPIC_DATA, sort).map(t => (
                 <tr key={t.topic} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                   <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {t.topic}
@@ -821,33 +873,27 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 {PROGRAM_COLUMNS.map(col => (
-                  <th
+                  <SortableTh
                     key={col.label}
-                    scope="col"
-                    style={{
-                      padding: `var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program' ? 'var(--space-6)' : 'var(--space-3)'}`,
-                      textAlign: 'left',
-                      font: `400 14px/20px ${FONT}`,
-                      color: 'var(--lyra-color-fg-secondary)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {col.label}
-                  </th>
+                    label={col.label}
+                    sortKey={col.key}
+                    sort={sort}
+                    onSort={handleSort}
+                    padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program' ? 'var(--space-6)' : 'var(--space-3)'}`}
+                  />
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {programRows.length === 0 ? (
                 <tr>
                   <td colSpan={PROGRAM_COLUMNS.length} style={{ padding: '24px 16px', color: 'var(--lyra-color-fg-secondary)' }}>
                     No programs match the selected filters.
                   </td>
                 </tr>
               ) : (
-                filtered.map(p => {
-                  const partial = p.rec - p.comp
-                  const status = p.tags.find(t => t === 'Active' || t === 'Inactive') || ''
+                programRows.map(p => {
+                  const { partial, status } = p
                   return (
                     <tr
                       key={p.n}
