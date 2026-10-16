@@ -11,7 +11,7 @@ const PROGRAMS = [
   { n: 'Flight Disruption Recovery', tags: ['Active', 'AI questions'], cat: 'Service Disruption', ch: { WhatsApp: 0.5, SMS: 0.3, Email: 0.2 }, inter: 6990, elig: 2308, sent: 1985, rec: 1211, comp: 872, csat: 86, asat: 88, alerts: 3, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
   { n: 'Billing and Refund Recovery · All Digital', tags: ['Active', 'AI questions'], cat: 'Billing Recovery', ch: { Email: 0.55, SMS: 0.45 }, inter: 4675, elig: 1542, sent: 1372, rec: 617, comp: 327, csat: 81, asat: 83, alerts: 4, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
   { n: 'Omnichannel Escalation Recovery', tags: ['Active', 'AI questions'], cat: 'Service Recovery', ch: { Email: 0.4, WhatsApp: 0.35, SMS: 0.25 }, inter: 4350, elig: 1435, sent: 1335, rec: 828, comp: 580, csat: 80, asat: 82, alerts: 5, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
-  { n: 'Product Feedback - Beta Testers', tags: ['Inactive', 'Static questions'], cat: 'Product', ch: { Email: 0.7, WhatsApp: 0.3 }, inter: 2555, elig: 834, sent: 692, rec: 457, comp: 329, csat: 75, asat: 80, alerts: 5, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
+  { n: 'Product Feedback - Beta Testers', tags: ['Active', 'Static questions'], cat: 'Product', ch: { Email: 0.7, WhatsApp: 0.3 }, inter: 2555, elig: 834, sent: 692, rec: 457, comp: 329, csat: 75, asat: 80, alerts: 5, coverageUp: true, responseRateUp: true, completionRateUp: true, csatUp: true },
 ]
 
 const REASONS: [string, number, string][] = [
@@ -265,7 +265,7 @@ function MetricRow({ label, value, delta, icon, tone }: { label: string; value: 
   )
 }
 
-function ProgramPerformance({ programNames, data, deltas, periodNote }: { programNames: string[]; data: PerfData; deltas: PerfDeltas; periodNote: string }) {
+function ProgramPerformance({ programNames, data, deltas, periodNote }: { programNames: { n: string; active: boolean }[]; data: PerfData; deltas: PerfDeltas; periodNote: string }) {
   const [open, setOpen] = useState<'el' | 'ne' | null>('el')
   const { inter, elig, sent, rec, comp, csat, asat, alerts } = data
   const part = rec - comp, skipped = inter - elig
@@ -324,8 +324,9 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
       <div style={{ padding: '18px 22px 14px', background: 'var(--lyra-color-bg-surface-base)' }}>
         <h3 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program Performance</h3>
         <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-          {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map((n, i) => (
-            <span key={n} style={{ whiteSpace: 'nowrap' }}>
+          {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map(({ n, active }, i) => (
+            <span key={n} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: active ? 'rgba(100,185,111,0.55)' : 'var(--lyra-slate-400)' }} title={active ? 'Active program' : 'Inactive program'} />
               {n}
               {i < programNames.length - 1 && <span style={{ color: 'var(--lyra-slate-300)', margin: '0 12px', fontWeight: 300 }}>|</span>}
             </span>
@@ -1272,7 +1273,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
 
         <div style={{ marginTop: 'var(--space-7)' }}>
-          <ProgramPerformance programNames={[program.n]} data={perf} deltas={PROGRAM_DELTAS[program.n] ?? OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
+          <ProgramPerformance programNames={[{ n: program.n, active: program.tags.includes('Active') }]} data={perf} deltas={PROGRAM_DELTAS[program.n] ?? OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
         {/* Customer responses */}
@@ -1455,7 +1456,7 @@ export function Dashboard5Page() {
           <SearchInput value={search} onChange={setSearch} placeholder="Search program name" />
           <DateRangePicker value={range} onChange={setRange} />
           <div style={{ width: 230 }}>
-            <MultiSelectField options={PROGRAMS.map(p => p.n)} value={progs} onChange={setProgs} mutedPlaceholder={false} labelOverride={multiLabel(progs, 'All programs', 'programs')} radius="var(--radius-md)" />
+            <MultiSelectField options={PROGRAMS.map(p => p.n)} value={progs} onChange={setProgs} mutedPlaceholder={false} labelOverride={multiLabel(progs, 'All programs', 'programs')} radius="var(--radius-md)" optionStatus={opt => PROGRAMS.find(p => p.n === opt)?.tags.includes('Active')} />
           </div>
           <div style={{ width: 150 }}>
             <MultiSelectField options={CHANNELS} value={chs} onChange={setChs} mutedPlaceholder={false} labelOverride={multiLabel(chs, 'All channels', 'channels')} radius="var(--radius-md)" />
@@ -1492,7 +1493,7 @@ export function Dashboard5Page() {
         )}
 
         <div style={{ marginTop: 'var(--space-7)' }}>
-          <ProgramPerformance programNames={data.programs.map(p => p.n)} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
+          <ProgramPerformance programNames={data.programs.map(p => ({ n: p.n, active: p.tags.includes('Active') }))} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
         <div style={{ marginTop: 'var(--space-7)' }}>

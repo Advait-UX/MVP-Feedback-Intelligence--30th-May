@@ -217,7 +217,7 @@ export function SurveyingDays({ value, onChange }: { value: string[]; onChange: 
 
 /* ── MultiSelectField ── */
 export function MultiSelectField({
-  options, value, onChange, placeholder, error, mutedPlaceholder = true, labelOverride, borderColor, radius
+  options, value, onChange, placeholder, error, mutedPlaceholder = true, labelOverride, borderColor, radius, optionStatus
 }: {
   options: string[]; value: string[]; onChange: (v: string[]) => void
   placeholder?: string; error?: boolean
@@ -228,6 +228,8 @@ export function MultiSelectField({
   borderColor?: string
   /** Overrides the corner radius. Defaults to --radius-sm. */
   radius?: string
+  /** When provided, shows a status dot before each option's label (true = active/green, false = inactive/grey) with a matching tooltip on hover. */
+  optionStatus?: (opt: string) => boolean | undefined
 }) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -302,10 +304,12 @@ export function MultiSelectField({
               ? <div style={{ padding: '8px 12px', font: '400 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>No results</div>
               : filtered.map(opt => {
                 const selected = value.includes(opt)
+                const status = optionStatus?.(opt)
                 return (
                   <div
                     key={opt}
                     onMouseDown={() => toggle(opt)}
+                    title={status === undefined ? undefined : status ? 'Active program' : 'Inactive program'}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 8,
                       padding: '7px 12px', cursor: 'pointer',
@@ -323,6 +327,12 @@ export function MultiSelectField({
                     }}>
                       {selected && <Check size={10} stroke="#fff" strokeWidth={2.5} />}
                     </span>
+                    {status !== undefined && (
+                      <span style={{
+                        width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                        background: status ? 'rgba(100,185,111,0.55)' : 'var(--lyra-slate-400)',
+                      }} />
+                    )}
                     {opt}
                   </div>
                 )
