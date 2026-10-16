@@ -217,10 +217,17 @@ export function SurveyingDays({ value, onChange }: { value: string[]; onChange: 
 
 /* ── MultiSelectField ── */
 export function MultiSelectField({
-  options, value, onChange, placeholder, error
+  options, value, onChange, placeholder, error, mutedPlaceholder = true, labelOverride, borderColor, radius
 }: {
   options: string[]; value: string[]; onChange: (v: string[]) => void
   placeholder?: string; error?: boolean
+  /** When false, the placeholder/label text reads as normal body text instead of a disabled-looking muted tone. Use for optional filters where an empty value is a valid, active state (e.g. "All programs"). */
+  mutedPlaceholder?: boolean
+  labelOverride?: string
+  /** Overrides the resting (non-open, non-error) border color. Defaults to --lyra-color-border-soft. */
+  borderColor?: string
+  /** Overrides the corner radius. Defaults to --radius-sm. */
+  radius?: string
 }) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -241,9 +248,9 @@ export function MultiSelectField({
     onChange(value.includes(opt) ? value.filter(v => v !== opt) : [...value, opt])
   }
 
-  const label = value.length === 0
+  const label = labelOverride ?? (value.length === 0
     ? (placeholder || 'Select…')
-    : value.length === 1 ? value[0] : `${value[0]} +${value.length - 1} more`
+    : value.length === 1 ? value[0] : `${value[0]} +${value.length - 1} more`)
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -252,10 +259,10 @@ export function MultiSelectField({
         style={{
           width: '100%', textAlign: 'left', padding: '6px 36px 6px 12px',
           font: '400 14px/24px var(--font-sans)',
-          color: value.length === 0 ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-default)',
+          color: value.length === 0 && mutedPlaceholder ? 'var(--lyra-color-fg-disabled)' : 'var(--lyra-color-fg-default)',
           background: 'var(--lyra-color-bg-field)',
-          border: `1px solid ${error ? 'var(--lyra-color-status-critical-strong)' : open ? 'var(--lyra-color-border-active)' : 'var(--lyra-color-border-soft)'}`,
-          borderRadius: 'var(--radius-sm)', cursor: 'pointer', outline: 'none',
+          border: `1px solid ${error ? 'var(--lyra-color-status-critical-strong)' : open ? 'var(--lyra-color-border-active)' : (borderColor ?? 'var(--lyra-color-border-soft)')}`,
+          borderRadius: radius ?? 'var(--radius-sm)', cursor: 'pointer', outline: 'none',
           boxSizing: 'border-box',
         }}
       >

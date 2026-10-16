@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Bell, Calendar, ChevronDown, ChevronLeft, ChevronRight, Info, Mail, Phone, Power, PowerOff, Sparkles, Star, X } from 'lucide-react'
+import { Activity, ArrowRight, Bell, Calendar, ChevronDown, ChevronLeft, ChevronRight, Info, Mail, Phone, Power, PowerOff, Smile, Sparkles, Star, UserMinus, X } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
+import { MultiSelectField } from '../components/campaign-wizard/WizardPrimitives'
 
 const FONT = 'var(--font-sans)'
 
@@ -46,19 +47,11 @@ const fmtDay = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day:
 const fmtRange = (r: DateRange | null) => (r ? `${fmtDay(r.start)} – ${fmtDay(r.end)}` : '')
 
 const lastN = (n: number): DateRange => ({ start: addDays(TODAY, -(n - 1)), end: TODAY })
-const previousN = (n: number): DateRange => ({ start: addDays(TODAY, -n), end: addDays(TODAY, -1) })
-const nextN = (n: number): DateRange => ({ start: addDays(TODAY, 1), end: addDays(TODAY, n) })
 
 const RANGE_PRESETS: { label: string; range: () => DateRange }[] = [
-  { label: 'Current day', range: () => ({ start: TODAY, end: TODAY }) },
-  { label: 'Previous day', range: () => previousN(1) },
-  { label: 'Next day', range: () => nextN(1) },
-  { label: 'Last 2 days', range: () => lastN(2) },
-  { label: 'Previous 2 days', range: () => previousN(2) },
-  { label: 'Next 2 days', range: () => nextN(2) },
-  { label: 'Last 5 days', range: () => lastN(5) },
   { label: 'Last 7 days', range: () => lastN(7) },
-  { label: 'This week', range: () => { const s = addDays(TODAY, -TODAY.getDay()); return { start: s, end: addDays(s, 6) } } },
+  { label: 'Current month', range: () => ({ start: new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), end: TODAY }) },
+  { label: 'Last month', range: () => ({ start: new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, 1), end: new Date(TODAY.getFullYear(), TODAY.getMonth(), 0) }) },
 ]
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -228,223 +221,299 @@ function DateRangePicker({ value, onChange }: { value: DateRange | null; onChang
   )
 }
 
-/* ── Program Performance Funnel ── */
-type FunnelData = { inter: number; elig: number; sent: number; rec: number; comp: number; part: number; csat: number; alerts: number }
-type FunnelDeltas = { stages: string[]; rates: string[]; csat: string; alerts: string }
-const DEFAULT_DELTAS: FunnelDeltas = { stages: ['+13%', '+8%', '+4%', '+2%', '+3%'], rates: ['+3pp', '+8pp', '+4pp', '+5pp'], csat: '+3pp', alerts: '-2%' }
+/* ── Period helpers ── */
+const rangeDays = (r: DateRange) => Math.round((dayStart(r.end).getTime() - dayStart(r.start).getTime()) / 864e5) + 1
+const previousPeriodNote = (r: DateRange | null) => {
+  if (!r) return 'Select a period to compare trends.'
+  const days = rangeDays(r), pEnd = addDays(r.start, -1), pStart = addDays(pEnd, -(days - 1))
+  return `Trends Compared with the Previous Period (${fmtDay(pStart)} – ${fmtDay(pEnd)})`
+}
+const DEFAULT_RANGE = (): DateRange => lastN(7)
+const isDefaultRange = (r: DateRange | null) => !!r && sameDay(r.start, DEFAULT_RANGE().start) && sameDay(r.end, DEFAULT_RANGE().end)
 
-function ProgramPerformanceFunnel({ data, subtitle, deltas = DEFAULT_DELTAS, footnote }: { data: FunnelData; subtitle: string; deltas?: FunnelDeltas; footnote?: string }) {
-  const { inter, elig, sent, rec, comp, part, csat, alerts } = data
+/* ── Deltas ── */
+type PerfDeltas = { total: string; elig: string; eligRate: string; sent: string; rec: string; comp: string; part: string; csat: string; alerts: string }
+const OVERVIEW_DELTAS: PerfDeltas = { total: '+13%', elig: '+8%', eligRate: '+3%', sent: '+4%', rec: '+2%', comp: '+9%', part: '-6%', csat: '+3%', alerts: '-2%' }
 
-  const stages: [string, number, string][] = [
-    ['Total Interactions', inter, deltas.stages[0]], ['Eligible', elig, deltas.stages[1]],
-    ['Surveys sent', sent, deltas.stages[2]], ['Responses received', rec, deltas.stages[3]],
-    ['Surveys completed', rec, deltas.stages[4]],
-  ]
-  const rates = [
-    [pct(elig, inter), 'Eligibility rate', deltas.rates[0]],
-    [pct(sent, elig), 'Coverage', deltas.rates[1]],
-    [pct(rec, sent), 'Response rate', deltas.rates[2]],
-    [pct(comp, rec), 'Completion rate', deltas.rates[3]],
-  ]
-
-  const CW = 192, BW = 140
-  const mx = Math.max(inter, 1)
-  const hgt = (v: number) => 92 * Math.sqrt(Math.max(v, 0) / mx)
-  const COLS = ['#9FC0EE', '#78A6E6', '#4F8BDC', '#2F72D0']
-
-  let bandSvg = ''
-  stages.forEach(([, v], i) => {
-    const h = hgt(v), x = i * CW
-    if (i < 4) {
-      const nextH = hgt(stages[i + 1][1])
-      bandSvg += `<rect x="${x}" y="${(50 - h / 2).toFixed(1)}" width="${BW}" height="${h.toFixed(1)}" rx="0" fill="${COLS[i]}"/>`
-      bandSvg += `<path d="M${x + BW} ${(50 - h / 2).toFixed(1)} L${x + CW} ${(50 - nextH / 2).toFixed(1)} L${x + CW} ${(50 + nextH / 2).toFixed(1)} L${x + BW} ${(50 + h / 2).toFixed(1)} Z" fill="#DCE8F8"/>`
-    } else {
-      const hf = rec ? h * comp / rec : 0, hp = h - hf, top = 50 - h / 2
-      bandSvg += `<rect x="${x}" y="${top.toFixed(1)}" width="${BW}" height="${hf.toFixed(1)}" rx="0" fill="#1F4E99"/>`
-      bandSvg += `<rect x="${x}" y="${(top + hf).toFixed(1)}" width="${BW}" height="${hp.toFixed(1)}" rx="0" fill="#9BB9E6"/>`
-    }
-  })
-
-  const crit = Math.round(alerts * 10 / 27), warn = Math.round(alerts * 6 / 27), info = Math.max(0, alerts - crit - warn)
-
+const isDown = (d: string) => d.trim().startsWith('-')
+function Delta({ value, size = 13, inverse = false }: { value: string; size?: number; inverse?: boolean }) {
+  const down = isDown(value)
+  const color = inverse ? 'var(--lyra-color-fg-inverse)' : down ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-status-success-strong)'
   return (
-    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '18px' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
-        <h3 style={{ font: `600 17px/24px ${FONT}`, margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program performance</h3>
-        <span style={{ font: `400 12px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{subtitle}</span>
-      </div>
+    <span style={{ font: `500 ${size}px/1.2 ${FONT}`, color, whiteSpace: 'nowrap', textShadow: inverse ? '0 1px 2px var(--lyra-brand-900)' : undefined }}>
+      {down ? '↓' : '↑'} {value}
+    </span>
+  )
+}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 230px', gap: 24 }}>
-        {/* Main funnel */}
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)' }}>
-            {stages.map(([label, value, delta], i) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'flex-start', paddingRight: 10 }}>
-                <div style={{ display: 'grid' }}>
-                  <b style={{ font: `600 19px/1.15 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
-                    {fmt(value)}
-                    <i style={{ fontStyle: 'normal', fontSize: 13, fontWeight: 500, marginLeft: 6, color: 'var(--lyra-color-status-success-strong)' }}>↑ {delta}</i>
-                  </b>
-                  <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
-                    {label}
-                    {i === 4 && (
-                      <span style={{ display: 'block', font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>
-                        <i style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: '#1F4E99', margin: '0 4px 0 2px', verticalAlign: 'middle' }} />{fmt(comp)} full
-                        <i style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: '#9BB9E6', margin: '0 4px 0 6px', verticalAlign: 'middle' }} />{fmt(part)} partial
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+type PerfData = { inter: number; elig: number; sent: number; rec: number; comp: number; csat: number; alerts: number }
 
-          {/* SVG band */}
-          <div style={{ position: 'relative', width: '100%' }}>
-            <svg
-              viewBox="0 0 960 100"
-              preserveAspectRatio="none"
-              style={{ width: '100%', height: 60, display: 'block', marginTop: 10 }}
-              aria-hidden="true"
-              dangerouslySetInnerHTML={{ __html: bandSvg }}
-            />
-            {rates.map(([val, , ], i) => (
-              <span
-                key={i}
-                style={{
-                  position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
-                  left: `${((2 * i * CW + BW + CW) / 2 / 960 * 100).toFixed(2)}%`,
-                  font: `600 12px/14px ${FONT}`, color: 'var(--lyra-color-fg-default)',
-                  background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-medium)',
-                  borderRadius: 'var(--radius-full)', padding: '2px 8px', pointerEvents: 'none',
-                  boxShadow: '0 1px 2px rgba(28,37,48,0.06)',
-                }}
-              >
-                {val}%
-              </span>
-            ))}
-          </div>
+/* ── Program Performance (total → eligible / non-eligible) ── */
+const EL_COLOR = 'var(--lyra-brand-700)'
+const NE_COLOR = 'var(--lyra-orange-500)'
 
-          {/* Rate labels */}
-          <div style={{ position: 'relative', height: 34, marginTop: 4 }}>
-            {rates.map(([, label, delta], i) => (
-              <div
-                key={i}
-                style={{
-                  position: 'absolute', top: 0, left: `${((2 * i * CW + BW + CW) / 2 / 960 * 100).toFixed(2)}%`,
-                  transform: 'translateX(-50%)', display: 'grid', justifyItems: 'center', rowGap: 1,
-                  whiteSpace: 'nowrap', textAlign: 'center',
-                }}
-              >
-                <span style={{ font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-status-success-strong)' }}>↑ {delta}</span>
-                <span style={{ font: `500 12px/14px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Side cards */}
-        <div style={{ borderLeft: '1px solid var(--lyra-color-border-subtle)', paddingLeft: 24, display: 'grid', gridTemplateColumns: '1fr', rowGap: 12, alignContent: 'start', paddingTop: 6 }}>
-          {/* CSAT */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 6, columnGap: 10, alignItems: 'end' }}>
-            <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)', gridColumn: '1 / 3' }}>CSAT</span>
-            <b style={{ font: `600 24px/1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{csat}%</b>
-            <span style={{ font: `500 13px/16px ${FONT}`, color: 'var(--lyra-color-status-success-strong)', whiteSpace: 'nowrap' }}>↑ {deltas.csat}</span>
-            <span style={{ gridColumn: '1 / 3', height: 6, background: '#EEF1F4', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
-              <i style={{ position: 'absolute', left: 0, top: 0, bottom: 0, background: 'var(--lyra-color-status-success-strong)', borderRadius: 3, width: `${csat}%` }} />
-            </span>
-            <span style={{ gridColumn: '1 / 3', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: -2 }}>
-              Target 78% · {csat >= 78 ? `${csat - 78} pts above` : `${78 - csat} pts below`}
-            </span>
-          </div>
-
-          {/* Alerts */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 6, columnGap: 10, alignItems: 'end' }}>
-            <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)', gridColumn: '1 / 3' }}>Alerts</span>
-            <b style={{ font: `600 24px/1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{alerts}</b>
-            <span style={{ font: `500 13px/16px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>↓ {deltas.alerts}</span>
-            <span style={{ gridColumn: '1 / 3', display: 'flex', gap: 3 }}>
-              {Array.from({ length: crit }, (_, i) => <i key={`c${i}`} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--lyra-color-status-critical-strong)', opacity: 0.85 }} />)}
-              {Array.from({ length: warn }, (_, i) => <i key={`w${i}`} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--lyra-color-status-warning-strong)', opacity: 0.85 }} />)}
-              {Array.from({ length: info }, (_, i) => <i key={`i${i}`} style={{ width: 6, height: 6, borderRadius: '50%', background: '#D8DEE4' }} />)}
-            </span>
-            <span style={{ gridColumn: '1 / 3', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: -2 }}>
-              {crit} critical · {warn} warning · {info} info
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {footnote && (
-        <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{footnote}</div>
-      )}
+function MetricRow({ label, value, delta, icon, tone }: { label: string; value: string; delta: string; icon: React.ReactNode; tone: 'brand' | 'critical' }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gridTemplateAreas: '"icon label label" "icon val delta"', columnGap: 10, alignItems: 'center', padding: '12px 14px' }}>
+      <span style={{ gridArea: 'icon', width: 38, height: 38, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: tone === 'brand' ? 'var(--lyra-brand-50)' : 'var(--lyra-color-status-critical-subtle)', color: tone === 'brand' ? 'var(--lyra-brand-600)' : 'var(--lyra-color-status-critical-strong)' }}>
+        {icon}
+      </span>
+      <span style={{ gridArea: 'label', alignSelf: 'end', font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
+      <b style={{ gridArea: 'val', alignSelf: 'baseline', font: `600 28px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{value}</b>
+      <span style={{ gridArea: 'delta', alignSelf: 'baseline', justifySelf: 'start' }}><Delta value={delta} size={13} /></span>
     </div>
   )
 }
 
-/* ── Why Surveys Were Not Sent ── */
-function WhySurveysNotSent({ inter, elig }: { inter: number; elig: number }) {
-  const [open, setOpen] = useState(false)
-  const skipped = inter - elig
+function ProgramPerformance({ programNames, data, deltas, periodNote }: { programNames: string[]; data: PerfData; deltas: PerfDeltas; periodNote: string }) {
+  const [open, setOpen] = useState<'el' | 'ne' | null>('el')
+  const { inter, elig, sent, rec, comp, csat, alerts } = data
+  const part = rec - comp, skipped = inter - elig
+  const er = pct(elig, inter), cov = pct(sent, elig), rr = pct(rec, sent), cp = pct(comp, rec)
+
+  // Step chart: three bars joined by connectors, drawn only as wide as the last bar.
+  const H = 110, CW = 1000 / 3, BW = CW * 0.62, VW = 2 * CW + BW
+  const mx = Math.max(elig, 1)
+  const steps: [number, string][] = [[elig, deltas.elig], [sent, deltas.sent], [rec, deltas.rec]]
+  let stepSvg = ''
+  steps.forEach(([v], i) => {
+    const h = H * v / mx, x = i * CW, y = H - h
+    stepSvg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BW.toFixed(1)}" height="${h.toFixed(1)}" style="fill:var(--lyra-brand-300)"/>`
+    if (i < 2) {
+      const h2 = H * steps[i + 1][0] / mx
+      stepSvg += `<path d="M${(x + BW).toFixed(1)} ${y.toFixed(1)} L${((i + 1) * CW).toFixed(1)} ${(H - h2).toFixed(1)} L${((i + 1) * CW).toFixed(1)} ${H} L${(x + BW).toFixed(1)} ${H} Z" style="fill:var(--lyra-brand-100)"/>`
+    }
+  })
+  const pctOf = (x: number) => `${(x / VW * 100).toFixed(2)}%`
+  const convs: [number, number, string][] = [[(BW + CW) / 2, cov, 'Coverage'], [(CW + BW + 2 * CW) / 2, rr, 'Response rate']]
+
+  // Not-sent reasons, scaled to this slice's skipped volume.
   const share = skipped / SKIP_ALL
   const rs = REASONS.map(([n, v, k]) => [n, v * share, k] as [string, number, string])
   const tun = rs.filter(r => r[2] === 't').reduce((a, r) => a + r[1], 0)
-
-  const W = 1100, H = 200, top = 24, base = H - 44
   const mxr = Math.max(...rs.map(r => r[1]), 1)
-  const sc = (base - top) / mxr
-  const n = rs.length, ccw = W / n, cbw = ccw * 0.6
 
-  let chartSvg = ''
-  rs.forEach(([nm, v, k], i) => {
-    const x = i * ccw + (ccw - cbw) / 2, h = v * sc, y = base - h
-    chartSvg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cbw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${k === 't' ? '#0F8C7C' : '#CBD2D9'}"/>`
-    chartSvg += `<text x="${(x + cbw / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="600" fill="var(--lyra-color-fg-default)" font-family="Inter,sans-serif">${fmt(v)}</text>`
-    chartSvg += `<text x="${(x + cbw / 2).toFixed(1)}" y="${H - 24}" text-anchor="middle" font-size="12.5" fill="var(--lyra-color-fg-secondary)" font-family="Inter,sans-serif">${nm}</text>`
-    chartSvg += `<text x="${(x + cbw / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="12" fill="var(--lyra-color-fg-secondary)" font-family="Inter,sans-serif">${pct(v, skipped)}%</text>`
-  })
-  chartSvg += `<line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="var(--lyra-color-border-subtle)"/>`
+  const selector = (key: 'el' | 'ne', label: string, value: number, rate: number, rateDelta?: string, color = EL_COLOR) => {
+    const on = open === key
+    return (
+      <button
+        type="button" onClick={() => setOpen(on ? null : key)} aria-expanded={on}
+        style={{
+          position: 'relative', display: 'grid', gridTemplateColumns: '10px 1fr auto auto 18px', alignItems: 'center', columnGap: 12, textAlign: 'left',
+          padding: '10px 14px', cursor: 'pointer', font: `400 14px/20px ${FONT}`,
+          background: on ? 'var(--lyra-color-bg-active-subtle)' : 'var(--lyra-color-bg-surface-base)',
+          border: `1px solid ${on ? 'var(--lyra-brand-600)' : 'var(--lyra-slate-300)'}`, borderRadius: 'var(--radius-md)',
+          boxShadow: on ? '0 0 0 3px var(--lyra-brand-100)' : 'var(--sol-effect-shadowsm)', transition: 'background .15s, border-color .15s, box-shadow .15s',
+        }}
+        onMouseEnter={e => { if (!on) { e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-active-subtle)'; e.currentTarget.style.borderColor = 'var(--lyra-brand-600)' } }}
+        onMouseLeave={e => { if (!on) { e.currentTarget.style.background = 'var(--lyra-color-bg-surface-base)'; e.currentTarget.style.borderColor = 'var(--lyra-slate-300)' } }}
+      >
+        <i style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
+        <span style={{ color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>{label}</span>
+        <b style={{ font: `600 17px/20px ${FONT}`, fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{fmt(value)}</b>
+        <em style={{ fontStyle: 'normal', font: `600 17px/20px ${FONT}`, minWidth: 120, textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-default)' }}>
+          {rate}%{rateDelta && <span style={{ marginLeft: 4 }}><Delta value={rateDelta} size={13} /></span>}
+        </em>
+        <ChevronDown size={18} style={{ color: on ? 'var(--lyra-brand-600)' : 'var(--lyra-color-fg-secondary)', transform: on ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+      </button>
+    )
+  }
 
   return (
-    <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
-      <div
-        onClick={() => setOpen(!open)}
-        style={{ padding: '12px 20px', display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', userSelect: 'none' }}
-      >
-        <ChevronRight size={18} style={{ color: 'var(--lyra-color-fg-secondary)', marginTop: 2, flexShrink: 0, transition: 'transform 0.15s', transform: open ? 'rotate(90deg)' : 'none' }} />
-        <div style={{ flex: 1 }}>
-          <h3 style={{ font: `600 15px/20px ${FONT}`, margin: '0 0 3px', color: 'var(--lyra-color-fg-default)' }}>Why surveys were not sent</h3>
-          <div style={{ font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-            {fmt(skipped)} of {fmt(inter)} interactions ({pct(skipped, inter)}%) never became eligible. {fmt(tun)} sit behind program settings you can change.
-          </div>
-        </div>
-        <span style={{ marginLeft: 'auto', font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
-          {open ? 'Hide breakdown' : 'Show breakdown'}
-        </span>
+    <section style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '18px 22px 22px' }}>
+      <div style={{ paddingBottom: 14, borderBottom: '1px solid var(--lyra-color-border-subtle)', marginBottom: 14 }}>
+        <h3 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program Performance</h3>
+        <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+          {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map((n, i) => (
+            <span key={n} style={{ whiteSpace: 'nowrap' }}>
+              {n}
+              {i < programNames.length - 1 && <span style={{ color: 'var(--lyra-slate-300)', margin: '0 12px', fontWeight: 300 }}>|</span>}
+            </span>
+          ))}
+        </p>
       </div>
 
-      {open && (
-        <div style={{ padding: '4px 20px 12px', borderTop: '1px solid var(--lyra-color-border-subtle)' }}>
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            style={{ width: '100%', display: 'block', paddingTop: 10 }}
-            aria-label="Reasons surveys were not sent"
-            dangerouslySetInnerHTML={{ __html: chartSvg }}
-          />
-          <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', marginTop: 12, paddingTop: 10, display: 'flex', alignItems: 'center', gap: 18, font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: '#0F8C7C' }} />Tunable – you can change
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10, whiteSpace: 'nowrap' }}>
+        <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total interactions</span>
+        <b style={{ font: `600 26px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
+          {fmt(inter)}<span style={{ marginLeft: 6 }}><Delta value={deltas.total} size={15} /></span>
+        </b>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 820 }}>
+        {selector('el', 'Eligible interactions', elig, er, deltas.eligRate)}
+        {selector('ne', 'Non-eligible interactions', skipped, 100 - er, undefined, NE_COLOR)}
+      </div>
+      {open === null && (
+        <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Click a segment to see the detail</div>
+      )}
+
+      {open === 'el' && (
+        <div style={{ marginTop: 34, paddingTop: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 250px 244px', gap: 16, alignItems: 'end' }}>
+            {/* Step chart */}
+            <div style={{ position: 'relative' }}>
+              <span aria-hidden="true" style={{ position: 'absolute', right: -23, bottom: 12, width: 30, height: 30, borderRadius: 'var(--radius-full)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-slate-300)', color: 'var(--lyra-color-fg-secondary)', display: 'grid', placeItems: 'center', boxShadow: 'var(--sol-effect-shadowsm)', zIndex: 3 }}>
+                <ArrowRight size={16} />
+              </span>
+              {[0, CW, 2 * CW].map(x => (
+                <i key={x} aria-hidden="true" style={{ position: 'absolute', top: 0, bottom: 0, left: pctOf(x), width: 1.5, pointerEvents: 'none', zIndex: 2, backgroundImage: 'repeating-linear-gradient(to bottom, var(--lyra-slate-400) 0, var(--lyra-slate-400) 3px, transparent 3px, transparent 7px)' }} />
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: `${CW}fr ${CW}fr ${BW}fr` }}>
+                {['Eligible interactions', 'Surveys sent', 'Responses received'].map(l => (
+                  <div key={l} style={{ padding: '0 6px 0 10px', minHeight: 36, marginBottom: 8 }}>
+                    <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>{l}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ position: 'relative' }}>
+                {convs.map(([x, v, l]) => (
+                  <div key={l} style={{ position: 'absolute', left: pctOf(x), bottom: 10, transform: 'translateX(-50%)', display: 'grid', rowGap: 1, textAlign: 'center', pointerEvents: 'none' }}>
+                    <b style={{ font: `600 13px/1.1 ${FONT}`, color: 'var(--lyra-brand-800)' }}>{v}%</b>
+                    <span style={{ font: `600 12px/1.1 ${FONT}`, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--lyra-brand-800)', maxWidth: 72 }}>{l}</span>
+                  </div>
+                ))}
+                {steps.map(([v, d], i) => (
+                  <div key={i} style={{ position: 'absolute', left: pctOf(i * CW + 12), bottom: 9, display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+                    <b style={{ font: `600 18px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-brand-900)' }}>{fmt(v)}</b>
+                    <Delta value={d} size={12} inverse />
+                  </div>
+                ))}
+                <svg viewBox={`0 0 ${VW} ${H}`} preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }} aria-hidden="true" dangerouslySetInnerHTML={{ __html: stepSvg }} />
+              </div>
+            </div>
+
+            {/* Split of responses */}
+            <div style={{ paddingLeft: 16 }}>
+              <div style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 14 }}>Split of responses received</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
+                {([["Survey's completed", comp, deltas.comp, EL_COLOR], ['Partially completed', part, deltas.part, NE_COLOR]] as [string, number, string, string][]).map(([l, v, d, c]) => (
+                  <div key={l}>
+                    <span style={{ display: 'block', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', marginBottom: 4 }}>{l}</span>
+                    <b style={{ display: 'flex', alignItems: 'center', gap: 6, font: `500 18px/22px ${FONT}`, whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-default)' }}>
+                      <i style={{ width: 14, height: 14, borderRadius: 2, background: c, flexShrink: 0 }} />
+                      {fmt(v)}
+                      <Delta value={d} size={12} />
+                    </b>
+                  </div>
+                ))}
+              </div>
+              <div style={{ height: 32, display: 'flex', overflow: 'hidden' }}>
+                <i style={{ width: `${cp}%`, background: EL_COLOR }} />
+                <i style={{ width: `${100 - cp}%`, background: NE_COLOR }} />
+              </div>
+            </div>
+
+            {/* CSAT + Alerts */}
+            <div style={{ borderLeft: '1px solid var(--lyra-color-border-subtle)', paddingLeft: 16, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: '100%', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--sol-effect-shadowsm)', overflow: 'hidden' }}>
+                <MetricRow label="CSAT" value={`${csat}%`} delta={deltas.csat} tone="brand" icon={<Smile size={20} />} />
+                <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)' }} />
+                <MetricRow label="Alerts" value={fmt(alerts)} delta={deltas.alerts} tone="critical" icon={<Bell size={20} />} />
+              </div>
+            </div>
+          </div>
+          <div style={{ marginTop: 14, font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{periodNote}</div>
+        </div>
+      )}
+
+      {open === 'ne' && (
+        <div style={{ marginTop: 34, paddingTop: 6 }}>
+          <div style={{ display: 'grid', rowGap: 3, marginBottom: 16 }}>
+            <b style={{ font: `600 17px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Why surveys were not sent</b>
+            <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+              {pct(skipped, inter)}% of interactions never became eligible. {fmt(tun)} sit behind program settings you can change.
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: '#CBD2D9' }} />Compliance – fixed by rules
-            </span>
-            <span style={{ marginLeft: 'auto', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Each interaction is counted once, against the first rule that stopped it.</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, alignItems: 'end' }}>
+            {rs.map(([n, v, k]) => (
+              <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: '100%', height: 140, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
+                  <span style={{ font: `600 15px/20px ${FONT}`, fontVariantNumeric: 'tabular-nums', marginBottom: 6, color: 'var(--lyra-color-fg-default)' }}>{fmt(v)}</span>
+                  <i style={{ display: 'block', width: '100%', borderRadius: '4px 4px 0 0', height: `${Math.round(v / mxr * 100)}%`, background: k === 't' ? NE_COLOR : 'var(--lyra-slate-400)' }} />
+                </div>
+                <span style={{ font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', marginTop: 8, textAlign: 'center' }}>{n}</span>
+                <span style={{ font: `400 13px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{pct(v, skipped)}%</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 18, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', borderTop: '1px solid var(--lyra-color-border-subtle)', marginTop: 10, paddingTop: 10 }}>
+            <span><i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, marginRight: 6, verticalAlign: 'middle', background: NE_COLOR }} />Tunable - you can change</span>
+            <span><i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, marginRight: 6, verticalAlign: 'middle', background: 'var(--lyra-slate-400)' }} />Compliance - fixed by rules</span>
           </div>
         </div>
       )}
-    </div>
+    </section>
+  )
+}
+
+/* ── Today's highlights ── */
+const FRACTIONS: [number, string][] = [[0.25, '1 in 4'], [0.33, '1 in 3'], [0.4, '2 in 5'], [0.5, '1 in 2'], [0.6, '3 in 5'], [0.67, '2 in 3'], [0.75, '3 in 4'], [0.8, '4 in 5']]
+const fractionLabel = (ratio: number) => FRACTIONS.reduce((best, f) => (Math.abs(f[0] - ratio) < Math.abs(best[0] - ratio) ? f : best))[1]
+
+function HighlightCard({ accent, icon, children }: { accent: 'critical' | 'loss'; icon: React.ReactNode; children: React.ReactNode }) {
+  const color = accent === 'critical' ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-orange-500)'
+  const wash = accent === 'critical' ? 'var(--lyra-color-status-critical-subtle)' : 'var(--lyra-color-status-warning-subtle)'
+  return (
+    <li style={{ display: 'grid', gridTemplateColumns: '38px 1fr', columnGap: 12, alignItems: 'center', padding: '12px 14px 12px 12px', background: `linear-gradient(90deg, ${wash} 0%, var(--lyra-color-bg-surface-base) 55%)`, border: '1px solid var(--lyra-color-border-subtle)', borderLeft: `5px solid ${color}`, borderRadius: 'var(--radius-md)', boxShadow: 'var(--sol-effect-shadowsm)' }}>
+      <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', color, background: wash }}>{icon}</span>
+      <span style={{ minWidth: 0, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{children}</span>
+    </li>
+  )
+}
+
+function TodaysHighlights({ programs, inter, elig }: { programs: typeof PROGRAMS; inter: number; elig: number }) {
+  const h = new Date().getHours()
+  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+  const attention = programs.filter(p => p.tags.includes('Needs attention'))
+  const skipped = inter - elig, ratio = inter ? skipped / inter : 0
+
+  return (
+    <section aria-label="Today's highlights" style={{ background: 'var(--lyra-color-bg-ai)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '12px 16px 14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+          <h2 style={{ font: `600 20px/24px ${FONT}`, margin: 0, color: 'var(--lyra-color-fg-default)' }}>{greet}, James.</h2>
+          <p style={{ margin: 0, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Here are today's highlights</p>
+        </div>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
+          <i style={{ width: 8, height: 8, borderRadius: 'var(--radius-full)', background: 'var(--lyra-color-status-success-strong)', boxShadow: '0 0 0 3px var(--lyra-color-status-success-subtle)' }} />
+          Live · updated just now
+        </span>
+      </div>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 12 }}>
+        <HighlightCard accent="critical" icon={<Activity size={19} />}>
+          <b style={{ color: 'var(--lyra-color-fg-default)', fontWeight: 600 }}>
+            {attention.length === 0 ? 'All programs are healthy' : `${attention.length} of ${programs.length} programs need${attention.length === 1 ? 's' : ''} attention`}
+          </b>
+          <span style={{ display: 'block' }}>
+            {attention.length === 0
+              ? 'No program is below its CSAT or response-rate target.'
+              : attention.map(p => `${p.n} (CSAT ${p.csat}%, response ${pct(p.rec, p.sent)}%)`).join(' · ') + '.'}
+          </span>
+        </HighlightCard>
+        <HighlightCard accent="loss" icon={<UserMinus size={19} />}>
+          <b style={{ color: 'var(--lyra-color-fg-default)', fontWeight: 600 }}>{fractionLabel(ratio)} interactions never reach a survey</b>
+          <span style={{ display: 'block' }}>
+            {pct(skipped, inter)}% were not eligible. <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>(Refer Non-eligible interaction section below)</span>
+          </span>
+        </HighlightCard>
+      </ul>
+    </section>
+  )
+}
+
+/* ── Applied filters ── */
+function AppliedChip({ group, value, onRemove }: { group: string; value: string; onRemove?: () => void }) {
+  const removable = !!onRemove
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 30, padding: removable ? '0 6px 0 10px' : '0 10px', borderRadius: 'var(--radius-full)', font: `500 14px/20px ${FONT}`, whiteSpace: 'nowrap', background: removable ? 'var(--lyra-color-bg-active-subtle)' : 'var(--lyra-color-bg-surface-canvas)', color: removable ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)', border: removable ? 'none' : '1px solid var(--lyra-color-border-subtle)' }}>
+      <small style={{ font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{group}</small>
+      {value}
+      {removable && (
+        <button type="button" onClick={onRemove} aria-label={`Remove ${group} ${value}`} style={{ width: 18, height: 18, borderRadius: 'var(--radius-full)', border: 'none', background: 'transparent', color: 'inherit', display: 'grid', placeItems: 'center', cursor: 'pointer', padding: 0 }}>
+          <X size={11} />
+        </button>
+      )}
+    </span>
   )
 }
 
@@ -829,11 +898,13 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
 }
 
 /* ── Program detail ── */
-const DETAIL_OVERRIDES: Record<string, { inter: number; deltas: FunnelDeltas }> = {
-  'Complaint Resolution Follow-Up': {
-    inter: 2572,
-    deltas: { stages: ['+10%', '+5%', '+13%', '+13%', '+10%'], rates: ['+6pp', '+5pp', '+6pp', '+5pp'], csat: '+7pp', alerts: '-9%' },
-  },
+const PROGRAM_INTER_OVERRIDE: Record<string, number> = { 'Complaint Resolution Follow-Up': 2572 }
+const PROGRAM_DELTAS: Record<string, PerfDeltas> = {
+  'Complaint Resolution Follow-Up': { total: '+10%', elig: '+5%', eligRate: '-2%', sent: '+3%', rec: '-9%', comp: '-11%', part: '+4%', csat: '-6%', alerts: '+18%' },
+  'Flight Disruption Recovery': { total: '+12%', elig: '+9%', eligRate: '+2%', sent: '+5%', rec: '+6%', comp: '+8%', part: '-3%', csat: '+2%', alerts: '-5%' },
+  'Billing and Refund Recovery · All Digital': { total: '+7%', elig: '+6%', eligRate: '+1%', sent: '+4%', rec: '+3%', comp: '+5%', part: '-2%', csat: '+1%', alerts: '-4%' },
+  'Omnichannel Escalation Recovery': { total: '+9%', elig: '+7%', eligRate: '+2%', sent: '+3%', rec: '+4%', comp: '+6%', part: '-1%', csat: '+2%', alerts: '-3%' },
+  'Product Feedback - Beta Testers': { total: '+4%', elig: '+3%', eligRate: '+1%', sent: '+2%', rec: '+2%', comp: '+3%', part: '-1%', csat: '+1%', alerts: '-1%' },
 }
 
 type ResponseRow = { customer: string; id: string; agent: string; topic: string | null; sent: string | null; response: string | null; completed: string | null; csat: number | null; status: string }
@@ -1119,14 +1190,14 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const [custType, setCustType] = useState('All Customer Types')
   const [channel, setChannel] = useState('All Channels')
   const [tab, setTab] = useState('All')
-  const [range, setRange] = useState<DateRange | null>({ start: new Date(2026, 9, 1), end: TODAY })
+  const [range, setRange] = useState<DateRange | null>(DEFAULT_RANGE)
   const [openRow, setOpenRow] = useState<ResponseRow | null>(null)
 
-  const override = DETAIL_OVERRIDES[program.n]
-  const funnel: FunnelData = {
-    inter: override?.inter ?? program.inter,
-    elig: program.elig, sent: program.sent, rec: program.rec, comp: program.comp,
-    part: program.rec - program.comp, csat: program.csat, alerts: program.alerts,
+  const k = range ? rangeDays(range) / 7 : 1
+  const perf: PerfData = {
+    inter: (PROGRAM_INTER_OVERRIDE[program.n] ?? program.inter) * k,
+    elig: program.elig * k, sent: program.sent * k, rec: program.rec * k, comp: program.comp * k,
+    csat: program.csat, alerts: program.alerts,
   }
   const status = program.tags.find(t => t === 'Active' || t === 'Inactive') || ''
 
@@ -1187,12 +1258,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
 
         <div style={{ marginTop: 'var(--space-5)' }}>
-          <ProgramPerformanceFunnel
-            data={funnel}
-            subtitle={range ? fmtRange(range) : 'No period selected'}
-            deltas={override?.deltas}
-            footnote={range ? `Trends compared to ${fmtDay(range.start)}, the start of the selected period.` : undefined}
-          />
+          <ProgramPerformance programNames={[program.n]} data={perf} deltas={PROGRAM_DELTAS[program.n] ?? OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
         {/* Customer responses */}
@@ -1304,41 +1370,53 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
 }
 
 /* ── Data hook ── */
-function useSlicedData(filters: { prog: string; ch: string; cat: string }) {
+const CHANNELS = ['SMS', 'WhatsApp', 'Email']
+const TOPICS = ['Service Disruption', 'Billing Recovery', 'Service Recovery', 'Product']
+
+function useSlicedData(filters: { progs: string[]; chs: string[]; cats: string[]; days: number }) {
   return useMemo(() => {
+    const allCh = filters.chs.length === 0
+    const k = filters.days / 7
     const S = PROGRAMS
-      .filter(p => (filters.prog === 'All Programs' || p.n === filters.prog) && (filters.cat === 'All Categories' || p.cat === filters.cat))
+      .filter(p => (filters.progs.length === 0 || filters.progs.includes(p.n)) && (filters.cats.length === 0 || filters.cats.includes(p.cat)))
       .map(p => {
-        const c = filters.ch === 'All Channels' ? 1 : ((p.ch as Record<string, number>)[filters.ch] || 0)
+        const c = allCh ? 1 : filters.chs.reduce((a, x) => a + ((p.ch as Record<string, number>)[x] || 0), 0)
         if (!c) return null
-        return { ...p, inter: p.inter * c, elig: p.elig * c, sent: p.sent * c, rec: p.rec * c, comp: p.comp * c, alerts: Math.round(p.alerts * c) }
+        const m = c * k
+        return { ...p, inter: p.inter * m, elig: p.elig * m, sent: p.sent * m, rec: p.rec * m, comp: p.comp * m, alerts: Math.round(p.alerts * c) }
       })
       .filter(Boolean) as typeof PROGRAMS
 
-    const sum = (f: keyof typeof PROGRAMS[0]) => S.reduce((a, p) => a + (p[f] as number), 0)
-    const inter = sum('inter'), elig = sum('elig'), sent = sum('sent'), rec = sum('rec'), comp = sum('comp')
-    const part = rec - comp, alerts = sum('alerts')
-    const csat = rec ? Math.round(S.reduce((a, p) => a + p.csat * p.rec, 0) / rec) : 0
-    const activeCount = S.filter(p => p.tags.includes('Active')).length
+    const sum = (f: 'inter' | 'elig' | 'sent' | 'rec' | 'comp' | 'alerts') => S.reduce((a, p) => a + p[f], 0)
+    const inter = sum('inter'), elig = sum('elig'), sent = sum('sent'), rec = sum('rec'), comp = sum('comp'), alerts = sum('alerts')
+    const isAll = S.length === PROGRAMS.length && allCh && filters.days === 7
+    const csat = isAll ? 76 : rec ? Math.round(S.reduce((a, p) => a + p.csat * p.rec, 0) / rec) : 0
 
-    return { inter, elig, sent, rec, comp, part, csat, alerts, activeCount, totalCount: S.length, programs: S }
-  }, [filters.prog, filters.ch, filters.cat])
+    return { inter, elig, sent, rec, comp, csat, alerts, programs: S }
+  }, [filters.progs, filters.chs, filters.cats, filters.days])
 }
 
 /* ── Page ── */
 export function Dashboard5Page() {
   const [search, setSearch] = useState('')
-  const [program, setProgram] = useState('All Programs')
-  const [channel, setChannel] = useState('All Channels')
-  const [category, setCategory] = useState('All Categories')
-  const [range, setRange] = useState<DateRange | null>({ start: new Date(2026, 9, 1), end: TODAY })
+  const [progs, setProgs] = useState<string[]>([])
+  const [chs, setChs] = useState<string[]>([])
+  const [cats, setCats] = useState<string[]>([])
+  const [range, setRange] = useState<DateRange | null>(DEFAULT_RANGE)
   const [selected, setSelected] = useState<typeof PROGRAMS[0] | null>(null)
 
-  const data = useSlicedData({ prog: program, ch: channel, cat: category })
+  const data = useSlicedData({ progs, chs, cats, days: range ? rangeDays(range) : 7 })
 
   if (selected) {
     return <ProgramDetailView program={selected} onBack={() => setSelected(null)} />
   }
+
+  const multiLabel = (v: string[], all: string, noun: string) => (v.length === 0 ? all : v.length === 1 ? v[0] : `${v.length} ${noun}`)
+  const defaultRange = isDefaultRange(range)
+  const hasFilters = !defaultRange || progs.length > 0 || chs.length > 0 || cats.length > 0
+  const chipCount = (defaultRange ? 0 : 1) + progs.length + chs.length + cats.length
+  const clearAll = () => { setProgs([]); setChs([]); setCats([]); setRange(DEFAULT_RANGE()) }
+  const groups: [string, string[], (v: string[]) => void][] = [['Program', progs, setProgs], ['Channel', chs, setChs], ['Topic', cats, setCats]]
 
   return (
     <div className="flex flex-col flex-1 h-full" style={{ background: 'var(--lyra-color-bg-surface-base)' }}>
@@ -1348,37 +1426,57 @@ export function Dashboard5Page() {
         </h1>
       </div>
 
-      <div className="flex-1 min-h-0" style={{ paddingTop: 'var(--space-7)', paddingLeft: 'var(--space-7)', paddingRight: 'var(--space-7)', paddingBottom: 'var(--space-2)', overflowY: 'auto' }}>
+      <div className="flex-1 min-h-0" style={{ paddingTop: 'var(--space-6)', paddingLeft: 'var(--space-7)', paddingRight: 'var(--space-7)', paddingBottom: 'var(--space-6)', overflowY: 'auto' }}>
         {/* Filter Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <SearchInput value={search} onChange={setSearch} placeholder="Search programs" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+          <SearchInput value={search} onChange={setSearch} placeholder="Search program name" />
           <DateRangePicker value={range} onChange={setRange} />
-          <FilterDropdown
-            value={program}
-            options={['All Programs', ...PROGRAMS.map(p => p.n)]}
-            onChange={setProgram}
-          />
-          <FilterDropdown
-            value={channel}
-            options={['All Channels', 'SMS', 'WhatsApp', 'Email']}
-            onChange={setChannel}
-          />
-          <FilterDropdown
-            value={category}
-            options={['All Categories', 'Service Disruption', 'Billing Recovery', 'Service Recovery', 'Product']}
-            onChange={setCategory}
-          />
+          <div style={{ width: 230 }}>
+            <MultiSelectField options={PROGRAMS.map(p => p.n)} value={progs} onChange={setProgs} mutedPlaceholder={false} labelOverride={multiLabel(progs, 'All programs', 'programs')} radius="var(--radius-md)" />
+          </div>
+          <div style={{ width: 150 }}>
+            <MultiSelectField options={CHANNELS} value={chs} onChange={setChs} mutedPlaceholder={false} labelOverride={multiLabel(chs, 'All channels', 'channels')} radius="var(--radius-md)" />
+          </div>
+          <div style={{ width: 170 }}>
+            <MultiSelectField options={TOPICS} value={cats} onChange={setCats} mutedPlaceholder={false} labelOverride={multiLabel(cats, 'All Topics', 'topics')} radius="var(--radius-md)" />
+          </div>
         </div>
 
+        {hasFilters && (
+          <div style={{ marginTop: 'var(--space-3)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-base)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px' }}>
+              <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                Applied filters <em style={{ fontStyle: 'normal', fontWeight: 400, color: 'var(--lyra-color-fg-secondary)' }}>({chipCount})</em>
+              </span>
+              <button
+                type="button" onClick={clearAll}
+                style={{ marginLeft: 'auto', height: 30, padding: '0 11px', border: 'none', borderRadius: 'var(--radius-md)', background: 'transparent', font: `500 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', cursor: 'pointer' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                Clear all
+              </button>
+            </div>
+            <div style={{ padding: '0 12px 10px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {!defaultRange && <AppliedChip group="Date" value={range ? fmtRange(range) : 'No period'} onRemove={() => setRange(DEFAULT_RANGE())} />}
+              {groups.map(([g, v, set]) => (
+                v.length === 0
+                  ? <AppliedChip key={g} group={g} value="All" />
+                  : v.map(x => <AppliedChip key={`${g}-${x}`} group={g} value={x} onRemove={() => set(v.filter(y => y !== x))} />)
+              ))}
+            </div>
+          </div>
+        )}
+
         <div style={{ marginTop: 'var(--space-5)' }}>
-          <ProgramPerformanceFunnel data={data} subtitle={`${data.totalCount} programs · ${data.activeCount} active`} />
+          <TodaysHighlights programs={data.programs} inter={data.inter} elig={data.elig} />
         </div>
 
         <div style={{ marginTop: 'var(--space-4)' }}>
-          <WhySurveysNotSent inter={data.inter} elig={data.elig} />
+          <ProgramPerformance programNames={data.programs.map(p => p.n)} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
-        <div style={{ marginTop: 'var(--space-6)' }}>
+        <div style={{ marginTop: 'var(--space-4)' }}>
           <ProgramsTable programs={data.programs} searchQuery={search} onSelectProgram={setSelected} />
         </div>
       </div>
