@@ -1442,12 +1442,6 @@ export function Dashboard5Page() {
 
   return (
     <div className="flex flex-col flex-1 h-full" style={{ background: 'var(--lyra-color-bg-surface-base)' }}>
-      <div style={{ minHeight: 72, padding: 'var(--space-4) var(--space-7)', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'center' }}>
-        <h1 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>
-          Program Health
-        </h1>
-      </div>
-
       <div className="flex-1 min-h-0" style={{ paddingTop: 'var(--space-6)', paddingLeft: 'var(--space-7)', paddingRight: 'var(--space-7)', paddingBottom: 'var(--space-6)', overflowY: 'auto' }}>
         <TodaysHighlights programs={data.programs} inter={data.inter} elig={data.elig} />
 
