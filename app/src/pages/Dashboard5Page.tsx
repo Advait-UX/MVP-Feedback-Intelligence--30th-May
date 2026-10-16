@@ -320,8 +320,8 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
   }
 
   return (
-    <section style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '18px 22px 22px' }}>
-      <div style={{ paddingBottom: 14, borderBottom: '1px solid var(--lyra-color-border-subtle)', marginBottom: 'var(--space-6)' }}>
+    <section style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+      <div style={{ padding: '18px 22px 14px', background: 'var(--lyra-color-bg-surface-base)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
         <h3 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program Performance</h3>
         <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
           {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map((n, i) => (
@@ -332,20 +332,22 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
           ))}
         </p>
       </div>
-
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10, whiteSpace: 'nowrap' }}>
-        <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total interactions</span>
-        <b style={{ font: `600 26px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
-          {fmt(inter)}<span style={{ marginLeft: 6 }}><Delta value={deltas.total} size={15} /></span>
-        </b>
+      <div style={{ padding: '24px 22px 22px' }}>
+      <div style={{ margin: '-8px -6px 24px', padding: '20px 22px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-shell)' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10, whiteSpace: 'nowrap' }}>
+          <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total interactions</span>
+          <b style={{ font: `600 26px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
+            {fmt(inter)}<span style={{ marginLeft: 6 }}><Delta value={deltas.total} size={15} /></span>
+          </b>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 820 }}>
+          {selector('el', 'Eligible interactions', elig, er, deltas.eligRate)}
+          {selector('ne', 'Non-eligible interactions', skipped, 100 - er, undefined, NE_COLOR)}
+        </div>
+        {open === null && (
+          <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Click a segment to see the detail</div>
+        )}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 820 }}>
-        {selector('el', 'Eligible interactions', elig, er, deltas.eligRate)}
-        {selector('ne', 'Non-eligible interactions', skipped, 100 - er, undefined, NE_COLOR)}
-      </div>
-      {open === null && (
-        <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Click a segment to see the detail</div>
-      )}
 
       {open === 'el' && (
         <div style={{ marginTop: 'var(--space-4)' }}>
@@ -444,6 +446,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
           </div>
         </div>
       )}
+      </div>
     </section>
   )
 }
