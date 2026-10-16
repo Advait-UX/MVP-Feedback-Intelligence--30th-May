@@ -321,7 +321,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
 
   return (
     <section style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-      <div style={{ padding: '18px 22px 14px', background: 'var(--lyra-color-bg-surface-base)' }}>
+      <div style={{ padding: '18px 22px 10px', background: 'var(--lyra-color-bg-surface-base)' }}>
         <h3 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program Performance</h3>
         <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
           {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map(({ n, active }, i) => (
@@ -333,8 +333,8 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
           ))}
         </p>
       </div>
-      <div style={{ padding: '24px 22px 22px' }}>
-      <div style={{ margin: '-8px -6px 24px', padding: '20px 22px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-shell)' }}>
+      <div style={{ padding: '20px 22px 22px' }}>
+      <div style={{ margin: '-4px -6px 24px', padding: '20px 22px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-shell)' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10, whiteSpace: 'nowrap' }}>
           <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total interactions</span>
           <b style={{ font: `600 26px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
@@ -524,14 +524,14 @@ function AppliedChip({ group, value, onRemove }: { group: string; value: string;
 }
 
 const PROGRAM_COLUMNS: { label: string; lines: string[] }[] = [
-  { label: 'Program Name', lines: ['Program Name'] },
+  { label: 'Program', lines: ['Program'] },
   { label: 'Status', lines: ['Status'] },
   { label: 'Eligible', lines: ['Eligible'] },
   { label: 'Coverage', lines: ['Coverage'] },
-  { label: 'Surveys Sent', lines: ['Surveys', 'Sent'] },
-  { label: 'Response Rate', lines: ['Response', 'Rate'] },
-  { label: 'Responses Received', lines: ['Responses', 'Received'] },
-  { label: 'Completion Rate', lines: ['Completion', 'Rate'] },
+  { label: 'Surveys Sent', lines: ['Surveys Sent'] },
+  { label: 'Response Rate', lines: ['Response Rate'] },
+  { label: 'Responses Rec.', lines: ['Responses Rec.'] },
+  { label: 'Completion Rate', lines: ['Completion Rate'] },
   { label: 'Completed', lines: ['Completed'] },
   { label: 'Partial', lines: ['Partial'] },
   { label: 'CSAT', lines: ['CSAT'] },
@@ -543,10 +543,10 @@ const CHANNEL_COLUMNS: { label: string; lines: string[] }[] = [
   { label: 'Channel', lines: ['Channel'] },
   { label: 'Eligible', lines: ['Eligible'] },
   { label: 'Coverage', lines: ['Coverage'] },
-  { label: 'Surveys Sent', lines: ['Surveys', 'Sent'] },
-  { label: 'Response Rate', lines: ['Response', 'Rate'] },
-  { label: 'Responses Received', lines: ['Responses', 'Received'] },
-  { label: 'Completion Rate', lines: ['Completion', 'Rate'] },
+  { label: 'Surveys Sent', lines: ['Surveys Sent'] },
+  { label: 'Response Rate', lines: ['Response Rate'] },
+  { label: 'Responses Rec.', lines: ['Responses Rec.'] },
+  { label: 'Completion Rate', lines: ['Completion Rate'] },
   { label: 'Completed', lines: ['Completed'] },
   { label: 'Partial', lines: ['Partial'] },
   { label: 'CSAT', lines: ['CSAT'] },
@@ -564,10 +564,10 @@ const TOPIC_COLUMNS: { label: string; lines: string[] }[] = [
   { label: 'Topic', lines: ['Topic'] },
   { label: 'Eligible', lines: ['Eligible'] },
   { label: 'Coverage', lines: ['Coverage'] },
-  { label: 'Surveys Sent', lines: ['Surveys', 'Sent'] },
-  { label: 'Response Rate', lines: ['Response', 'Rate'] },
-  { label: 'Responses Received', lines: ['Responses', 'Received'] },
-  { label: 'Completion Rate', lines: ['Completion', 'Rate'] },
+  { label: 'Surveys Sent', lines: ['Surveys Sent'] },
+  { label: 'Response Rate', lines: ['Response Rate'] },
+  { label: 'Responses Rec.', lines: ['Responses Rec.'] },
+  { label: 'Completion Rate', lines: ['Completion Rate'] },
   { label: 'Completed', lines: ['Completed'] },
   { label: 'Partial', lines: ['Partial'] },
   { label: 'CSAT', lines: ['CSAT'] },
@@ -618,6 +618,21 @@ function PpDrop({ value }: { value: string }) {
   )
 }
 
+function GreyBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      display: 'inline-block',
+      padding: '4px 12px',
+      borderRadius: 'var(--radius-sm)',
+      background: 'var(--lyra-slate-200)',
+      font: `400 14px/18px ${FONT}`,
+      color: 'var(--lyra-color-fg-default)',
+    }}>
+      {children}
+    </span>
+  )
+}
+
 function StatusPill({ status }: { status: string }) {
   const isActive = status === 'Active'
   const Icon = isActive ? Power : PowerOff
@@ -642,17 +657,17 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
 
   return (
     <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
-      <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+      <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
         <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Programs</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Group by</span>
+          <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Group by</span>
           <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
             {(['Program', 'Channel', 'Topic'] as const).map((g, i) => (
               <button
                 key={g}
                 onClick={() => setGroupBy(g)}
                 style={{
-                  padding: '4px 16px', font: `500 12px/16px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
+                  padding: '6px 16px', font: `500 12px/16px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
                   background: groupBy === g ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
                   color: groupBy === g ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)',
                   borderRight: i < 2 ? '1px solid var(--lyra-color-border-subtle)' : 'none',
@@ -666,12 +681,8 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
       </div>
 
       {groupBy === 'Channel' ? (
-        <div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col style={{ width: '28%' }} />
-              {Array.from({ length: 11 }, (_, i) => <col key={i} style={{ width: '6.54%' }} />)}
-            </colgroup>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 {CHANNEL_COLUMNS.map(col => (
@@ -679,16 +690,14 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                     key={col.label}
                     scope="col"
                     style={{
-                      padding: `var(--space-3) var(--space-2) var(--space-3) ${col.label === 'Channel' ? 'var(--space-4)' : 'var(--space-2)'}`,
+                      padding: `var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Channel' ? 'var(--space-6)' : 'var(--space-3)'}`,
                       textAlign: 'left',
-                      font: `500 12px/16px ${FONT}`,
+                      font: `400 14px/20px ${FONT}`,
                       color: 'var(--lyra-color-fg-secondary)',
-                      letterSpacing: '0.01em',
-                      textTransform: 'uppercase',
-                      verticalAlign: 'top',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {col.lines.map((line, li) => <span key={li} style={{ display: 'block', whiteSpace: 'nowrap' }}>{line}</span>)}
+                    {col.label}
                   </th>
                 ))}
               </tr>
@@ -696,40 +705,40 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
             <tbody>
               {CHANNEL_DATA.map(c => (
                 <tr key={c.channel} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-2) var(--space-3) var(--space-4)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {c.channel}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(c.elig)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                    {c.coverage}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{c.coverage}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(c.sent)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                    {c.responseRate}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{c.responseRate}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(c.rec)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                    {c.completionRate}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{c.completionRate}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(c.comp)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(c.partial)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                    {c.csat}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{c.csat}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                    {c.asat}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{c.asat}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
                     {c.alerts}
                   </td>
                 </tr>
@@ -738,12 +747,8 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
           </table>
         </div>
       ) : groupBy === 'Topic' ? (
-        <div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col style={{ width: '28%' }} />
-              {Array.from({ length: 11 }, (_, i) => <col key={i} style={{ width: '6.54%' }} />)}
-            </colgroup>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 {TOPIC_COLUMNS.map(col => (
@@ -751,16 +756,14 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                     key={col.label}
                     scope="col"
                     style={{
-                      padding: `var(--space-3) var(--space-2) var(--space-3) ${col.label === 'Topic' ? 'var(--space-4)' : 'var(--space-2)'}`,
+                      padding: `var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Topic' ? 'var(--space-6)' : 'var(--space-3)'}`,
                       textAlign: 'left',
-                      font: `500 12px/16px ${FONT}`,
+                      font: `400 14px/20px ${FONT}`,
                       color: 'var(--lyra-color-fg-secondary)',
-                      letterSpacing: '0.01em',
-                      textTransform: 'uppercase',
-                      verticalAlign: 'top',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {col.lines.map((line, li) => <span key={li} style={{ display: 'block', whiteSpace: 'nowrap' }}>{line}</span>)}
+                    {col.label}
                   </th>
                 ))}
               </tr>
@@ -768,40 +771,40 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
             <tbody>
               {TOPIC_DATA.map(t => (
                 <tr key={t.topic} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-2) var(--space-3) var(--space-4)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {t.topic}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(t.elig)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                    {t.coverage}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{t.coverage}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(t.sent)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                    {t.responseRate}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{t.responseRate}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(t.rec)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                    {t.completionRate}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{t.completionRate}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(t.comp)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                     {fmt(t.partial)}
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                    {t.csat}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{t.csat}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                    {t.asat}%
+                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                    <GreyBadge>{t.asat}%</GreyBadge>
                   </td>
-                  <td style={{ padding: 'var(--space-3) var(--space-2)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>
+                  <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
                     {t.alerts}
                   </td>
                 </tr>
@@ -813,12 +816,8 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
           </div>
         </div>
       ) : (
-        <div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col style={{ width: '23%' }} />
-              {Array.from({ length: 12 }, (_, i) => <col key={i} style={{ width: '6.4%' }} />)}
-            </colgroup>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 {PROGRAM_COLUMNS.map(col => (
@@ -826,14 +825,14 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                     key={col.label}
                     scope="col"
                     style={{
-                      padding: `var(--space-3) var(--space-2) var(--space-3) ${col.label === 'Program Name' ? 'var(--space-4)' : 'var(--space-2)'}`,
+                      padding: `var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program' ? 'var(--space-6)' : 'var(--space-3)'}`,
                       textAlign: 'left',
-                      font: `500 14px/16px ${FONT}`,
-                      color: 'var(--lyra-color-fg-default)',
-                      verticalAlign: 'top',
+                      font: `400 14px/20px ${FONT}`,
+                      color: 'var(--lyra-color-fg-secondary)',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {col.lines.map((line, li) => <span key={li} style={{ display: 'block', whiteSpace: 'nowrap' }}>{line}</span>)}
+                    {col.label}
                   </th>
                 ))}
               </tr>
@@ -850,8 +849,13 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                   const partial = p.rec - p.comp
                   const status = p.tags.find(t => t === 'Active' || t === 'Inactive') || ''
                   return (
-                    <tr key={p.n} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                      <td style={{ padding: 'var(--space-3) var(--space-2) var(--space-3) var(--space-4)' }}>
+                    <tr
+                      key={p.n}
+                      style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer', transition: 'background-color 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
+                    >
+                      <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                           <span
                             onClick={() => onSelectProgram(p)}
@@ -862,42 +866,42 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram }: { programs: t
                           {p.tags.includes('Needs attention') && <NeedsAttentionChip />}
                         </span>
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)' }}>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
                         {status && <StatusPill status={status} />}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                         {fmt(p.elig)}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                        {pct(p.sent, p.elig)}%
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{pct(p.sent, p.elig)}%</GreyBadge>
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                         {fmt(p.sent)}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                        {pct(p.rec, p.sent)}%
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{pct(p.rec, p.sent)}%</GreyBadge>
                         {p.rrD && <PpDrop value={p.rrD} />}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                         {fmt(p.rec)}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                        {pct(p.comp, p.rec)}%
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{pct(p.comp, p.rec)}%</GreyBadge>
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                         {fmt(p.comp)}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                         {fmt(partial)}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                        {p.csat}%
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{p.csat}%</GreyBadge>
                         {p.csatD && <PpDrop value={p.csatD} />}
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                        {p.asat}%
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{p.asat}%</GreyBadge>
                       </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-2)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>
+                      <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
                         {p.alerts}
                       </td>
                     </tr>
@@ -1272,13 +1276,13 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
           </div>
         </div>
 
-        <div style={{ marginTop: 'var(--space-7)' }}>
+        <div style={{ marginTop: 'var(--space-6)' }}>
           <ProgramPerformance programNames={[{ n: program.n, active: program.tags.includes('Active') }]} data={perf} deltas={PROGRAM_DELTAS[program.n] ?? OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
         {/* Customer responses */}
-        <div style={{ marginTop: 'var(--space-7)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+        <div style={{ marginTop: 'var(--space-6)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
+          <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
             <div>
               <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Customer responses</h3>
               <div style={{ font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>Every interaction in the period, whether or not a survey was sent.</div>
@@ -1313,10 +1317,8 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                     style={{
                       padding: `var(--space-3) ${col === 'Status' ? 'var(--space-4)' : 'var(--space-2)'} var(--space-3) ${col === 'Customer' ? 'var(--space-4)' : 'var(--space-2)'}`,
                       textAlign: col === 'Status' ? 'right' : 'left',
-                      font: `500 12px/16px ${FONT}`,
+                      font: `400 14px/20px ${FONT}`,
                       color: 'var(--lyra-color-fg-secondary)',
-                      letterSpacing: '0.01em',
-                      textTransform: 'uppercase',
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -1446,7 +1448,7 @@ export function Dashboard5Page() {
         <TodaysHighlights programs={data.programs} inter={data.inter} elig={data.elig} />
 
         {/* Filter Bar */}
-        <div style={{ marginTop: 'var(--space-7)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: 'var(--space-6)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
           <SearchInput value={search} onChange={setSearch} placeholder="Search program name" />
           <DateRangePicker value={range} onChange={setRange} />
           <div style={{ width: 230 }}>
@@ -1486,11 +1488,11 @@ export function Dashboard5Page() {
           </div>
         )}
 
-        <div style={{ marginTop: 'var(--space-7)' }}>
+        <div style={{ marginTop: 'var(--space-6)' }}>
           <ProgramPerformance programNames={data.programs.map(p => ({ n: p.n, active: p.tags.includes('Active') }))} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
         </div>
 
-        <div style={{ marginTop: 'var(--space-7)' }}>
+        <div style={{ marginTop: 'var(--space-6)' }}>
           <ProgramsTable programs={data.programs} searchQuery={search} onSelectProgram={setSelected} />
         </div>
       </div>
