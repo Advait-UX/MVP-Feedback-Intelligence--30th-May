@@ -321,7 +321,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote }: { progra
 
   return (
     <section style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-      <div style={{ padding: '18px 22px 14px', background: 'var(--lyra-color-bg-surface-base)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+      <div style={{ padding: '18px 22px 14px', background: 'var(--lyra-color-bg-surface-base)' }}>
         <h3 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program Performance</h3>
         <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
           {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map((n, i) => (
