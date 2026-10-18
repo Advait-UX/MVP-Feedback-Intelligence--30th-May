@@ -27,6 +27,7 @@ import { Dashboard2Page } from './pages/Dashboard2Page'
 import { Dashboard3Page } from './pages/Dashboard3Page'
 import { Dashboard4Page } from './pages/Dashboard4Page'
 import { Dashboard5Page } from './pages/Dashboard5Page'
+import { ProgramHealth2Page } from './pages/ProgramHealth2Page'
 import { Dashboard7Page } from './pages/Dashboard7Page'
 import { Dashboard6Page } from './pages/Dashboard6Page'
 import { SurveyDetailPage } from './pages/SurveyDetailPage'
@@ -399,7 +400,7 @@ export default function App() {
   const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'dashboard6' | 'dashboard7' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'alert2' | 'health'>('programs')
+  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'dashboard6' | 'dashboard7' | 'programhealth2' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'alert2' | 'health'>('programs')
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
@@ -505,6 +506,7 @@ export default function App() {
   // the prototype screens (own chrome hidden via ?embed=full).
   const FI_NAV_ITEMS = [
     { id: 'dashboard5', label: 'Program Health', icon: LayoutGrid },
+    { id: 'programhealth2', label: 'Program Health 2', icon: LayoutGrid },
     {
       type: 'group' as const,
       id: 'old-dashboards',
@@ -541,6 +543,7 @@ export default function App() {
     dashboard6: 'Dashboard 4',
     dashboard7: 'Dashboard 5',
     dashboard5: 'Program Health',
+    programhealth2: 'Program Health 2',
     programs: page === 'campaign-portfolio'
       ? 'Programs'
       : page === 'campaign-insight' && selectedCampaign
@@ -583,6 +586,8 @@ export default function App() {
         <Dashboard6Page />
       ) : fiSection === 'dashboard5' ? (
         <Dashboard5Page />
+      ) : fiSection === 'programhealth2' ? (
+        <ProgramHealth2Page />
       ) : fiSection === 'dashboard7' ? (
         <Dashboard7Page />
       ) : fiSection === 'programs' ? (
