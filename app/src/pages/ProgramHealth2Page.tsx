@@ -267,36 +267,6 @@ function MetricRow({ label, value, delta, icon, tone }: { label: string; value: 
 
 type PerfTab = 'el' | 'ne' | null
 
-/* Survey journey: every stage in one line so eligibility reads as the first step, not a binary split. */
-function JourneyStrip({ inter, elig, sent, rec, comp, deltas }: { inter: number; elig: number; sent: number; rec: number; comp: number; deltas: PerfDeltas }) {
-  const stages: { label: string; value: number; sub: string; delta?: string; tone?: 'brand' | 'muted' }[] = [
-    { label: 'Total interactions', value: inter, sub: 'in the period', delta: deltas.total },
-    { label: 'Eligible for survey', value: elig, sub: `${pct(elig, inter)}% of total`, delta: deltas.elig },
-    { label: 'Surveys sent', value: sent, sub: `${pct(sent, elig)}% survey coverage`, delta: deltas.sent },
-    { label: 'Responses received', value: rec, sub: `${pct(rec, sent)}% response rate`, delta: deltas.rec },
-    { label: 'Completed', value: comp, sub: `${pct(comp, rec)}% completion`, delta: deltas.comp },
-  ]
-  return (
-    <div role="list" aria-label="Survey journey" style={{ display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 'var(--space-4)' }}>
-      {stages.map((s, i) => (
-        <div key={s.label} role="listitem" style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', minHeight: 32 }}>{s.label}</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-              <b style={{ font: `600 ${i === 0 ? 26 : 20}px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{fmt(s.value)}</b>
-              {s.delta && <Delta value={s.delta} size={12} />}
-            </div>
-            <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{s.sub}</div>
-          </div>
-          {i < stages.length - 1 && (
-            <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--lyra-slate-400)', flexShrink: 0, margin: '0 var(--space-3)' }} />
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function ProgramPerformance({ programNames, data, deltas, periodNote, open: openProp, onOpenChange }: { programNames: { n: string; active: boolean }[]; data: PerfData; deltas: PerfDeltas; periodNote: string; open?: PerfTab; onOpenChange?: (t: PerfTab) => void }) {
   const [openLocal, setOpenLocal] = useState<PerfTab>('el')
   const open = openProp !== undefined ? openProp : openLocal
@@ -345,7 +315,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
         <i style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
         <span style={{ display: 'grid', rowGap: 1, minWidth: 0, overflow: 'hidden' }}>
           <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-          <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</span>
+          <span title={hint} style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</span>
         </span>
         <b style={{ font: `600 17px/20px ${FONT}`, fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{fmt(value)}</b>
         <em style={{ fontStyle: 'normal', font: `600 17px/20px ${FONT}`, minWidth: 120, textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-default)' }}>
@@ -372,12 +342,14 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
       </div>
       <div style={{ padding: '20px 22px 22px' }}>
       <div style={{ margin: '-4px -6px 24px', padding: '20px 22px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-shell)' }}>
-        <JourneyStrip inter={inter} elig={elig} sent={sent} rec={rec} comp={comp} deltas={deltas} />
-        <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginBottom: 8 }}>
-          Where did the {fmt(inter)} interactions go?
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10, whiteSpace: 'nowrap' }}>
+          <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total interactions</span>
+          <b style={{ font: `600 26px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
+            {fmt(inter)}<span style={{ marginLeft: 6 }}><Delta value={deltas.total} size={15} /></span>
+          </b>
         </div>
         <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 980 }}>
-          {selector('el', 'Eligible for survey', 'Follow them from survey sent to response', elig, er, deltas.eligRate)}
+          {selector('el', 'Eligible for survey', 'Track sent, responded, completed', elig, er, deltas.eligRate)}
           {selector('ne', 'Not eligible for survey', 'See why no survey was sent', skipped, 100 - er, undefined, NE_COLOR)}
         </div>
         {open === null && (
