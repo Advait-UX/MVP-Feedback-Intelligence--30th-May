@@ -401,7 +401,7 @@ export default function App() {
   const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'dashboard6' | 'dashboard7' | 'programhealth2' | 'programhealth3' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'alert2' | 'health'>('programs')
+  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'dashboard6' | 'dashboard7' | 'programhealth2' | 'programhealth3' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'alert2' | 'health'>('programhealth3')
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
