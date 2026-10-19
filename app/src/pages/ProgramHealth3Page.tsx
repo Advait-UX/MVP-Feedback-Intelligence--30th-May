@@ -490,7 +490,7 @@ function HighlightCard({ accent, icon, action, onClick, children }: { accent: 'c
   )
 }
 
-function TodaysHighlights({ programs, inter, elig, onOpenInsight, onShowNotEligible }: { programs: typeof PROGRAMS; inter: number; elig: number; onOpenInsight: (p: typeof PROGRAMS[0]) => void; onShowNotEligible: () => void }) {
+function TodaysHighlights({ programs, inter, elig, onSelectProgram, onShowNotEligible }: { programs: typeof PROGRAMS; inter: number; elig: number; onSelectProgram: (p: typeof PROGRAMS[0]) => void; onShowNotEligible: () => void }) {
   const h = new Date().getHours()
   const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
   const attention = programs.filter(p => p.tags.includes('Needs attention'))
@@ -509,7 +509,7 @@ function TodaysHighlights({ programs, inter, elig, onOpenInsight, onShowNotEligi
         </span>
       </div>
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 12 }}>
-        <HighlightCard accent="critical" icon={<Activity size={19} />} action={attention.length === 0 ? 'View programs' : 'See why'} onClick={() => attention[0] && onOpenInsight(attention[0])}>
+        <HighlightCard accent="critical" icon={<Activity size={19} />} action={attention.length === 0 ? 'View programs' : 'See why'} onClick={() => attention[0] && onSelectProgram(attention[0])}>
           <b style={{ color: 'var(--lyra-color-fg-default)', fontWeight: 600 }}>
             {attention.length === 0 ? 'All programs are healthy' : `${attention.length} of ${programs.length} programs need${attention.length === 1 ? 's' : ''} attention`}
           </b>
@@ -3149,7 +3149,7 @@ export function ProgramHealth3Page() {
   return (
     <div className="flex flex-col flex-1 h-full" style={{ background: 'var(--lyra-color-bg-surface-base)' }}>
       <div className="flex-1 min-h-0" style={{ paddingTop: 'var(--space-6)', paddingLeft: 'var(--space-7)', paddingRight: 'var(--space-7)', paddingBottom: 'var(--space-6)', overflowY: 'auto' }}>
-        <TodaysHighlights programs={data.programs} inter={data.inter} elig={data.elig} onOpenInsight={setInsight} onShowNotEligible={showNotEligible} />
+        <TodaysHighlights programs={data.programs} inter={data.inter} elig={data.elig} onSelectProgram={setSelected} onShowNotEligible={showNotEligible} />
 
         {/* Filter Bar */}
         <div style={{ marginTop: 'var(--space-6)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
