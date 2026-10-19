@@ -507,8 +507,7 @@ export default function App() {
   // the prototype screens (own chrome hidden via ?embed=full).
   const FI_NAV_ITEMS = [
     { id: 'dashboard5', label: 'Program Health', icon: LayoutGrid },
-    { id: 'programhealth2', label: 'Program Health 2', icon: LayoutGrid },
-    { id: 'programhealth3', label: 'Program Health 3', icon: LayoutGrid },
+    { id: 'programhealth3', label: 'Program Health 2', icon: LayoutGrid },
     {
       type: 'group' as const,
       id: 'old-dashboards',
@@ -521,6 +520,7 @@ export default function App() {
         { id: 'dashboard4', label: 'Dashboard 3' },
         { id: 'dashboard6', label: 'Dashboard 4' },
         { id: 'dashboard7', label: 'Dashboard 5' },
+        { id: 'programhealth2', label: 'Program Health 18th Oct' },
       ],
     },
     { id: 'programs',  label: 'Programs',        icon: Megaphone },
@@ -545,8 +545,8 @@ export default function App() {
     dashboard6: 'Dashboard 4',
     dashboard7: 'Dashboard 5',
     dashboard5: 'Program Health',
-    programhealth2: 'Program Health 2',
-    programhealth3: 'Program Health 3',
+    programhealth2: 'Program Health 18th Oct',
+    programhealth3: 'Program Health 2',
     programs: page === 'campaign-portfolio'
       ? 'Programs'
       : page === 'campaign-insight' && selectedCampaign

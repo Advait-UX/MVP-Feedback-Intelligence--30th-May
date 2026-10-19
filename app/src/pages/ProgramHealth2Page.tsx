@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Activity, AlertTriangle, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Headphones, Info, Lightbulb, Mail, MessageSquare, Phone, Power, PowerOff, Search, Smile, Sparkles, Star, UserMinus, Wrench, X } from 'lucide-react'
+import { Activity, AlertTriangle, ArrowLeftRight, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDashed, ExternalLink, Headphones, Hourglass, Info, Lightbulb, Mail, MessageSquare, MinusCircle, Phone, Power, PowerOff, Search, Smile, Sparkles, Star, UserMinus, Wrench, X, XCircle } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
 import { MultiSelectField } from '../components/campaign-wizard/WizardPrimitives'
 
@@ -529,13 +529,15 @@ function TodaysHighlights({ programs, inter, elig, onOpenInsight, onShowNotEligi
 }
 
 /* ── Program insight: problem → root cause → call to action ── */
-/* kind: 'attention' = an insight rule fired; 'watch' = healthy, but a watch rule is close to its threshold. */
+/* kind: 'attention' = an insight rule fired; 'watch' = healthy, but a watch rule is close to its threshold;
+   'pending' = not enough data yet to diagnose a cause — distinct from "healthy", never a silent placeholder. */
 type ProgramInsight = {
-  kind: 'attention' | 'watch'
+  kind: 'attention' | 'watch' | 'pending'
   rules: string[]
   problem: { label: string; value: string; delta: string }[]
   causes: { title: string; detail: string }[]
   actions: { title: string; detail: string; cta: string; primary?: boolean }[]
+  dataProgress?: { collected: number; needed: number }
 }
 
 const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
@@ -631,16 +633,19 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
   },
 }
 
+/* Honest fallback for a program with no authored insight yet: says what's missing and when to expect it,
+   rather than a static "Analysis in progress" that looks identical whether 1 day or 30 days of data exist. */
 const GENERIC_INSIGHT = (p: typeof PROGRAMS[0]): ProgramInsight => ({
-  kind: p.tags.includes('Needs attention') ? 'attention' : 'watch',
-  rules: ['Response rate below 40% for 7 consecutive days'],
+  kind: 'pending',
+  rules: [],
   problem: [
     { label: 'Response rate', value: `${pct(p.rec, p.sent)}%`, delta: p.rrD ?? '0pp' },
     { label: 'CSAT', value: `${p.csat}%`, delta: p.csatD ?? '0pp' },
     { label: 'Alerts', value: fmt(p.alerts), delta: '0%' },
   ],
-  causes: [{ title: 'Analysis in progress', detail: 'The system is still gathering enough responses to explain the drop.' }],
-  actions: [{ title: 'Open the program to review recent responses', detail: 'Check the latest verbatims and alerts.', cta: 'Open program', primary: true }],
+  causes: [],
+  actions: [{ title: 'Open the program to review recent responses', detail: 'Check the latest verbatims and alerts while data builds up.', cta: 'Open program', primary: true }],
+  dataProgress: { collected: 3, needed: 7 },
 })
 
 function InsightStep({ n, icon, title, children }: { n: number; icon: React.ReactNode; title: string; children: React.ReactNode }) {
@@ -666,9 +671,18 @@ function WatchChip() {
   )
 }
 
+function PendingChip() {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-slate-100)', font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
+      Gathering data
+    </span>
+  )
+}
+
 function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PROGRAMS[0]; onClose: () => void; onOpenProgram: () => void }) {
   const ins = PROGRAM_INSIGHTS[program.n] ?? GENERIC_INSIGHT(program)
   const attention = ins.kind === 'attention'
+  const pending = ins.kind === 'pending'
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -686,9 +700,11 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
               <span style={{ font: `600 16px/20px ${FONT}`, letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>{program.n}</span>
-              {attention ? <NeedsAttentionChip /> : <WatchChip />}
+              {attention ? <NeedsAttentionChip /> : pending ? <PendingChip /> : <WatchChip />}
             </div>
-            <div style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{attention ? 'What is wrong, why, and what to do next' : 'What to watch, why, and what to do before it becomes a problem'}</div>
+            <div style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>
+              {attention ? 'What is wrong, why, and what to do next' : pending ? 'Not enough data yet to diagnose a cause' : 'What to watch, why, and what to do before it becomes a problem'}
+            </div>
           </div>
           <button onClick={onClose} aria-label="Close" style={{ width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', borderRadius: 'var(--radius-sm)', color: 'var(--lyra-color-fg-action)', cursor: 'pointer', flexShrink: 0 }}
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
@@ -699,21 +715,27 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
           {/* Why it was flagged */}
-          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)', background: attention ? 'var(--lyra-color-status-critical-subtle)' : 'var(--lyra-color-status-info-subtle)', color: attention ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-status-info-strong)' }}>
-            {attention ? <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} /> : <Lightbulb size={16} style={{ flexShrink: 0, marginTop: 2 }} />}
+          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)', background: attention ? 'var(--lyra-color-status-critical-subtle)' : pending ? 'var(--lyra-slate-100)' : 'var(--lyra-color-status-info-subtle)', color: attention ? 'var(--lyra-color-status-critical-strong)' : pending ? 'var(--lyra-color-fg-secondary)' : 'var(--lyra-color-status-info-strong)' }}>
+            {attention ? <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} /> : pending ? <Hourglass size={16} style={{ flexShrink: 0, marginTop: 2 }} /> : <Lightbulb size={16} style={{ flexShrink: 0, marginTop: 2 }} />}
             <div style={{ font: `400 14px/20px ${FONT}` }}>
               <b style={{ fontWeight: 600 }}>
                 {attention
                   ? `Flagged by ${ins.rules.length} insight rule${ins.rules.length > 1 ? 's' : ''}`
+                  : pending
+                  ? `Needs ${ins.dataProgress?.needed ?? 7} days of data — ${ins.dataProgress?.collected ?? 0} collected so far`
                   : `No insight rule has fired. ${ins.rules.length} watch rule${ins.rules.length > 1 ? 's are' : ' is'} close to threshold`}
               </b>
-              <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
-                {ins.rules.map(r => <li key={r}>{r}</li>)}
-              </ul>
+              {pending ? (
+                <p style={{ margin: '4px 0 0' }}>We'll show the likely root cause and a recommended action once enough responses come in.</p>
+              ) : (
+                <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                  {ins.rules.map(r => <li key={r}>{r}</li>)}
+                </ul>
+              )}
             </div>
           </div>
 
-          <InsightStep n={1} icon={<Activity size={16} />} title={attention ? 'Problem' : 'What to watch'}>
+          <InsightStep n={1} icon={<Activity size={16} />} title={attention ? 'Problem' : pending ? 'What we know so far' : 'What to watch'}>
             <div style={{ ...box, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
               {ins.problem.map((m, i) => (
                 <div key={m.label} style={{ padding: 'var(--space-3) var(--space-4)', borderLeft: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined }}>
@@ -727,21 +749,23 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
             </div>
           </InsightStep>
 
-          <InsightStep n={2} icon={<Search size={16} />} title="Likely root cause">
-            <div style={box}>
-              {ins.causes.map((c, i) => (
-                <div key={c.title} style={{ padding: 'var(--space-3) var(--space-4)', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
-                    <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{c.title}</span>
-                    <AiChip />
+          {!pending && (
+            <InsightStep n={2} icon={<Search size={16} />} title="Likely root cause">
+              <div style={box}>
+                {ins.causes.map((c, i) => (
+                  <div key={c.title} style={{ padding: 'var(--space-3) var(--space-4)', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
+                      <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{c.title}</span>
+                      <AiChip />
+                    </div>
+                    <p style={{ margin: '4px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{c.detail}</p>
                   </div>
-                  <p style={{ margin: '4px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{c.detail}</p>
-                </div>
-              ))}
-            </div>
-          </InsightStep>
+                ))}
+              </div>
+            </InsightStep>
+          )}
 
-          <InsightStep n={3} icon={<Wrench size={16} />} title="Call to action">
+          <InsightStep n={pending ? 2 : 3} icon={<Wrench size={16} />} title="Call to action">
             <div style={box}>
               {ins.actions.map((a, i) => (
                 <div key={a.title} style={{ padding: 'var(--space-3) var(--space-4)', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined, display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
@@ -777,16 +801,22 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
 function InsightBanner({ program, onOpen }: { program: typeof PROGRAMS[0]; onOpen: () => void }) {
   const ins = PROGRAM_INSIGHTS[program.n] ?? GENERIC_INSIGHT(program)
   const attention = ins.kind === 'attention'
-  const fg = attention ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-status-info-strong)'
-  const cols: [React.ReactNode, string, string][] = [
-    [<Activity size={14} />, attention ? 'Problem' : 'What to watch', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
-    [<Search size={14} />, 'Likely root cause', ins.causes[0].title],
-    [<Wrench size={14} />, 'Call to action', ins.actions[0].title],
-  ]
+  const pending = ins.kind === 'pending'
+  const fg = attention ? 'var(--lyra-color-status-critical-strong)' : pending ? 'var(--lyra-color-fg-secondary)' : 'var(--lyra-color-status-info-strong)'
+  const cols: [React.ReactNode, string, string][] = pending
+    ? [
+        [<Hourglass size={14} />, 'What we know so far', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
+        [<Search size={14} />, 'Likely root cause', `Needs ${ins.dataProgress?.needed ?? 7} days — ${ins.dataProgress?.collected ?? 0} collected so far`],
+      ]
+    : [
+        [<Activity size={14} />, attention ? 'Problem' : 'What to watch', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
+        [<Search size={14} />, 'Likely root cause', ins.causes[0].title],
+        [<Wrench size={14} />, 'Call to action', ins.actions[0].title],
+      ]
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)', background: attention ? 'var(--lyra-color-status-critical-subtle)' : 'var(--lyra-color-status-info-subtle)', border: `1px solid ${attention ? 'var(--lyra-color-status-critical-medium)' : 'var(--lyra-color-status-info-medium)'}` }}>
-      <span style={{ width: 36, height: 36, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-color-bg-surface-base)', color: fg }}>{attention ? <AlertTriangle size={18} /> : <Lightbulb size={18} />}</span>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'var(--space-4)', minWidth: 0 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)', background: attention ? 'var(--lyra-color-status-critical-subtle)' : pending ? 'var(--lyra-slate-100)' : 'var(--lyra-color-status-info-subtle)', border: `1px solid ${attention ? 'var(--lyra-color-status-critical-medium)' : pending ? 'var(--lyra-color-border-soft)' : 'var(--lyra-color-status-info-medium)'}` }}>
+      <span style={{ width: 36, height: 36, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-color-bg-surface-base)', color: fg }}>{attention ? <AlertTriangle size={18} /> : pending ? <Hourglass size={18} /> : <Lightbulb size={18} />}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))`, gap: 'var(--space-4)', minWidth: 0 }}>
         {cols.map(([icon, label, text]) => (
           <div key={label} style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, font: `500 12px/16px ${FONT}`, letterSpacing: '0.06em', textTransform: 'uppercase', color: fg }}>{icon}{label}</div>
@@ -1919,13 +1949,49 @@ function TonePill({ tone, label }: { tone: 'positive' | 'negative' | 'mixed'; la
   )
 }
 
-function DrawerSection({ label, children }: { label: string; children: React.ReactNode }) {
+function DrawerSection({ label, accent, children }: { label: string; accent?: 'ai'; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginBottom: 'var(--space-2)' }}>{label}</div>
-      <div style={{ border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-base)' }}>
+      <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: accent === 'ai' ? 'var(--lyra-purple-700)' : 'var(--lyra-color-fg-secondary)', marginBottom: 'var(--space-2)' }}>{label}</div>
+      <div style={{ border: `1px solid ${accent === 'ai' ? 'var(--lyra-purple-700)' : 'var(--lyra-color-border-soft)'}`, borderRadius: 'var(--radius-md)', background: accent === 'ai' ? 'var(--lyra-color-bg-ai)' : 'var(--lyra-color-bg-surface-base)' }}>
         {children}
       </div>
+    </div>
+  )
+}
+
+/* Outcome taxonomy for the conversation-flow timeline — derived from the row, not hand-tagged per interaction. */
+type OutcomeType = 'completed' | 'partial' | 'abandoned' | 'no_follow_up'
+function deriveOutcomeType(row: ResponseRow): OutcomeType {
+  if (row.sent === null) return 'no_follow_up'
+  if (row.completed !== null) return 'completed'
+  if (row.response !== null) return 'partial'
+  return 'abandoned'
+}
+const OUTCOME_META: Record<OutcomeType, { bg: string; fg: string; icon: React.ReactNode; dot: string; label: string }> = {
+  completed: { bg: 'var(--lyra-color-status-success-subtle)', fg: 'var(--lyra-color-status-success-strong)', icon: <CheckCircle2 size={12} />, dot: 'var(--lyra-color-status-success-strong)', label: 'Completed' },
+  partial: { bg: 'var(--lyra-color-status-warning-subtle)', fg: 'var(--lyra-color-status-warning-strong)', icon: <CircleDashed size={12} />, dot: 'var(--lyra-color-status-warning-strong)', label: 'Partial' },
+  abandoned: { bg: 'var(--lyra-color-status-critical-subtle)', fg: 'var(--lyra-color-status-critical-strong)', icon: <XCircle size={12} />, dot: 'var(--lyra-color-status-critical-strong)', label: 'Abandoned' },
+  no_follow_up: { bg: 'var(--lyra-slate-100)', fg: 'var(--lyra-color-fg-secondary)', icon: <MinusCircle size={12} />, dot: 'var(--lyra-slate-400)', label: 'No follow-up needed' },
+}
+function OutcomePill({ type }: { type: OutcomeType }) {
+  const m = OUTCOME_META[type]
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 10px', borderRadius: 'var(--radius-full)', background: m.bg, color: m.fg, font: `500 12px/16px ${FONT}`, whiteSpace: 'nowrap' }}>
+      {m.icon}{m.label}
+    </span>
+  )
+}
+
+/* Vertical timeline node: a dot + connecting line on the left, content on the right. */
+function TimelineNode({ color, last, children }: { color: string; last?: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 10 }}>
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: color, marginTop: 4, flexShrink: 0 }} />
+        {!last && <span style={{ width: 2, flex: 1, background: 'var(--lyra-color-border-subtle)', marginTop: 2 }} />}
+      </div>
+      <div style={{ flex: 1, minWidth: 0, paddingBottom: last ? 0 : 'var(--space-4)' }}>{children}</div>
     </div>
   )
 }
@@ -1938,7 +2004,7 @@ function AiChip() {
   )
 }
 
-function CustomerDrawer({ row, detail: d, onClose }: { row: ResponseRow; detail: CustomerDetail; onClose: () => void }) {
+function CustomerDrawer({ row, detail: d, programAlertCount, onClose, onOpenProgramInsight }: { row: ResponseRow; detail: CustomerDetail; programAlertCount: number; onClose: () => void; onOpenProgramInsight: () => void }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -1978,7 +2044,41 @@ function CustomerDrawer({ row, detail: d, onClose }: { row: ResponseRow; detail:
 
         {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-          {/* 1. What the system read from the interaction */}
+          {/* 1. Alert — placed first, right under the header, before anything else: "does this need my attention" comes before the detail. Always shown so "none" is explicit, never a silent gap. */}
+          <DrawerSection label="Alert">
+            {d.alert ? (
+              <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-color-status-critical-subtle)', color: 'var(--lyra-color-status-critical-strong)', flexShrink: 0 }}><Bell size={14} /></span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                      <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{d.alert.name} triggered</span>
+                      <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{d.alert.when} · part of {programAlertCount} open alert{programAlertCount === 1 ? '' : 's'} on this program</span>
+                    </div>
+                    <dl style={{ margin: 'var(--space-2) 0 0', display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 'var(--space-4)', rowGap: 4, font: `400 13px/18px ${FONT}` }}>
+                      <dt style={{ color: 'var(--lyra-color-fg-secondary)' }}>Rule</dt><dd style={{ margin: 0, color: 'var(--lyra-color-fg-default)' }}>{d.alert.rule}</dd>
+                      <dt style={{ color: 'var(--lyra-color-fg-secondary)' }}>Sent to</dt><dd style={{ margin: 0, color: 'var(--lyra-color-fg-default)' }}>{d.alert.sentTo} · {d.alert.via}</dd>
+                    </dl>
+                  </div>
+                </div>
+                <button type="button" onClick={onOpenProgramInsight} style={{ marginTop: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 14px', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--lyra-color-bg-primary)', font: `500 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-on-primary)', cursor: 'pointer' }}>
+                  Open alert<ExternalLink size={13} />
+                </button>
+              </div>
+            ) : (
+              <div style={{ padding: 'var(--space-3) var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-slate-100)', color: 'var(--lyra-color-fg-secondary)' }}><BellOff size={14} /></span>
+                <div>
+                  <div style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>No alert generated</div>
+                  <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+                    This interaction didn't meet any alert criteria{!surveySent ? ' — no survey was sent' : row.csat === null ? ' — no rating was given' : ''}.
+                  </div>
+                </div>
+              </div>
+            )}
+          </DrawerSection>
+
+          {/* 2. What the system read from the interaction */}
           <DrawerSection label="What the system read">
             {row.topic ? (
               <div style={{ padding: 'var(--space-4)' }}>
@@ -2011,62 +2111,67 @@ function CustomerDrawer({ row, detail: d, onClose }: { row: ResponseRow; detail:
             ) : emptyNote('No topic was detected, so the system used the generic survey question.')}
           </DrawerSection>
 
-          {/* 2. System expectation vs. what the customer chose */}
-          <DrawerSection label="System read vs. customer rating">
-            {(() => {
-              const exp = d.read?.expected ?? null
-              const got = row.csat
-              const diverges = exp !== null && got !== null && (got < exp[0] || got > exp[1])
-              const matches = exp !== null && got !== null && !diverges
-              const tile = (label: string, body: React.ReactNode, sub: string) => (
-                <div style={{ flex: 1, minWidth: 0, padding: 'var(--space-3) var(--space-4)' }}>
-                  <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{label}</div>
-                  <div style={{ marginTop: 4, minHeight: 20, display: 'flex', alignItems: 'center' }}>{body}</div>
-                  <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 4 }}>{sub}</div>
-                </div>
-              )
-              return (
-                <div>
-                  <div style={{ display: 'flex' }}>
-                    {tile(
-                      'System expected',
-                      exp ? <span style={{ font: `600 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{exp[0] === exp[1] ? exp[0] : `${exp[0]}–${exp[1]}`} of 5</span> : <Muted>No expectation</Muted>,
-                      exp ? 'from the interaction read' : 'no topic was detected',
-                    )}
-                    <div style={{ width: 1, background: 'var(--lyra-color-border-subtle)' }} />
-                    {tile(
-                      'Customer rated',
-                      got !== null ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Stars n={got} /><b style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{got} of 5</b></span> : <Muted>{surveySent ? 'No rating yet' : 'No survey sent'}</Muted>,
-                      got !== null ? 'CSAT' : surveySent ? 'the customer has not responded' : 'nothing to compare',
-                    )}
-                    <div style={{ width: 1, background: 'var(--lyra-color-border-subtle)' }} />
-                    {tile(
-                      'Agent rated',
-                      row.asat !== null ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Stars n={row.asat} /><b style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{row.asat} of 5</b></span> : <Muted>n/a</Muted>,
-                      'ASAT',
-                    )}
+          {/* 3. System expectation vs. what the customer chose — the single highest-value FI signal, so divergence gets
+                a dedicated, unmissable treatment (purple/AI accent) rather than reusing the generic amber warning. */}
+          {(() => {
+            const exp = d.read?.expected ?? null
+            const got = row.csat
+            const diverges = exp !== null && got !== null && (got < exp[0] || got > exp[1])
+            const matches = exp !== null && got !== null && !diverges
+            const verbatim = d.questions[1]?.a && !/^\d of 5$/.test(d.questions[1].a) ? d.questions[1].a : null
+            const tile = (label: string, body: React.ReactNode, sub: string) => (
+              <div style={{ flex: 1, minWidth: 0, padding: 'var(--space-3) var(--space-4)' }}>
+                <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{label}</div>
+                <div style={{ marginTop: 4, minHeight: 20, display: 'flex', alignItems: 'center' }}>{body}</div>
+                <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 4 }}>{sub}</div>
+              </div>
+            )
+            return (
+              <DrawerSection label={diverges ? '⚠ Diverges from customer rating' : 'System read vs. customer rating'} accent={diverges ? 'ai' : undefined}>
+                {diverges && (
+                  <div style={{ padding: 'var(--space-3) var(--space-4)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+                    <ArrowLeftRight size={16} style={{ color: 'var(--lyra-purple-700)', flexShrink: 0, marginTop: 1 }} />
+                    <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                      The system read expected <b>{exp![0] === exp![1] ? exp![0] : `${exp![0]}–${exp![1]}`} of 5</b>, but the customer rated <b>{got} of 5</b>{verbatim ? <> — they said {verbatim}</> : '.'}
+                    </span>
                   </div>
-                  {(diverges || matches) && (
-                    <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', padding: 'var(--space-3) var(--space-4)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)', font: `400 13px/18px ${FONT}`, color: diverges ? 'var(--lyra-color-status-warning-strong)' : 'var(--lyra-color-status-success-strong)', background: diverges ? 'var(--lyra-color-status-warning-subtle)' : 'var(--lyra-color-status-success-subtle)' }}>
-                      {diverges ? <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} /> : <CheckCircle2 size={14} style={{ flexShrink: 0, marginTop: 2 }} />}
-                      <span>
-                        {diverges
-                          ? <><b style={{ fontWeight: 600 }}>Diverges.</b> The customer rated {got! < exp![0] ? 'lower' : 'higher'} than the system read suggested — worth a look at the verbatim.</>
-                          : <><b style={{ fontWeight: 600 }}>Matches.</b> The customer's rating is in line with what the system read.</>}
-                      </span>
-                    </div>
+                )}
+                <div style={{ display: 'flex' }}>
+                  {tile(
+                    'System expected',
+                    exp ? <span style={{ font: `600 16px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{exp[0] === exp[1] ? exp[0] : `${exp[0]}–${exp[1]}`} of 5</span> : <Muted>No expectation</Muted>,
+                    exp ? 'from the interaction read' : 'no topic was detected',
+                  )}
+                  <div style={{ width: 1, background: 'var(--lyra-color-border-subtle)' }} />
+                  {tile(
+                    'Customer rated',
+                    got !== null ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Stars n={got} /><b style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{got} of 5</b></span> : <Muted>{surveySent ? 'No rating yet' : 'No survey sent'}</Muted>,
+                    got !== null ? 'CSAT' : surveySent ? 'the customer has not responded' : 'nothing to compare',
+                  )}
+                  <div style={{ width: 1, background: 'var(--lyra-color-border-subtle)' }} />
+                  {tile(
+                    'Agent rated',
+                    row.asat !== null ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Stars n={row.asat} /><b style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{row.asat} of 5</b></span> : <Muted>n/a</Muted>,
+                    'ASAT',
                   )}
                 </div>
-              )
-            })()}
-          </DrawerSection>
+                {matches && (
+                  <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', padding: 'var(--space-3) var(--space-4)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)', font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-status-success-strong)', background: 'var(--lyra-color-status-success-subtle)' }}>
+                    <CheckCircle2 size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span><b style={{ fontWeight: 600 }}>Matches.</b> The customer's rating is in line with what the system read.</span>
+                  </div>
+                )}
+              </DrawerSection>
+            )
+          })()}
 
-          {/* 3. How the conversation went */}
+          {/* 4. How the conversation went — one linear, top-to-bottom read: asked question → customer response →
+                follow-up (if any) → outcome. Alternatives stay collapsed by default; they're supporting detail. */}
           <DrawerSection label="Conversation flow">
             {d.questions.length > 0 ? (
-              <div>
+              <div style={{ padding: 'var(--space-4)' }}>
                 {d.questions.map((item, i) => (
-                  <div key={i} style={{ padding: 'var(--space-3) var(--space-4)', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined }}>
+                  <TimelineNode key={i} color="var(--lyra-brand-600)">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 6 }}>
                       <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>{i === 0 ? 'Generated question' : 'Follow-up'}</span>
                       <span style={{ padding: '1px 8px', borderRadius: 'var(--radius-full)', background: 'var(--lyra-brand-50)', color: 'var(--lyra-brand-700)', font: `500 11px/14px ${FONT}` }}>Asked</span>
@@ -2087,46 +2192,27 @@ function CustomerDrawer({ row, detail: d, onClose }: { row: ResponseRow; detail:
                       </details>
                     )}
                     <div style={{ marginTop: 'var(--space-3)', marginLeft: 22, padding: 'var(--space-2) var(--space-3)', borderRadius: 'var(--radius-md)', background: item.a ? 'var(--lyra-color-bg-surface-shell)' : 'transparent', border: item.a ? 'none' : '1px dashed var(--lyra-color-border-soft)' }}>
-                      <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginBottom: 2 }}>Customer</div>
+                      <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginBottom: 2 }}>Customer response</div>
                       {item.a
                         ? (/^\d of 5$/.test(item.a)
                           ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Stars n={parseInt(item.a, 10)} size={14} /><b style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{item.a}</b></span>
                           : <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{item.a}</span>)
                         : <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-disabled)' }}>No answer</span>}
                     </div>
-                  </div>
+                  </TimelineNode>
                 ))}
-                <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', padding: 'var(--space-3) var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', background: 'var(--lyra-color-bg-surface-canvas)' }}>
-                  <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Outcome</span>
-                  <span style={{ color: 'var(--lyra-color-fg-default)' }}>{d.outcome}</span>
-                </div>
-              </div>
-            ) : emptyNote(d.outcome)}
-          </DrawerSection>
-
-          {/* 4. Alert — always shown so "none" is explicit */}
-          <DrawerSection label="Alert">
-            {d.alert ? (
-              <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                  <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-color-status-critical-subtle)', color: 'var(--lyra-color-status-critical-strong)' }}><Bell size={14} /></span>
-                  <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{d.alert.name} generated</span>
-                  <span style={{ marginLeft: 'auto', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>{d.alert.when}</span>
-                </div>
-                <dl style={{ margin: 'var(--space-3) 0 0', display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 'var(--space-4)', rowGap: 4, font: `400 13px/18px ${FONT}` }}>
-                  <dt style={{ color: 'var(--lyra-color-fg-secondary)' }}>Rule</dt><dd style={{ margin: 0, color: 'var(--lyra-color-fg-default)' }}>{d.alert.rule}</dd>
-                  <dt style={{ color: 'var(--lyra-color-fg-secondary)' }}>Sent to</dt><dd style={{ margin: 0, color: 'var(--lyra-color-fg-default)' }}>{d.alert.sentTo} · {d.alert.via}</dd>
-                </dl>
+                <TimelineNode color={OUTCOME_META[deriveOutcomeType(row)].dot} last>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                    <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>Outcome</span>
+                    <OutcomePill type={deriveOutcomeType(row)} />
+                  </div>
+                  <div style={{ font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 4 }}>{d.outcome}</div>
+                </TimelineNode>
               </div>
             ) : (
-              <div style={{ padding: 'var(--space-3) var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-slate-100)', color: 'var(--lyra-color-fg-secondary)' }}><BellOff size={14} /></span>
-                <div>
-                  <div style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>No alert generated</div>
-                  <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                    {surveySent ? (row.csat === null ? 'No rating was given, so no alert rule could fire.' : 'No alert criteria were met for this response.') : 'No survey was sent, so no alert rule applied.'}
-                  </div>
-                </div>
+              <div style={{ padding: 'var(--space-4)' }}>
+                <div style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 'var(--space-3)' }}>{d.outcome}</div>
+                <OutcomePill type={deriveOutcomeType(row)} />
               </div>
             )}
           </DrawerSection>
@@ -2354,7 +2440,15 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
       </div>
 
-      {openRow && details[openRow.id] && <CustomerDrawer row={openRow} detail={details[openRow.id]} onClose={() => setOpenRow(null)} />}
+      {openRow && details[openRow.id] && (
+        <CustomerDrawer
+          row={openRow}
+          detail={details[openRow.id]}
+          programAlertCount={program.alerts}
+          onClose={() => setOpenRow(null)}
+          onOpenProgramInsight={() => { setOpenRow(null); setShowInsight(true) }}
+        />
+      )}
       {showInsight && <InsightDrawer program={program} onClose={() => setShowInsight(false)} onOpenProgram={() => setShowInsight(false)} />}
     </div>
   )

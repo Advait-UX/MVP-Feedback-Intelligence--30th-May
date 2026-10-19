@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Activity, AlertTriangle, ArrowLeftRight, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDashed, ExternalLink, Headphones, Hourglass, Info, Lightbulb, Mail, MessageSquare, MinusCircle, Phone, Power, PowerOff, Search, Smile, Sparkles, Star, UserMinus, Wrench, X, XCircle } from 'lucide-react'
+import { Activity, AlertTriangle, ArrowLeftRight, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDashed, Headphones, Hourglass, Info, Lightbulb, Mail, MessageSquare, MinusCircle, Phone, Power, PowerOff, Search, Smile, Sparkles, Star, UserMinus, Wrench, X, XCircle } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
 import { MultiSelectField } from '../components/campaign-wizard/WizardPrimitives'
 
@@ -232,8 +232,8 @@ const DEFAULT_RANGE = (): DateRange => lastN(7)
 const isDefaultRange = (r: DateRange | null) => !!r && sameDay(r.start, DEFAULT_RANGE().start) && sameDay(r.end, DEFAULT_RANGE().end)
 
 /* ── Deltas ── */
-type PerfDeltas = { total: string; elig: string; eligRate: string; sent: string; rec: string; comp: string; part: string; csat: string; asat: string; alerts: string }
-const OVERVIEW_DELTAS: PerfDeltas = { total: '+13%', elig: '+8%', eligRate: '+3%', sent: '+4%', rec: '+2%', comp: '+9%', part: '-6%', csat: '+3%', asat: '+1%', alerts: '-2%' }
+type PerfDeltas = { total: string; elig: string; sent: string; rec: string; comp: string; part: string; csat: string; asat: string; alerts: string }
+const OVERVIEW_DELTAS: PerfDeltas = { total: '+13%', elig: '+8%', sent: '+4%', rec: '+2%', comp: '+9%', part: '-6%', csat: '+3%', asat: '+1%', alerts: '-2%' }
 
 const isDown = (d: string) => d.trim().startsWith('-')
 function Delta({ value, size = 13, color }: { value: string; size?: number; color?: string }) {
@@ -297,14 +297,14 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
   const tun = rs.filter(r => r[2] === 't').reduce((a, r) => a + r[1], 0)
   const mxr = Math.max(...rs.map(r => r[1]), 1)
 
-  const selector = (key: 'el' | 'ne', label: string, hint: string, value: number, rate: number, rateDelta?: string, color = EL_COLOR) => {
+  const selector = (key: 'el' | 'ne', label: string, hint: string, value: number, countDelta: string | undefined, rate: number, color = EL_COLOR) => {
     const on = open === key
     return (
       <button
         type="button" role="tab" aria-selected={on} onClick={() => setOpen(on ? null : key)}
         style={{
-          position: 'relative', display: 'grid', gridTemplateColumns: '10px 1fr auto auto 18px', alignItems: 'center', columnGap: 12, textAlign: 'left',
-          padding: '10px 14px', cursor: 'pointer', font: `400 14px/20px ${FONT}`,
+          position: 'relative', display: 'grid', gridTemplateColumns: '10px 1fr auto auto 18px', alignItems: 'center', columnGap: 16, textAlign: 'left',
+          padding: '10px 18px', cursor: 'pointer', font: `400 14px/20px ${FONT}`,
           background: on ? 'var(--lyra-color-bg-active-subtle)' : 'var(--lyra-color-bg-surface-base)',
           border: `1px solid ${on ? 'var(--lyra-brand-600)' : 'var(--lyra-slate-300)'}`, borderRadius: 'var(--radius-md)',
           boxShadow: on ? '0 0 0 3px var(--lyra-brand-100)' : 'var(--sol-effect-shadowsm)', transition: 'background .15s, border-color .15s, box-shadow .15s',
@@ -317,9 +317,11 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
           <span style={{ font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
           <span title={hint} style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</span>
         </span>
-        <b style={{ font: `600 17px/20px ${FONT}`, fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{fmt(value)}</b>
-        <em style={{ fontStyle: 'normal', font: `600 17px/20px ${FONT}`, minWidth: 120, textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-default)' }}>
-          {rate}%{rateDelta && <span style={{ marginLeft: 4 }}><Delta value={rateDelta} size={13} /></span>}
+        <b style={{ font: `600 17px/20px ${FONT}`, fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+          {fmt(value)}{countDelta && <span style={{ marginLeft: 6 }}><Delta value={countDelta} size={13} /></span>}
+        </b>
+        <em style={{ fontStyle: 'normal', font: `400 14px/20px ${FONT}`, minWidth: 90, textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-secondary)' }}>
+          {rate}% of total
         </em>
         <ChevronDown size={18} style={{ color: on ? 'var(--lyra-brand-600)' : 'var(--lyra-color-fg-secondary)', transform: on ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
       </button>
@@ -348,9 +350,9 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
             {fmt(inter)}<span style={{ marginLeft: 6 }}><Delta value={deltas.total} size={15} /></span>
           </b>
         </div>
-        <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 980 }}>
-          {selector('el', 'Eligible for survey', 'Track sent, responded, completed', elig, er, deltas.eligRate)}
-          {selector('ne', 'Not eligible for survey', 'See why no survey was sent', skipped, 100 - er, undefined, NE_COLOR)}
+        <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 1060 }}>
+          {selector('el', 'Eligible for survey', 'Track sent, responded, completed', elig, deltas.elig, er)}
+          {selector('ne', 'Not eligible for survey', 'See why no survey was sent', skipped, undefined, 100 - er, NE_COLOR)}
         </div>
         {open === null && (
           <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Select a tab to see the detail</div>
@@ -531,13 +533,23 @@ function TodaysHighlights({ programs, inter, elig, onOpenInsight, onShowNotEligi
 /* ── Program insight: problem → root cause → call to action ── */
 /* kind: 'attention' = an insight rule fired; 'watch' = healthy, but a watch rule is close to its threshold;
    'pending' = not enough data yet to diagnose a cause — distinct from "healthy", never a silent placeholder. */
+/* A banner metric either gets a plain before/after stat (CSAT, ASAT — numbers a PM can read in
+   one glance) or a one-line cause + action (metrics with a single clear fix). Never both, never
+   a paragraph: whichever a rule or a PM scanning the page needs to decide what to do next.
+   onAction/actionLabel are wired in by the page (not authored as content) so a card can jump
+   straight to the matching filter on the table below. */
+type InsightMetric = { label: string; value: string; delta: string; stat?: string; cause?: string; action?: string; onAction?: () => void; actionLabel?: string }
+
 type ProgramInsight = {
   kind: 'attention' | 'watch' | 'pending'
   rules: string[]
-  problem: { label: string; value: string; delta: string }[]
+  problem: InsightMetric[]
   causes: { title: string; detail: string }[]
   actions: { title: string; detail: string; cta: string; primary?: boolean }[]
   dataProgress?: { collected: number; needed: number }
+  /* Secondary metrics worth watching alongside the flagged problem — not yet severe enough for a rule
+     to fire, but each still gets the same one-glance treatment as the problem metrics above. */
+  watch?: InsightMetric[]
 }
 
 const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
@@ -617,9 +629,9 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
     kind: 'attention',
     rules: ['Response rate below 40% for 7 consecutive days', 'CSAT dropped 5pp or more vs. the previous period'],
     problem: [
-      { label: 'Response rate', value: '30%', delta: '-9pp' },
-      { label: 'CSAT', value: '59%', delta: '-6pp' },
-      { label: 'Alerts', value: '10', delta: '+18%' },
+      { label: 'Response rate', value: '30%', delta: '-9pp', cause: 'Surveys land outside customer hours', action: 'Move the SMS send window to 9am–6pm' },
+      { label: 'CSAT', value: '59%', delta: '-6pp', stat: '34 interactions rated 1–2 this period, up from 21 last period.' },
+      { label: 'Alerts', value: '10', delta: '+18%', stat: '10 alerts this period, up from 8 last period.' },
     ],
     causes: [
       { title: 'Surveys land outside customer hours', detail: '61% of SMS surveys were sent after 8 pm. Those sends got an 18% response rate versus 47% for daytime sends.' },
@@ -629,6 +641,12 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
       { title: 'Move the SMS send window to 9 am – 6 pm', detail: 'Expected to lift response rate by roughly 10pp based on daytime sends.', cta: 'Adjust send window', primary: true },
       { title: 'Share refund verbatims with the Billing supervisor', detail: 'Ask agents to confirm a refund date before closing.', cta: 'Notify supervisor' },
       { title: 'Review the 10 detractor alerts', detail: 'All 10 are open. Three are from repeat customers.', cta: 'Open alerts' },
+    ],
+    watch: [
+      { label: 'Divergence', value: '3', delta: '+2', stat: '3 interactions diverged from the system read this period, up from 1 last period.' },
+      { label: 'ASAT', value: '72%', delta: '-3%', stat: '19 interactions rated 1–2 this period, up from 13 last period.' },
+      { label: 'Not eligible for survey', value: '57%', delta: 'of interactions', cause: 'Mostly "no matching skill or team" (454 of 1,466 skipped)', action: 'Review skill routing for these queues' },
+      { label: 'Partially completed', value: '182', delta: '+4%', cause: 'Most drop-offs happen after the refund question', action: 'Move that question earlier in the survey' },
     ],
   },
 }
@@ -797,25 +815,118 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
   )
 }
 
-/* Compact banner for the program page: same three steps, one glance. */
-function InsightBanner({ program, onOpen }: { program: typeof PROGRAMS[0]; onOpen: () => void }) {
+/* Mirrors the MetricRow stat pattern already used in Program Performance (icon chip + uppercase label +
+   bold value + delta), so the card reads as the same "stat tile" language as the rest of the page instead
+   of its own one-off style. Cards grow to fill the row (no dead space when there are only a few), but never
+   shrink below their reading width — once there are enough metrics to not fit, the row scrolls horizontally
+   instead of squeezing cards unreadably thin. Every card holds the same shape whether its body is two lines
+   or one, so a sparse card (Alerts) never reads as broken next to a fuller one. A card body is at most one
+   of: a plain before/after stat (CSAT, ASAT, Alerts — numbers to scan, nothing to interpret), or a single
+   cause + action line (a metric with one clear fix). A metric wired to a table filter also gets a small
+   jump-to-table link. */
+const METRIC_ICON: Record<string, React.ReactNode> = {
+  'Response rate': <Activity size={16} />,
+  CSAT: <Smile size={16} />,
+  ASAT: <Headphones size={16} />,
+  Alerts: <Bell size={16} />,
+  'Not eligible for survey': <UserMinus size={16} />,
+  'Partially completed': <CircleDashed size={16} />,
+  Divergence: <ArrowLeftRight size={16} />,
+}
+
+function InsightCard({ m, accent, wash }: { m: InsightMetric; accent: string; wash: string }) {
+  const isTrend = /^[+-]/.test(m.delta)
+  return (
+    <div style={{ flex: '1 0 220px', minWidth: 220, minHeight: 124, display: 'flex', flexDirection: 'column', padding: '14px 16px', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ width: 32, height: 32, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', color: accent, background: wash, flexShrink: 0 }}>
+          {METRIC_ICON[m.label] ?? <AlertTriangle size={16} />}
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ font: `500 11px/14px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>{m.label}</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 1 }}>
+            <b style={{ font: `600 18px/22px ${FONT}`, letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>{m.value}</b>
+            {isTrend ? <Delta value={m.delta} size={12} color={accent} /> : <span style={{ font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>{m.delta}</span>}
+          </div>
+        </div>
+      </div>
+      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--lyra-color-border-subtle)', font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', flex: 1 }}>
+        {m.stat && <span>{m.stat}</span>}
+        {!m.stat && m.cause && (
+          <>
+            <div><span style={{ color: 'var(--lyra-color-fg-default)', fontWeight: 500 }}>Cause — </span>{m.cause}</div>
+            {m.action && <div style={{ marginTop: 3 }}><span style={{ color: 'var(--lyra-color-fg-default)', fontWeight: 500 }}>Action — </span>{m.action}</div>}
+          </>
+        )}
+        {!m.stat && !m.cause && <span>Open each one individually — no single shared cause.</span>}
+      </div>
+      {m.onAction && (
+        <button
+          type="button" onClick={m.onAction}
+          style={{ marginTop: 10, alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-link)', cursor: 'pointer' }}
+        >
+          {m.actionLabel} <ArrowRight size={12} />
+        </button>
+      )}
+    </div>
+  )
+}
+
+function InsightBanner({ program, onViewAlerts, onViewLowCsat, onViewDivergence }: { program: typeof PROGRAMS[0]; onViewAlerts?: () => void; onViewLowCsat?: () => void; onViewDivergence?: () => void }) {
   const ins = PROGRAM_INSIGHTS[program.n] ?? GENERIC_INSIGHT(program)
   const attention = ins.kind === 'attention'
   const pending = ins.kind === 'pending'
   const fg = attention ? 'var(--lyra-color-status-critical-strong)' : pending ? 'var(--lyra-color-fg-secondary)' : 'var(--lyra-color-status-info-strong)'
+  const [tier, setTier] = useState<'attention' | 'watch'>('attention')
+
+  if (attention) {
+    const critical = 'var(--lyra-color-status-critical-strong)'
+    const criticalWash = 'var(--lyra-color-status-critical-subtle)'
+    const warning = 'var(--lyra-orange-500)'
+    const warningWash = 'var(--lyra-color-status-warning-subtle)'
+    const problem = ins.problem.map(m => (
+      m.label === 'Alerts' && onViewAlerts ? { ...m, onAction: onViewAlerts, actionLabel: 'View alerted interactions' } :
+      m.label === 'CSAT' && onViewLowCsat ? { ...m, onAction: onViewLowCsat, actionLabel: 'View low-CSAT interactions' } :
+      m
+    ))
+    const watch = (ins.watch ?? []).map(m => (
+      m.label === 'Divergence' && onViewDivergence ? { ...m, onAction: onViewDivergence, actionLabel: 'View divergent interactions' } : m
+    ))
+    const active = tier === 'attention' ? problem : watch
+    const activeAccent = tier === 'attention' ? critical : warning
+    const activeWash = tier === 'attention' ? criticalWash : warningWash
+    return (
+      <div>
+        <div style={{ display: 'flex', width: 'fit-content', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+          <button type="button" onClick={() => setTier('attention')} style={{ padding: '4px 16px', font: `500 12px/16px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'attention' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'attention' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)', borderRight: '1px solid var(--lyra-color-border-subtle)' }}>
+            Need attention <span style={{ fontWeight: 400, opacity: 0.7 }}>{ins.problem.length}</span>
+          </button>
+          {watch.length > 0 && (
+            <button type="button" onClick={() => setTier('watch')} style={{ padding: '4px 16px', font: `500 12px/16px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'watch' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'watch' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)' }}>
+              To watch <span style={{ fontWeight: 400, opacity: 0.7 }}>{watch.length}</span>
+            </button>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', overflowX: 'auto' }}>
+          {active.map(m => <InsightCard key={m.label} m={m} accent={activeAccent} wash={activeWash} />)}
+        </div>
+      </div>
+    )
+  }
+
   const cols: [React.ReactNode, string, string][] = pending
     ? [
         [<Hourglass size={14} />, 'What we know so far', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
         [<Search size={14} />, 'Likely root cause', `Needs ${ins.dataProgress?.needed ?? 7} days — ${ins.dataProgress?.collected ?? 0} collected so far`],
       ]
     : [
-        [<Activity size={14} />, attention ? 'Problem' : 'What to watch', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
+        [<Activity size={14} />, 'What to watch', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
         [<Search size={14} />, 'Likely root cause', ins.causes[0].title],
         [<Wrench size={14} />, 'Call to action', ins.actions[0].title],
       ]
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)', background: attention ? 'var(--lyra-color-status-critical-subtle)' : pending ? 'var(--lyra-slate-100)' : 'var(--lyra-color-status-info-subtle)', border: `1px solid ${attention ? 'var(--lyra-color-status-critical-medium)' : pending ? 'var(--lyra-color-border-soft)' : 'var(--lyra-color-status-info-medium)'}` }}>
-      <span style={{ width: 36, height: 36, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-color-bg-surface-base)', color: fg }}>{attention ? <AlertTriangle size={18} /> : pending ? <Hourglass size={18} /> : <Lightbulb size={18} />}</span>
+    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)', background: pending ? 'var(--lyra-slate-100)' : 'var(--lyra-color-status-info-subtle)', border: `1px solid ${pending ? 'var(--lyra-color-border-soft)' : 'var(--lyra-color-status-info-medium)'}` }}>
+      <span style={{ width: 36, height: 36, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: 'var(--lyra-color-bg-surface-base)', color: fg }}>{pending ? <Hourglass size={18} /> : <Lightbulb size={18} />}</span>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))`, gap: 'var(--space-4)', minWidth: 0 }}>
         {cols.map(([icon, label, text]) => (
           <div key={label} style={{ minWidth: 0 }}>
@@ -1063,7 +1174,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
       </div>
 
       {groupBy === 'Channel' ? (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
@@ -1124,7 +1235,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
           </table>
         </div>
       ) : groupBy === 'Topic' ? (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
@@ -1188,7 +1299,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
           </div>
         </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
@@ -1289,14 +1400,98 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
 /* ── Program detail ── */
 const PROGRAM_INTER_OVERRIDE: Record<string, number> = { 'Complaint Resolution Follow-Up': 2572 }
 const PROGRAM_DELTAS: Record<string, PerfDeltas> = {
-  'Complaint Resolution Follow-Up': { total: '+10%', elig: '+5%', eligRate: '-2%', sent: '+3%', rec: '-9%', comp: '-11%', part: '+4%', csat: '-6%', asat: '-3%', alerts: '+18%' },
-  'Flight Disruption Recovery': { total: '+12%', elig: '+9%', eligRate: '+2%', sent: '+5%', rec: '+6%', comp: '+8%', part: '-3%', csat: '+2%', asat: '+2%', alerts: '-5%' },
-  'Billing and Refund Recovery · All Digital': { total: '+7%', elig: '+6%', eligRate: '+1%', sent: '+4%', rec: '+3%', comp: '+5%', part: '-2%', csat: '+1%', asat: '+1%', alerts: '-4%' },
-  'Omnichannel Escalation Recovery': { total: '+9%', elig: '+7%', eligRate: '+2%', sent: '+3%', rec: '+4%', comp: '+6%', part: '-1%', csat: '+2%', asat: '+1%', alerts: '-3%' },
-  'Product Feedback - Beta Testers': { total: '+4%', elig: '+3%', eligRate: '+1%', sent: '+2%', rec: '+2%', comp: '+3%', part: '-1%', csat: '+1%', asat: '+1%', alerts: '-1%' },
+  'Complaint Resolution Follow-Up': { total: '+10%', elig: '+5%', sent: '+3%', rec: '-9%', comp: '-11%', part: '+4%', csat: '-6%', asat: '-3%', alerts: '+18%' },
+  'Flight Disruption Recovery': { total: '+12%', elig: '+9%', sent: '+5%', rec: '+6%', comp: '+8%', part: '-3%', csat: '+2%', asat: '+2%', alerts: '-5%' },
+  'Billing and Refund Recovery · All Digital': { total: '+7%', elig: '+6%', sent: '+4%', rec: '+3%', comp: '+5%', part: '-2%', csat: '+1%', asat: '+1%', alerts: '-4%' },
+  'Omnichannel Escalation Recovery': { total: '+9%', elig: '+7%', sent: '+3%', rec: '+4%', comp: '+6%', part: '-1%', csat: '+2%', asat: '+1%', alerts: '-3%' },
+  'Product Feedback - Beta Testers': { total: '+4%', elig: '+3%', sent: '+2%', rec: '+2%', comp: '+3%', part: '-1%', csat: '+1%', asat: '+1%', alerts: '-1%' },
 }
 
 type ResponseRow = { customer: string; id: string; agent: string; topic: string | null; sent: string | null; response: string | null; completed: string | null; csat: number | null; asat: number | null; status: string }
+
+/* Bulk "awaiting response" rows so every program/tab can show a full page (PAGE_SIZE) of real rows,
+   not just the handful of hand-written showcase interactions. Each curated row above keeps its own
+   full narrative in CUSTOMER_DETAILS; these filler rows get a generic detail built on the fly from
+   their own fields (see genericDetailFor), so nothing needs a matching hand-authored entry. */
+const FILLER_FIRST_NAMES = ['Caleb', 'Harriet', 'Youssef', 'Freya', 'Arjun', 'Lucia', 'Oscar', 'Naledi', 'Pavel', 'Aaliyah', 'Dmitri', 'Chiara', 'Kwabena', 'Miriam', 'Takeshi', 'Esperanza', 'Callum', 'Zanele', 'Ravi', 'Nadia', 'Connor', 'Amara', 'Soren', 'Leilani', 'Mateus', 'Ingrid', 'Tomasz', 'Fatou', 'Bashir', 'Elin', 'Hugo', 'Beatriz', 'Niamh', 'Sanjay', 'Odalys', 'Viktor', 'Thandiwe', 'Emeka', 'Asel', 'Rowan']
+const FILLER_LAST_NAMES = ['Nguyen', 'Boyle', 'Nasser', 'Solberg', 'Mehta', 'Fernandez', 'Lindqvist', 'Dube', 'Novak', 'Brooks', 'Orlov', 'Rossi', 'Asante', 'Cohen', 'Mori', 'Ruiz', 'Reid', 'Mokoena', 'Subramaniam', 'Hassan', 'Walsh', 'Chukwu', 'Madsen', 'Kahale', 'Pereira', 'Haugen', 'Kaminski', 'Diallo', 'Rahimi', 'Andersson', 'Park', 'Oliveira', 'Flynn', 'Patel', 'Zimmer', 'Petrov', 'Nkomo', 'Obi', 'Bekova', 'Sinclair']
+
+const TOPIC_QUESTIONS: Record<string, string> = {
+  'Technical Troubleshooting': 'How would you rate how we handled your technical troubleshooting today?',
+  'Refund Processing': 'How would you rate how we handled your refund today?',
+  'Service Outage': 'How would you rate how we handled the service outage today?',
+  'Billing Dispute': 'How would you rate how we handled your billing dispute today?',
+  'Account Access': 'How would you rate how we handled your account access issue today?',
+  'Rebooking': 'How would you rate how we handled your rebooking today?',
+  'Delay Notification': 'How would you rate the way we kept you informed about your delay?',
+  'Compensation Claim': 'How would you rate the help you got filing your compensation claim?',
+  'Missed Connection': 'How would you rate how we handled your missed connection?',
+  'Baggage Delay': 'How would you rate the help you got with your delayed bag?',
+  'Hotel Voucher': 'How would you rate the hotel arrangements we made for you?',
+  'Duplicate Charge': 'How would you rate the way we fixed the duplicate charge?',
+  'Partial Refund': 'How would you rate how we handled your refund today?',
+  'Subscription Cancellation': 'How would you rate the cancellation process today?',
+  'Payment Failure': 'How would you rate the help you got with the failed payment?',
+  'Invoice Correction': 'How would you rate how we corrected your invoice?',
+  'Channel Hand-off': 'How would you rate the hand-over from chat to a phone call today?',
+  'Repeat Contact': 'How would you rate how we handled your issue this time?',
+  'Callback Not Received': 'How would you rate the callback we promised you?',
+  'Supervisor Escalation': 'How would you rate the way your case was escalated today?',
+  'Bot Transfer Friction': 'How would you rate getting from the assistant to a person today?',
+  'Case Reopened': 'How would you rate how we handled your reopened case?',
+  'Mobile App Sync': 'How would you rate your experience with mobile sync in the beta?',
+  'Onboarding Flow': 'How would you rate getting started with the beta?',
+  'Dashboard Export': 'How would you rate exporting your dashboard in the beta?',
+  'Notification Settings': 'How would you rate managing your notifications in the beta?',
+  'Data Import': 'How would you rate importing your data into the beta?',
+  'Feature Request': 'How would you rate the response to your feature request?',
+  'Bug Report': 'How would you rate how we handled your bug report?',
+}
+
+/* Deterministic pseudo-random int in [0, max) from a string seed, so filler rows stay stable across renders. */
+function seededIndex(seed: string, max: number) {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+  return h % max
+}
+
+function makeFillerRows(programSeed: string, startId: number, count: number, topics: string[], agents: string[]): ResponseRow[] {
+  // Step=7 is coprime with the 40-name lists, so (i, 7i+offset) mod 40 never repeats a pair for i < 40 —
+  // no two filler rows in the same program can land on the same name, unlike a plain hash-mod lookup.
+  const offset = seededIndex(programSeed, FILLER_LAST_NAMES.length)
+  return Array.from({ length: count }, (_, i) => {
+    const topic = topics[i % topics.length]
+    const agent = agents[i % agents.length]
+    const first = FILLER_FIRST_NAMES[i % FILLER_FIRST_NAMES.length]
+    const last = FILLER_LAST_NAMES[(i * 7 + offset) % FILLER_LAST_NAMES.length]
+    const day = 1 + (i % 28)
+    const hour = 8 + (i % 12)
+    const minute = (i * 13) % 60
+    return {
+      customer: `${first} ${last}`,
+      id: `INT-${startId + i}`,
+      agent,
+      topic,
+      sent: `Jul ${day}, ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+      response: null, completed: null, csat: null, asat: null,
+      status: 'Not Started',
+    }
+  })
+}
+
+/* Fallback detail for any row without a hand-authored CustomerDetail (i.e. the filler rows above). */
+function genericDetailFor(row: ResponseRow): CustomerDetail {
+  const notSent = row.sent === null
+  return {
+    summary: null, read: null, alsoFound: [],
+    questions: notSent || !row.topic ? [] : [{ q: TOPIC_QUESTIONS[row.topic] ?? 'How would you rate your experience with us today?', a: null }],
+    outcome: notSent ? `No survey was sent — ${row.status.toLowerCase()}.` : 'Not started — the customer has not opened the survey.',
+    alert: null,
+    phone: `+1 223-555-${(seededIndex(row.id, 9000) + 1000)}`,
+    email: `${row.customer.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
+  }
+}
+
 const CRF_RESPONSES: ResponseRow[] = [
   { customer: 'Sophie Patel', id: 'INT-4064903', agent: 'Ben K.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
   { customer: 'Olivia Smith', id: 'INT-6257112', agent: 'Tomás R.', topic: 'Technical Troubleshooting', sent: 'Jul 1, 15:32', response: 'Jul 1, 15:35', completed: 'Jul 1, 16:13', csat: 5, asat: 5, status: 'Response Received' },
@@ -1308,12 +1503,27 @@ const CRF_RESPONSES: ResponseRow[] = [
   { customer: 'Marcus Smith', id: 'INT-2249741', agent: 'Rajat S.', topic: 'Technical Troubleshooting', sent: 'Jul 11, 14:35', response: 'Jul 11, 14:57', completed: 'Jul 11, 15:14', csat: 5, asat: 5, status: 'Response Received' },
   { customer: 'Noah Garcia', id: 'INT-7339243', agent: 'Priya M.', topic: 'Technical Troubleshooting', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
   { customer: 'Noah Patel', id: 'INT-5451225', agent: 'Priya M.', topic: null, sent: 'Jul 9, 16:08', response: 'Jul 9, 16:18', completed: 'Jul 9, 16:49', csat: 4, asat: 4, status: 'Response Received' },
+  { customer: 'Derek Holloway', id: 'INT-4071012', agent: 'Ben K.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+  { customer: 'Priya Anand', id: 'INT-4071123', agent: 'Tomás R.', topic: 'Refund Processing', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
+  { customer: 'Tobias Reed', id: 'INT-4071234', agent: 'Rajat S.', topic: 'Account Access', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Outside Send Window' },
+  { customer: 'Grace Liu', id: 'INT-4071345', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 6, 09:40', response: 'Jul 6, 09:52', completed: 'Jul 6, 10:05', csat: 2, asat: 3, status: 'Response Received' },
+  { customer: 'Mateo Alvarez', id: 'INT-4071456', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 8, 14:10', response: 'Jul 8, 14:25', completed: null, csat: null, asat: 3, status: 'Partially Responded' },
+  { customer: 'Fatima Hassan', id: 'INT-4071567', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 9, 11:00', response: 'Jul 9, 11:18', completed: 'Jul 9, 11:30', csat: 3, asat: 4, status: 'Response Received' },
+  { customer: 'Ethan Walsh', id: 'INT-4071678', agent: 'Liu Yang', topic: 'Service Outage', sent: 'Jul 10, 16:05', response: 'Jul 10, 16:20', completed: null, csat: null, asat: 2, status: 'Partially Responded' },
+  { customer: 'Chloe Dubois', id: 'INT-4071789', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 13, 08:50', response: 'Jul 13, 09:05', completed: 'Jul 13, 09:20', csat: 1, asat: 2, status: 'Response Received' },
+  { customer: 'Omar Farouk', id: 'INT-4071890', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 15, 13:30', response: 'Jul 15, 13:45', completed: null, csat: null, asat: 3, status: 'Partially Responded' },
+  { customer: 'Ingrid Larsen', id: 'INT-4071999', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 17, 10:15', response: 'Jul 17, 10:33', completed: 'Jul 17, 10:50', csat: 2, asat: 3, status: 'Response Received' },
+  { customer: 'Noah Blake', id: 'INT-4072101', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 14, 09:15', response: 'Jul 14, 09:30', completed: 'Jul 14, 09:42', csat: 1, asat: 2, status: 'Response Received' },
+  { customer: 'Priya Kapoor', id: 'INT-4072212', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 16, 15:00', response: 'Jul 16, 15:18', completed: 'Jul 16, 15:30', csat: 5, asat: 5, status: 'Response Received' },
 ]
 
-const RESPONSE_COLUMNS = ['Customer', 'Interaction ID', 'Agent', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'ASAT', 'Status']
+const RESPONSE_COLUMNS = ['Customer', 'Interaction ID', 'Agent', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'ASAT', 'Divergence', 'Alert', 'Status']
 /* One interaction set per program; each has its own reporting window, topics and ID range. */
 const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
-  'Complaint Resolution Follow-Up': CRF_RESPONSES,
+  'Complaint Resolution Follow-Up': [
+    ...CRF_RESPONSES,
+    ...makeFillerRows('crf', 4300000, 37, ['Technical Troubleshooting', 'Refund Processing', 'Service Outage', 'Billing Dispute', 'Account Access'], ['Ben K.', 'Tomás R.', 'Priya M.', 'Liu Yang', 'Rajat S.']),
+  ],
   'Flight Disruption Recovery': [
     { customer: 'Elena Rossi', id: 'INT-7102244', agent: 'Aisha N.', topic: 'Rebooking', sent: 'Jul 3, 09:12', response: 'Jul 3, 09:20', completed: 'Jul 3, 09:31', csat: 5, asat: 5, status: 'Response Received' },
     { customer: 'Kwame Mensah', id: 'INT-7118830', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 4, 18:40', response: 'Jul 4, 18:52', completed: 'Jul 4, 19:05', csat: 4, asat: 4, status: 'Response Received' },
@@ -1325,6 +1535,10 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     { customer: 'Lucas Dubois', id: 'INT-7158331', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 12, 16:20', response: 'Jul 12, 16:33', completed: 'Jul 12, 16:50', csat: 4, asat: 5, status: 'Response Received' },
     { customer: 'Sara Haddad', id: 'INT-7163904', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 14, 10:10', response: 'Jul 14, 10:40', completed: 'Jul 14, 10:55', csat: 5, asat: 4, status: 'Response Received' },
     { customer: 'Jonas Berg', id: 'INT-7170125', agent: 'Liu Yang', topic: 'Missed Connection', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
+    { customer: 'Freya Larsen', id: 'INT-7176231', agent: 'Rajat S.', topic: 'Compensation Claim', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Hassan Ali', id: 'INT-7176342', agent: 'Ben K.', topic: 'Delay Notification', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
+    { customer: 'Clara Dubois', id: 'INT-7176453', agent: 'Aisha N.', topic: 'Rebooking', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Interaction Too Short' },
+    ...makeFillerRows('flight', 4310000, 37, ['Rebooking', 'Delay Notification', 'Compensation Claim', 'Missed Connection', 'Baggage Delay', 'Hotel Voucher'], ['Aisha N.', 'Tomás R.', 'Priya M.', 'Liu Yang', 'Rajat S.', 'Ben K.']),
   ],
   'Billing and Refund Recovery · All Digital': [
     { customer: 'Grace Kim', id: 'INT-8201133', agent: 'Marco B.', topic: 'Refund Processing', sent: 'Jul 2, 10:05', response: 'Jul 2, 10:19', completed: 'Jul 2, 10:34', csat: 5, asat: 5, status: 'Response Received' },
@@ -1337,6 +1551,10 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     { customer: 'Pedro Alves', id: 'INT-8246580', agent: 'Priya M.', topic: 'Refund Processing', sent: 'Jul 13, 08:30', response: 'Jul 13, 08:45', completed: 'Jul 13, 09:01', csat: 2, asat: 3, status: 'Response Received' },
     { customer: 'Fatima Al-Sayed', id: 'INT-8252217', agent: 'Rajat S.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
     { customer: 'Henry Walsh', id: 'INT-8258866', agent: 'Marco B.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Nora Jensen', id: 'INT-8264977', agent: 'Priya M.', topic: 'Refund Processing', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
+    { customer: 'Omar Bashir', id: 'INT-8265088', agent: 'Liu Yang', topic: 'Duplicate Charge', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
+    { customer: 'Sofia Russo', id: 'INT-8265199', agent: 'Chloe D.', topic: 'Invoice Correction', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Outside Send Window' },
+    ...makeFillerRows('billing', 4320000, 37, ['Refund Processing', 'Duplicate Charge', 'Partial Refund', 'Subscription Cancellation', 'Payment Failure', 'Billing Dispute', 'Invoice Correction'], ['Marco B.', 'Priya M.', 'Chloe D.', 'Ben K.', 'Liu Yang', 'Rajat S.']),
   ],
   'Omnichannel Escalation Recovery': [
     { customer: 'Nadia Petrova', id: 'INT-9301207', agent: 'Sam O.', topic: 'Channel Hand-off', sent: 'Jul 4, 13:10', response: 'Jul 4, 13:25', completed: 'Jul 4, 13:40', csat: 4, asat: 4, status: 'Response Received' },
@@ -1348,6 +1566,11 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     { customer: 'Mateo Silva', id: 'INT-9338877', agent: 'Ben K.', topic: 'Channel Hand-off', sent: 'Jul 12, 14:55', response: 'Jul 12, 15:10', completed: 'Jul 12, 15:25', csat: 5, asat: 5, status: 'Response Received' },
     { customer: 'Zara Ahmed', id: 'INT-9345513', agent: 'Rajat S.', topic: 'Repeat Contact', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
     { customer: 'Thomas Müller', id: 'INT-9352159', agent: 'Tomás R.', topic: 'Supervisor Escalation', sent: 'Jul 15, 08:40', response: 'Jul 15, 08:55', completed: 'Jul 15, 09:12', csat: 4, asat: 4, status: 'Response Received' },
+    { customer: 'Grace Oduya', id: 'INT-9358260', agent: 'Sam O.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
+    { customer: 'Victor Hale', id: 'INT-9358371', agent: 'Liu Yang', topic: 'Channel Hand-off', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Nadia Costa', id: 'INT-9358482', agent: 'Ben K.', topic: 'Case Reopened', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
+    { customer: 'Samir Khoury', id: 'INT-9358593', agent: 'Priya M.', topic: 'Repeat Contact', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Outside Send Window' },
+    ...makeFillerRows('omni', 4330000, 37, ['Channel Hand-off', 'Repeat Contact', 'Callback Not Received', 'Supervisor Escalation', 'Bot Transfer Friction', 'Case Reopened'], ['Sam O.', 'Tomás R.', 'Aisha N.', 'Liu Yang', 'Priya M.', 'Ben K.', 'Rajat S.']),
   ],
   'Product Feedback - Beta Testers': [
     { customer: 'Jordan Lee', id: 'INT-6401118', agent: 'Chloe D.', topic: 'Mobile App Sync', sent: 'Jul 1, 10:00', response: 'Jul 1, 10:20', completed: 'Jul 1, 10:38', csat: 2, asat: 4, status: 'Response Received' },
@@ -1360,6 +1583,10 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     { customer: 'Lena Hoffmann', id: 'INT-6446570', agent: 'Rajat S.', topic: 'Bug Report', sent: 'Jul 13, 14:15', response: 'Jul 13, 14:30', completed: 'Jul 13, 14:48', csat: 4, asat: 5, status: 'Response Received' },
     { customer: 'Omar Farouk', id: 'INT-6453206', agent: 'Chloe D.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
     { customer: 'Mia Andersen', id: 'INT-6459843', agent: 'Priya M.', topic: 'Dashboard Export', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
+    { customer: 'Felix Brandt', id: 'INT-6465974', agent: 'Marco B.', topic: 'Notification Settings', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Zainab Idris', id: 'INT-6466085', agent: 'Sam O.', topic: 'Feature Request', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
+    { customer: 'Theo Walker', id: 'INT-6466196', agent: 'Chloe D.', topic: 'Bug Report', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Interaction Too Short' },
+    ...makeFillerRows('beta', 4340000, 37, ['Mobile App Sync', 'Onboarding Flow', 'Dashboard Export', 'Notification Settings', 'Data Import', 'Feature Request', 'Bug Report'], ['Chloe D.', 'Sam O.', 'Marco B.', 'Priya M.', 'Rajat S.']),
   ],
 }
 
@@ -1508,6 +1735,136 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
     alert: null,
     phone: '+1 223-555-1193', email: 'noah.patel@example.com',
   },
+  'INT-4071012': {
+    summary: 'The system read this billing dispute as resolved — the disputed charge was waived as a goodwill gesture during the chat.',
+    read: { tone: 'positive', label: 'Resolved · likely positive', expected: [4, 5] },
+    alsoFound: [], questions: [],
+    outcome: 'No survey was sent — the customer has opted out of surveys.',
+    alert: null,
+    phone: '+1 223-555-6621', email: 'derek.holloway@example.com',
+  },
+  'INT-4071123': {
+    summary: null, read: null, alsoFound: [], questions: [],
+    outcome: 'No survey was sent — this interaction fell outside the recency window for a follow-up.',
+    alert: null,
+    phone: '+1 223-555-6732', email: 'priya.anand@example.com',
+  },
+  'INT-4071234': {
+    summary: 'The system read this account access case as resolved — a password reset was completed during the chat.',
+    read: { tone: 'positive', label: 'Resolved · likely positive', expected: [4, 5] },
+    alsoFound: [], questions: [],
+    outcome: 'No survey was sent — the interaction happened outside the configured send window.',
+    alert: null,
+    phone: '+1 223-555-6843', email: 'tobias.reed@example.com',
+  },
+  'INT-4071345': {
+    summary: 'The system read this technical troubleshooting case as unresolved — the device dropped connection again shortly after the chat ended.',
+    read: { tone: 'negative', label: 'Unresolved · likely negative', expected: [1, 3] },
+    alsoFound: ['Service Outage'],
+    questions: [
+      { q: 'How would you rate how we handled your technical troubleshooting today?', a: '2 of 5', alternatives: ['Is your device still dropping connection?', 'How many times did you need to retry the fix?'] },
+      { q: 'What could have made the technical troubleshooting experience better?', a: '"The fix only lasted a few minutes before it happened again."' },
+    ],
+    outcome: 'Survey completed · Jul 6, 10:05',
+    alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Technical Troubleshooting interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 6, 10:07' },
+    phone: '+1 223-555-2284', email: 'grace.liu@example.com',
+  },
+  'INT-4071456': {
+    summary: 'The system read this billing dispute as unresolved — the disputed charge was still under review when the chat ended.',
+    read: { tone: 'negative', label: 'Unresolved · likely negative', expected: [1, 3] },
+    alsoFound: [],
+    questions: [
+      { q: 'How would you rate how we handled your billing dispute today?', a: null, alternatives: ['Were you given a timeline for the review?', 'How clear was the explanation of next steps?'] },
+      { q: 'What could have made the billing dispute experience better?', a: null },
+    ],
+    outcome: 'Customer stopped after Q1 · Jul 8, 14:25',
+    alert: { name: 'Detractor alert', rule: 'ASAT ≤ 3 on a Billing Dispute interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 8, 14:27' },
+    phone: '+1 223-555-3395', email: 'mateo.alvarez@example.com',
+  },
+  'INT-4071567': {
+    summary: 'The system read this account access case as resolved, though the customer needed a second attempt before the reset took effect.',
+    read: { tone: 'mixed', label: 'Resolved · mixed', expected: [3, 4] },
+    alsoFound: [],
+    questions: [
+      { q: 'How would you rate how we handled your account access issue today?', a: '3 of 5', alternatives: ['Did the reset work on the first try?', 'How easy was it to get back into your account today?'] },
+      { q: 'What could have made the account access experience better?', a: '"It took two tries to get the reset link working."' },
+    ],
+    outcome: 'Survey completed · Jul 9, 11:30',
+    alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Account Access interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 9, 11:32' },
+    phone: '+1 223-555-4406', email: 'fatima.hassan@example.com',
+  },
+  'INT-4071678': {
+    summary: 'The system read this service outage case as acknowledged, though the customer felt the update came too late.',
+    read: { tone: 'negative', label: 'Acknowledged · likely negative', expected: [1, 3] },
+    alsoFound: ['Technical Troubleshooting'],
+    questions: [
+      { q: 'How would you rate how we handled the service outage today?', a: null, alternatives: ['Was the outage update clear enough for you?', 'How well did we keep you informed during the outage?'] },
+      { q: 'What could have made the outage experience better?', a: null },
+    ],
+    outcome: 'Customer stopped after Q1 · Jul 10, 16:20',
+    alert: { name: 'Detractor alert', rule: 'ASAT ≤ 3 on a Service Outage interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 10, 16:22' },
+    phone: '+1 223-555-5517', email: 'ethan.walsh@example.com',
+  },
+  'INT-4071789': {
+    summary: 'The system read this refund case as unresolved — the customer was quoted an amount lower than they expected.',
+    read: { tone: 'negative', label: 'Unresolved · likely negative', expected: [1, 2] },
+    alsoFound: ['Billing Dispute'],
+    questions: [
+      { q: 'How would you rate how we handled your refund today?', a: '1 of 5', alternatives: ['Was the refund amount what you expected?', 'How clear was the explanation of your refund amount?'] },
+      { q: 'What could have made the refund experience better?', a: '"The amount quoted was far less than what I paid."' },
+    ],
+    outcome: 'Survey completed · Jul 13, 09:20',
+    alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Refund Processing interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 13, 09:22' },
+    phone: '+1 223-555-6628', email: 'chloe.dubois@example.com',
+  },
+  'INT-4071890': {
+    summary: 'The system read this technical troubleshooting case as unresolved — the agent ran out of steps before the chat closed.',
+    read: { tone: 'negative', label: 'Unresolved · likely negative', expected: [1, 3] },
+    alsoFound: [],
+    questions: [
+      { q: 'How would you rate how we handled your technical troubleshooting today?', a: null, alternatives: ['Did any of the steps we tried help?', 'Were you told what to do next?'] },
+      { q: 'What could have made the technical troubleshooting experience better?', a: null },
+    ],
+    outcome: 'Customer stopped after Q1 · Jul 15, 13:45',
+    alert: { name: 'Detractor alert', rule: 'ASAT ≤ 3 on a Technical Troubleshooting interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 15, 13:47' },
+    phone: '+1 223-555-7739', email: 'omar.farouk@example.com',
+  },
+  'INT-4071999': {
+    summary: 'The system read this billing dispute as partially resolved — a credit was issued but the customer still disputed the original charge.',
+    read: { tone: 'mixed', label: 'Partially resolved · mixed', expected: [2, 3] },
+    alsoFound: [],
+    questions: [
+      { q: 'How would you rate how we handled your billing dispute today?', a: '2 of 5', alternatives: ['Did the credit cover what you were disputing?', 'How clear was the explanation of the credit?'] },
+      { q: 'What could have made the billing dispute experience better?', a: '"The credit only covered part of the charge I was disputing."' },
+    ],
+    outcome: 'Survey completed · Jul 17, 10:50',
+    alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Billing Dispute interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 17, 10:52' },
+    phone: '+1 223-555-8840', email: 'ingrid.larsen@example.com',
+  },
+  'INT-4072101': {
+    summary: 'The system read this account access case as resolved — the password reset was confirmed working before the chat ended.',
+    read: { tone: 'positive', label: 'Resolved · likely positive', expected: [4, 5] },
+    alsoFound: [],
+    questions: [
+      { q: 'How would you rate how we handled your account access issue today?', a: '1 of 5', alternatives: ['Were you able to stay signed in after the reset?', 'How easy was it to get back into your account today?'] },
+      { q: 'What could have made the account access experience better?', a: '"The reset worked in the chat, but I was locked out again an hour later — nobody mentioned that could happen."' },
+    ],
+    outcome: 'Survey completed · Jul 14, 09:42',
+    alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Account Access interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 14, 09:44' },
+    phone: '+1 223-555-9951', email: 'noah.blake@example.com',
+  },
+  'INT-4072212': {
+    summary: 'The system read this refund case as unresolved — the agent could not confirm a refund timeline before the chat ended.',
+    read: { tone: 'negative', label: 'Unresolved · likely negative', expected: [1, 2] },
+    alsoFound: [],
+    questions: [
+      { q: 'How would you rate how we handled your refund today?', a: '5 of 5', alternatives: ['Did you get a firm date for the refund?', 'How confident are you that your refund is on its way?'] },
+      { q: 'What could have made the refund experience better?', a: '"Nothing — they followed up by email an hour later with the exact date, which is all I needed."' },
+    ],
+    outcome: 'Survey completed · Jul 16, 15:30',
+    alert: null,
+    phone: '+1 223-555-1062', email: 'priya.kapoor@example.com',
+  },
 }
 
 const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
@@ -1615,6 +1972,23 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
       outcome: 'No survey was sent — no matching skill or team.', alert: null,
       phone: '+1 223-555-4701', email: 'jonas.berg@example.com',
     },
+    'INT-7176231': {
+      summary: 'The system read this compensation claim as resolved — the payout was approved during the chat.',
+      read: { tone: 'positive', label: 'Resolved · likely positive', expected: [4, 5] },
+      alsoFound: [], questions: [],
+      outcome: 'No survey was sent — the customer has opted out of surveys.', alert: null,
+      phone: '+1 223-555-4812', email: 'freya.larsen@example.com',
+    },
+    'INT-7176342': {
+      summary: null, read: null, alsoFound: [], questions: [],
+      outcome: 'No survey was sent — this interaction fell outside the recency window for a follow-up.', alert: null,
+      phone: '+1 223-555-4923', email: 'hassan.ali@example.com',
+    },
+    'INT-7176453': {
+      summary: null, read: null, alsoFound: [], questions: [],
+      outcome: 'No survey was sent — the interaction was too short to generate a reliable read.', alert: null,
+      phone: '+1 223-555-5034', email: 'clara.dubois@example.com',
+    },
   },
 
   'Billing and Refund Recovery · All Digital': {
@@ -1720,6 +2094,25 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
       outcome: 'No survey was sent — the customer has opted out of surveys.', alert: null,
       phone: '+1 223-555-5644', email: 'henry.walsh@example.com',
     },
+    'INT-8264977': {
+      summary: 'The system read this refund case as unresolved — no routing team was available to close the loop.',
+      read: { tone: 'negative', label: 'Unresolved · likely negative', expected: [1, 2] },
+      alsoFound: [], questions: [],
+      outcome: 'No survey was sent — no matching skill or team.', alert: null,
+      phone: '+1 223-555-5755', email: 'nora.jensen@example.com',
+    },
+    'INT-8265088': {
+      summary: null, read: null, alsoFound: [], questions: [],
+      outcome: 'No survey was sent — this interaction fell outside the recency window for a follow-up.', alert: null,
+      phone: '+1 223-555-5866', email: 'omar.bashir@example.com',
+    },
+    'INT-8265199': {
+      summary: 'The system read this invoice case as resolved — the correction was confirmed during the chat.',
+      read: { tone: 'positive', label: 'Resolved · likely positive', expected: [4, 5] },
+      alsoFound: [], questions: [],
+      outcome: 'No survey was sent — the interaction happened outside the configured send window.', alert: null,
+      phone: '+1 223-555-5977', email: 'sofia.russo@example.com',
+    },
   },
 
   'Omnichannel Escalation Recovery': {
@@ -1819,6 +2212,30 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
       ],
       outcome: 'Survey completed · Jul 15, 09:12', alert: null,
       phone: '+1 223-555-6591', email: 'thomas.muller@example.com',
+    },
+    'INT-9358260': {
+      summary: null, read: null, alsoFound: [], questions: [],
+      outcome: 'No survey was sent — no program matched this interaction.', alert: null,
+      phone: '+1 223-555-6647', email: 'grace.oduya@example.com',
+    },
+    'INT-9358371': {
+      summary: 'The system read this hand-off as smooth — the issue was resolved on the transferred call.',
+      read: { tone: 'positive', label: 'Resolved · likely positive', expected: [4, 5] },
+      alsoFound: [], questions: [],
+      outcome: 'No survey was sent — the customer has opted out of surveys.', alert: null,
+      phone: '+1 223-555-6758', email: 'victor.hale@example.com',
+    },
+    'INT-9358482': {
+      summary: null, read: null, alsoFound: [], questions: [],
+      outcome: 'No survey was sent — this interaction fell outside the recency window for a follow-up.', alert: null,
+      phone: '+1 223-555-6869', email: 'nadia.costa@example.com',
+    },
+    'INT-9358593': {
+      summary: 'The system read this repeat-contact case as unresolved — the customer was reaching out for a second time with no new update.',
+      read: { tone: 'negative', label: 'Unresolved · likely negative', expected: [1, 2] },
+      alsoFound: [], questions: [],
+      outcome: 'No survey was sent — the interaction happened outside the configured send window.', alert: null,
+      phone: '+1 223-555-6970', email: 'samir.khoury@example.com',
     },
   },
 
@@ -1925,6 +2342,23 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
       outcome: 'No survey was sent — no matching skill or team.', alert: null,
       phone: '+1 223-555-7630', email: 'mia.andersen@example.com',
     },
+    'INT-6465974': {
+      summary: 'The system read this notifications question as resolved — the tester found the mute option with the agent\'s guidance.',
+      read: { tone: 'positive', label: 'Resolved · likely positive', expected: [4, 5] },
+      alsoFound: [], questions: [],
+      outcome: 'No survey was sent — the tester has opted out of surveys.', alert: null,
+      phone: '+1 223-555-7681', email: 'felix.brandt@example.com',
+    },
+    'INT-6466085': {
+      summary: null, read: null, alsoFound: [], questions: [],
+      outcome: 'No survey was sent — this interaction fell outside the recency window for a follow-up.', alert: null,
+      phone: '+1 223-555-7692', email: 'zainab.idris@example.com',
+    },
+    'INT-6466196': {
+      summary: null, read: null, alsoFound: [], questions: [],
+      outcome: 'No survey was sent — the interaction was too short to generate a reliable read.', alert: null,
+      phone: '+1 223-555-7703', email: 'theo.walker@example.com',
+    },
   },
 }
 
@@ -2004,7 +2438,7 @@ function AiChip() {
   )
 }
 
-function CustomerDrawer({ row, detail: d, programAlertCount, onClose, onOpenProgramInsight }: { row: ResponseRow; detail: CustomerDetail; programAlertCount: number; onClose: () => void; onOpenProgramInsight: () => void }) {
+function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: ResponseRow; detail: CustomerDetail; programAlertCount: number; onClose: () => void }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -2013,6 +2447,10 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose, onOpenProg
   }, [onClose])
 
   const surveySent = row.sent !== null
+  // The customer's own words beat a system paraphrase when we have them — falls back to the system's
+  // read of the interaction so the alert section always has a concrete "why", not just a threshold rule.
+  const openEndedAnswer = d.questions[1]?.a && !/^\d of 5$/.test(d.questions[1].a) ? d.questions[1].a : null
+  const lowRatingReason = openEndedAnswer ?? d.summary
   const emptyNote = (text: string) => (
     <div style={{ padding: 'var(--space-4)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{text}</div>
   )
@@ -2023,7 +2461,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose, onOpenProg
       <aside
         role="dialog"
         aria-label={`${row.customer} interaction details`}
-        style={{ position: 'relative', width: 540, maxWidth: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--lyra-color-bg-surface-base)', borderLeft: '1px solid var(--lyra-color-border-soft)', boxShadow: 'var(--sol-effect-shadowlg)' }}
+        style={{ position: 'relative', width: '40%', minWidth: 480, maxWidth: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--lyra-color-bg-surface-base)', borderLeft: '1px solid var(--lyra-color-border-soft)', boxShadow: 'var(--sol-effect-shadowlg)' }}
       >
         {/* Header */}
         <div style={{ padding: 'var(--space-4)', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
@@ -2059,11 +2497,14 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose, onOpenProg
                       <dt style={{ color: 'var(--lyra-color-fg-secondary)' }}>Rule</dt><dd style={{ margin: 0, color: 'var(--lyra-color-fg-default)' }}>{d.alert.rule}</dd>
                       <dt style={{ color: 'var(--lyra-color-fg-secondary)' }}>Sent to</dt><dd style={{ margin: 0, color: 'var(--lyra-color-fg-default)' }}>{d.alert.sentTo} · {d.alert.via}</dd>
                     </dl>
+                    {lowRatingReason && (
+                      <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--lyra-color-border-subtle)' }}>
+                        <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>Reason for the low rating</div>
+                        <p style={{ margin: '4px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{lowRatingReason}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <button type="button" onClick={onOpenProgramInsight} style={{ marginTop: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 14px', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--lyra-color-bg-primary)', font: `500 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-on-primary)', cursor: 'pointer' }}>
-                  Open alert<ExternalLink size={13} />
-                </button>
               </div>
             ) : (
               <div style={{ padding: 'var(--space-3) var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -2092,20 +2533,6 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose, onOpenProg
                 {d.read && <div style={{ marginTop: 'var(--space-2)' }}><TonePill tone={d.read.tone} label={d.read.label} /></div>}
                 {d.summary && (
                   <p style={{ margin: 'var(--space-2) 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{d.summary}</p>
-                )}
-                {d.alsoFound.length > 0 && (
-                  <>
-                    <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', margin: 'var(--space-3) 0' }} />
-                    <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Also found in the transcript</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-1)', marginTop: 'var(--space-2)' }}>
-                      {d.alsoFound.map(t => (
-                        <span key={t} style={{ padding: '2px 8px', borderRadius: 'var(--radius-xs)', background: 'var(--lyra-slate-100)', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{t}</span>
-                      ))}
-                    </div>
-                    <p style={{ margin: 'var(--space-3) 0 0', font: `400 12px/16px ${FONT}`, fontStyle: 'italic', color: 'var(--lyra-color-fg-secondary)' }}>
-                      {row.topic} carried the strongest signal of the {d.alsoFound.length + 1} topics found, so it drove the survey question.
-                    </p>
-                  </>
                 )}
               </div>
             ) : emptyNote('No topic was detected, so the system used the generic survey question.')}
@@ -2244,6 +2671,114 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose, onOpenProg
   )
 }
 
+/* ── Customer responses: sort-by-recency + alert visibility + filtering helpers ── */
+const MONTH_INDEX: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 }
+function parseRowDate(s: string | null): number {
+  if (!s) return -Infinity
+  const m = /^(\w{3}) (\d{1,2}), (\d{1,2}):(\d{2})$/.exec(s)
+  if (!m) return -Infinity
+  return new Date(2026, MONTH_INDEX[m[1]] ?? 0, Number(m[2]), Number(m[3]), Number(m[4])).getTime()
+}
+/* "Latest" = the most recent of completed/response/sent — whichever happened most recently for that row. */
+function latestActivity(row: ResponseRow): number {
+  return Math.max(parseRowDate(row.completed), parseRowDate(row.response), parseRowDate(row.sent))
+}
+/* Each program's existing alert narratives already address a named supervisor — reuse the same
+   contact for any alert this rule derives, rather than inventing a new one per interaction. */
+const PROGRAM_SUPERVISOR: Record<string, string> = {
+  'Complaint Resolution Follow-Up': 'Billing supervisor (Dana M.)',
+  'Flight Disruption Recovery': 'Airport Operations lead (Farah K.)',
+  'Billing and Refund Recovery · All Digital': 'Billing supervisor (Dana M.)',
+  'Omnichannel Escalation Recovery': 'Escalations supervisor (Jordan P.)',
+  'Product Feedback - Beta Testers': 'Product owner (Maya R.)',
+}
+
+/* The rule, stated plainly: CSAT or ASAT at or below 3 triggers an alert. Applied uniformly to every
+   row — not just the handful with a hand-authored alert narrative — so the table's Alert column and
+   filter can never show a different answer than what the data actually says. A hand-authored alert
+   (richer rule text, its own timestamp) wins when present; otherwise one is derived on the spot. */
+function deriveAlert(row: ResponseRow, explicit: InteractionAlert, programName: string): InteractionAlert {
+  if (explicit) return explicit
+  const csatTriggers = row.csat !== null && row.csat <= 3
+  const asatTriggers = row.asat !== null && row.asat <= 3
+  if (!csatTriggers && !asatTriggers) return null
+  const metric = csatTriggers ? 'CSAT' : 'ASAT'
+  return {
+    name: 'Detractor alert',
+    rule: `${metric} ≤ 3 on a ${row.topic ?? 'general'} interaction`,
+    sentTo: PROGRAM_SUPERVISOR[programName] ?? 'Program supervisor',
+    via: 'Email',
+    when: row.completed ?? row.response ?? row.sent ?? '—',
+  }
+}
+
+function rowHasAlert(row: ResponseRow, details: Record<string, CustomerDetail>, programName: string): boolean {
+  return !!deriveAlert(row, details[row.id]?.alert ?? null, programName)
+}
+
+function AlertCell({ hasAlert }: { hasAlert: boolean }) {
+  return hasAlert ? (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, font: `500 13px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
+      <Bell size={13} />Alert detected
+    </span>
+  ) : (
+    <Muted>—</Muted>
+  )
+}
+
+/* Same rule the detail drawer uses to flag "⚠ Diverges from customer rating": the system's expected
+   range for the interaction's tone vs. the rating the customer actually gave. A distinct signal from
+   Alerts — a rating can diverge from what was expected without ever being low enough to alert on (a
+   customer rating 5 after a system read of "likely negative" never trips a detractor rule), and an
+   alerted interaction isn't automatically a surprise (a low rating the system also expected is not). */
+function rowDiverges(row: ResponseRow, details: Record<string, CustomerDetail>): boolean {
+  const d = details[row.id] ?? genericDetailFor(row)
+  const exp = d.read?.expected ?? null
+  const got = row.csat
+  return exp !== null && got !== null && (got < exp[0] || got > exp[1])
+}
+
+/* Whether there's even a system read + a customer rating to compare — rows without either (no topic
+   detected, no survey sent, no response yet) are neither a match nor a divergence. */
+function rowComparable(row: ResponseRow, details: Record<string, CustomerDetail>): boolean {
+  const d = details[row.id] ?? genericDetailFor(row)
+  return (d.read?.expected ?? null) !== null && row.csat !== null
+}
+
+function DivergenceCell({ diverges }: { diverges: boolean }) {
+  return diverges ? (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, font: `500 13px/18px ${FONT}`, color: 'var(--lyra-purple-700)', whiteSpace: 'nowrap' }}>
+      <ArrowLeftRight size={13} />Diverges
+    </span>
+  ) : (
+    <Muted>—</Muted>
+  )
+}
+
+/* Small segmented control for a 3-state filter (All / Yes / No) — same visual language as the
+   response-tab and group-by pill controls already used elsewhere on this page. */
+/* options are [value, label] pairs so a label can carry a real count (e.g. "Alert 10") while the
+   underlying filter value stays a plain string — same [value, count] convention as the response tabs. */
+function SegmentedFilter({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) {
+  return (
+    <div style={{ display: 'flex', height: 36, border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', overflow: 'hidden', flexShrink: 0 }}>
+      {options.map(([opt, label], i) => (
+        <button
+          key={opt} type="button" onClick={() => onChange(opt)}
+          style={{
+            padding: '0 12px', font: `500 13px/18px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+            background: value === opt ? 'var(--lyra-color-bg-active-subtle)' : 'var(--lyra-color-bg-surface-base)',
+            color: value === opt ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)',
+            borderRight: i < options.length - 1 ? '1px solid var(--lyra-color-border-soft)' : 'none',
+          }}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; onBack: () => void }) {
   const [search, setSearch] = useState('')
   const [intent, setIntent] = useState('All Intents')
@@ -2252,7 +2787,19 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const [tab, setTab] = useState('All')
   const [range, setRange] = useState<DateRange | null>(DEFAULT_RANGE)
   const [openRow, setOpenRow] = useState<ResponseRow | null>(null)
-  const [showInsight, setShowInsight] = useState(false)
+  const [rowStatusFilter, setRowStatusFilter] = useState<string[]>([])
+  const [rowAgentFilter, setRowAgentFilter] = useState<string[]>([])
+  const [rowTopicFilter, setRowTopicFilter] = useState<string[]>([])
+  const [rowCsatFilter, setRowCsatFilter] = useState<string[]>([])
+  const [rowAsatFilter, setRowAsatFilter] = useState<string[]>([])
+  const [rowAlertFilter, setRowAlertFilter] = useState<'All' | 'Alert' | 'No alert'>('All')
+  const [rowDivergeFilter, setRowDivergeFilter] = useState<'All' | 'Diverges' | 'Matches'>('All')
+  const responsesRef = useRef<HTMLDivElement>(null)
+
+  const jumpToResponses = () => { setTab('All'); responsesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+  const viewAlertedInteractions = () => { setRowAlertFilter('Alert'); setRowCsatFilter([]); setRowDivergeFilter('All'); jumpToResponses() }
+  const viewLowCsatInteractions = () => { setRowCsatFilter(['1', '2']); setRowAlertFilter('All'); setRowDivergeFilter('All'); jumpToResponses() }
+  const viewDivergentInteractions = () => { setRowDivergeFilter('Diverges'); setRowAlertFilter('All'); setRowCsatFilter([]); jumpToResponses() }
 
   const k = range ? rangeDays(range) / 7 : 1
   const perf: PerfData = {
@@ -2265,15 +2812,54 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const q = search.trim().toLowerCase()
   const allRows = DETAIL_RESPONSES[program.n] ?? []
   const details = CUSTOMER_DETAILS[program.n] ?? {}
+  // Tab/pagination counts cite the program's real totals from Program Performance (perf.inter/sent), not just
+  // the handful of rows authored below — this table is a reviewable sample of that real population, and its
+  // counts must never contradict the numbers shown above it.
+  const totalInter = Math.round(perf.inter), totalSent = Math.round(perf.sent), totalNotSent = totalInter - totalSent
   const responseTabs: [string, number][] = [
-    ['All', allRows.length],
-    ['Survey sent', allRows.filter(r => r.sent !== null).length],
-    ['Not sent', allRows.filter(r => r.sent === null).length],
+    ['All', totalInter],
+    ['Survey sent', totalSent],
+    ['Not sent', totalNotSent],
   ]
-  const rows = allRows.filter(r =>
-    (tab === 'All' || (tab === 'Survey sent' ? r.sent !== null : r.sent === null)) &&
-    (!q || r.customer.toLowerCase().includes(q) || r.id.toLowerCase().includes(q))
-  )
+  const tabTotal = tab === 'Survey sent' ? totalSent : tab === 'Not sent' ? totalNotSent : totalInter
+
+  const rowStatusOptions = Array.from(new Set(allRows.map(r => r.status))).sort()
+  const rowAgentOptions = Array.from(new Set(allRows.map(r => r.agent))).sort()
+  const rowTopicOptions = Array.from(new Set(allRows.map(r => r.topic).filter((t): t is string => t !== null))).sort()
+  const ratingOptions = ['5', '4', '3', '2', '1', 'No rating']
+  const divergeCount = allRows.filter(r => rowDiverges(r, details)).length
+  const matchCount = allRows.filter(r => rowComparable(r, details) && !rowDiverges(r, details)).length
+  const multiLabel = (v: string[], all: string, noun: string) => (v.length === 0 ? all : v.length === 1 ? v[0] : `${v.length} ${noun}`)
+  const matchesRating = (val: number | null, selected: string[]) =>
+    selected.length === 0 || (val === null ? selected.includes('No rating') : selected.includes(String(val)))
+
+  const rows = allRows
+    .filter(r =>
+      (tab === 'All' || (tab === 'Survey sent' ? r.sent !== null : r.sent === null)) &&
+      (!q || r.customer.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
+      (rowStatusFilter.length === 0 || rowStatusFilter.includes(r.status)) &&
+      (rowAgentFilter.length === 0 || rowAgentFilter.includes(r.agent)) &&
+      (rowTopicFilter.length === 0 || (r.topic !== null && rowTopicFilter.includes(r.topic))) &&
+      matchesRating(r.csat, rowCsatFilter) &&
+      matchesRating(r.asat, rowAsatFilter) &&
+      (rowAlertFilter === 'All' || (rowAlertFilter === 'Alert' ? rowHasAlert(r, details, program.n) : !rowHasAlert(r, details, program.n))) &&
+      (rowDivergeFilter === 'All' || (rowDivergeFilter === 'Diverges' ? rowDiverges(r, details) : (rowComparable(r, details) && !rowDiverges(r, details))))
+    )
+    // Latest responses first by default: rows with an actual customer response lead, newest first;
+    // rows still awaiting one (or never sent) follow, newest activity first within that group.
+    .sort((a, b) => {
+      const aResponded = a.response !== null ? 1 : 0
+      const bResponded = b.response !== null ? 1 : 0
+      return aResponded !== bResponded ? bResponded - aResponded : latestActivity(b) - latestActivity(a)
+    })
+  const PAGE_SIZE = 50
+  const pageRows = rows.slice(0, PAGE_SIZE)
+  const rowFiltersActive = rowStatusFilter.length + rowAgentFilter.length + rowTopicFilter.length + rowCsatFilter.length + rowAsatFilter.length > 0 || rowAlertFilter !== 'All' || rowDivergeFilter !== 'All'
+  // Once search or a row filter narrows things down, show the exact match count instead of the
+  // extrapolated population total — "3 of 2,572" would read as broken, not as a reviewable sample.
+  const narrowedExactly = q !== '' || rowFiltersActive
+  const footerTotal = narrowedExactly ? rows.length : tabTotal
+  const clearRowFilters = () => { setRowStatusFilter([]); setRowAgentFilter([]); setRowTopicFilter([]); setRowCsatFilter([]); setRowAsatFilter([]); setRowAlertFilter('All'); setRowDivergeFilter('All') }
 
   const cell = (muted = false): React.CSSProperties => ({
     padding: 'var(--space-3) var(--space-2)',
@@ -2317,16 +2903,11 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
             <span>30 days running</span>
             <span>·</span>
             <span>Chat</span>
-            <span>·</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--lyra-color-status-critical-strong)' }}>
-              <Bell size={14} />
-              {program.alerts} detractor alerts sent
-            </span>
           </div>
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
-          <InsightBanner program={program} onOpen={() => setShowInsight(true)} />
+          <InsightBanner program={program} onViewAlerts={viewAlertedInteractions} onViewLowCsat={viewLowCsatInteractions} onViewDivergence={viewDivergentInteractions} />
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
@@ -2334,11 +2915,11 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
 
         {/* Customer responses */}
-        <div style={{ marginTop: 'var(--space-6)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
+        <div ref={responsesRef} style={{ marginTop: 'var(--space-6)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
           <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
             <div>
               <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Customer responses</h3>
-              <div style={{ font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>Every interaction in the period, whether or not a survey was sent.</div>
+              <div style={{ font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>A reviewable sample of every interaction in the period, whether or not a survey was sent.</div>
             </div>
             <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
               {responseTabs.map(([t, count], i) => (
@@ -2353,13 +2934,61 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {t} <span style={{ fontWeight: 400, opacity: 0.7 }}>{count}</span>
+                  {t} <span style={{ fontWeight: 400, opacity: 0.7 }}>{fmt(count)}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
+          {/* Row-level filters — status, alert, ratings, agent, topic. Customer is already covered by the
+              search box above (free-text beats a dropdown once there are dozens of names). */}
+          <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            <div style={{ width: 170 }}>
+              <MultiSelectField options={rowStatusOptions} value={rowStatusFilter} onChange={setRowStatusFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowStatusFilter, 'All statuses', 'statuses')} radius="var(--radius-md)" />
+            </div>
+            <SegmentedFilter
+              value={rowAlertFilter}
+              onChange={v => setRowAlertFilter(v as 'All' | 'Alert' | 'No alert')}
+              options={[
+                ['All', 'All'],
+                ['Alert', `Alert ${fmt(program.alerts)}`],
+                ['No alert', `No alert ${fmt(Math.max(0, Math.round(perf.rec) - program.alerts))}`],
+              ]}
+            />
+            <SegmentedFilter
+              value={rowDivergeFilter}
+              onChange={v => setRowDivergeFilter(v as 'All' | 'Diverges' | 'Matches')}
+              options={[
+                ['All', 'All'],
+                ['Diverges', `Diverges ${fmt(divergeCount)}`],
+                ['Matches', `Matches ${fmt(matchCount)}`],
+              ]}
+            />
+            <div style={{ width: 140 }}>
+              <MultiSelectField options={ratingOptions} value={rowCsatFilter} onChange={setRowCsatFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowCsatFilter, 'CSAT: Any', 'ratings')} radius="var(--radius-md)" />
+            </div>
+            <div style={{ width: 140 }}>
+              <MultiSelectField options={ratingOptions} value={rowAsatFilter} onChange={setRowAsatFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowAsatFilter, 'ASAT: Any', 'ratings')} radius="var(--radius-md)" />
+            </div>
+            <div style={{ width: 160 }}>
+              <MultiSelectField options={rowAgentOptions} value={rowAgentFilter} onChange={setRowAgentFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowAgentFilter, 'All agents', 'agents')} radius="var(--radius-md)" />
+            </div>
+            <div style={{ width: 170 }}>
+              <MultiSelectField options={rowTopicOptions} value={rowTopicFilter} onChange={setRowTopicFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowTopicFilter, 'All topics', 'topics')} radius="var(--radius-md)" />
+            </div>
+            {rowFiltersActive && (
+              <button
+                type="button" onClick={clearRowFilters}
+                style={{ height: 36, padding: '0 12px', border: 'none', borderRadius: 'var(--radius-md)', background: 'transparent', font: `500 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-link)', cursor: 'pointer' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
@@ -2381,21 +3010,23 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 ? (
+              {pageRows.length === 0 ? (
                 <tr>
                   <td colSpan={RESPONSE_COLUMNS.length} style={{ padding: '24px 16px', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
                     No interactions match the selected filters.
                   </td>
                 </tr>
-              ) : rows.map(r => (
+              ) : pageRows.map(r => {
+                const diverges = rowDiverges(r, details)
+                return (
                 <tr
                   key={r.id}
                   onClick={() => setOpenRow(r)}
-                  style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer', transition: 'background-color 0.15s' }}
+                  style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer', transition: 'background-color 0.15s', background: diverges ? 'var(--lyra-color-bg-ai)' : undefined }}
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--lyra-color-state-bg-hover-opacity)' }}
-                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = diverges ? 'var(--lyra-color-bg-ai)' : '' }}
                 >
-                  <td style={{ ...cell(), padding: 'var(--space-3) var(--space-2) var(--space-3) var(--space-4)', fontWeight: 500 }}>{r.customer}</td>
+                  <td style={{ ...cell(), padding: 'var(--space-3) var(--space-2) var(--space-3) 13px', fontWeight: 500, borderLeft: diverges ? '3px solid var(--lyra-purple-700)' : '3px solid transparent' }}>{r.customer}</td>
                   <td style={cell(true)}>{r.id}</td>
                   <td style={cell(true)}>{r.agent}</td>
                   <td style={cell()}>{r.topic ?? <Muted>No topic detected</Muted>}</td>
@@ -2418,20 +3049,22 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                       </span>
                     )}
                   </td>
+                  <td style={cell()}><DivergenceCell diverges={diverges} /></td>
+                  <td style={cell()}><AlertCell hasAlert={rowHasAlert(r, details, program.n)} /></td>
                   <td style={{ ...cell(), textAlign: 'right', padding: 'var(--space-3) var(--space-4) var(--space-3) var(--space-2)' }}><ResponseStatus status={r.status} /></td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
           </div>
 
           <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>1 to {rows.length} of {rows.length}</span>
+            <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>1 to {pageRows.length} of {fmt(footerTotal)}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
               <button disabled aria-label="Previous page" style={{ width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-sm)', background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-color-fg-disabled)', cursor: 'not-allowed' }}>
                 <ChevronLeft size={14} />
               </button>
-              <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>1 / 1</span>
+              <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>1 / {fmt(Math.max(1, Math.ceil(footerTotal / PAGE_SIZE)))}</span>
               <button disabled aria-label="Next page" style={{ width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-sm)', background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-color-fg-disabled)', cursor: 'not-allowed' }}>
                 <ChevronRight size={14} />
               </button>
@@ -2440,16 +3073,17 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
       </div>
 
-      {openRow && details[openRow.id] && (
+      {openRow && (
         <CustomerDrawer
           row={openRow}
-          detail={details[openRow.id]}
+          detail={(() => {
+            const base = details[openRow.id] ?? genericDetailFor(openRow)
+            return { ...base, alert: deriveAlert(openRow, base.alert, program.n) }
+          })()}
           programAlertCount={program.alerts}
           onClose={() => setOpenRow(null)}
-          onOpenProgramInsight={() => { setOpenRow(null); setShowInsight(true) }}
         />
       )}
-      {showInsight && <InsightDrawer program={program} onClose={() => setShowInsight(false)} onOpenProgram={() => setShowInsight(false)} />}
     </div>
   )
 }
