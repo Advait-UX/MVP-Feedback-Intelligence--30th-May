@@ -1090,8 +1090,8 @@ function InsightCard({ m, accent, wash }: { m: InsightMetric; accent: string; wa
     <div
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
-        flex: '1 0 240px', minWidth: 240, minHeight: 156, display: 'flex', flexDirection: 'column',
-        padding: '16px 18px 14px',
+        flex: '1 0 240px', minWidth: 240, minHeight: 104, display: 'flex', flexDirection: 'column',
+        padding: '12px 14px 10px',
         background: 'var(--lyra-color-bg-surface-base)',
         borderTop: '1px solid var(--lyra-color-border-subtle)', borderRight: '1px solid var(--lyra-color-border-subtle)', borderBottom: '1px solid var(--lyra-color-border-subtle)', borderLeft: `3px solid ${accent}`,
         borderRadius: 'var(--radius-md)',
@@ -1100,27 +1100,25 @@ function InsightCard({ m, accent, wash }: { m: InsightMetric; accent: string; wa
         transition: 'box-shadow .18s ease, transform .18s ease',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ width: 34, height: 34, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', color: accent, background: wash, flexShrink: 0 }}>
-          {METRIC_ICON[m.label] ?? <AlertTriangle size={15} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ width: 26, height: 26, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', color: accent, background: wash, flexShrink: 0 }}>
+          {METRIC_ICON[m.label] ?? <AlertTriangle size={13} />}
         </span>
+        <span style={{ flex: 1, minWidth: 0, font: `500 11px/14px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.label}</span>
         {isTrend && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 'var(--radius-full)', background: wash, font: `600 12px/16px ${FONT}`, color: accent, whiteSpace: 'nowrap' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 'var(--radius-full)', background: wash, font: `600 12px/16px ${FONT}`, color: accent, whiteSpace: 'nowrap', flexShrink: 0 }}>
             {down ? '↓' : '↑'} {m.delta.replace(/^[+-]/, '')}
           </span>
         )}
       </div>
-      <div style={{ marginTop: 14 }}>
-        <div style={{ font: `500 11px/14px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>{m.label}</div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
-          <b style={{ font: `700 22px/26px ${FONT}`, letterSpacing: '-0.02em', color: 'var(--lyra-color-fg-default)' }}>{m.value}</b>
-          {!isTrend && <span style={{ font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>{m.delta}</span>}
-        </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 6 }}>
+        <b style={{ font: `700 20px/24px ${FONT}`, letterSpacing: '-0.02em', color: 'var(--lyra-color-fg-default)' }}>{m.value}</b>
+        {!isTrend && <span style={{ font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>{m.delta}</span>}
       </div>
-      <div style={{ marginTop: 10, font: `400 13px/19px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', flex: 1 }}>
+      <div style={{ marginTop: 6, font: `400 13px/19px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', flex: 1 }}>
         {m.stat && <span>{m.stat}</span>}
         {!m.stat && m.cause && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ display: 'flex', gap: 6 }}>
               <span style={{ flexShrink: 0, font: `600 10px/16px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent }}>Cause</span>
               <span>{m.cause}</span>
@@ -1136,7 +1134,7 @@ function InsightCard({ m, accent, wash }: { m: InsightMetric; accent: string; wa
         {!m.stat && !m.cause && <span>Open each one individually — no single shared cause.</span>}
       </div>
       {m.onAction && (
-        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--lyra-color-border-subtle)' }}>
+        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--lyra-color-border-subtle)' }}>
           <button
             type="button" onClick={m.onAction}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, font: `600 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-link)', cursor: 'pointer' }}
@@ -1149,7 +1147,7 @@ function InsightCard({ m, accent, wash }: { m: InsightMetric; accent: string; wa
   )
 }
 
-function InsightBanner({ program, onViewAlerts, onViewLowCsat, onViewDivergence }: { program: typeof PROGRAMS[0]; onViewAlerts?: () => void; onViewLowCsat?: () => void; onViewDivergence?: () => void }) {
+function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat, onViewDivergence }: { program: typeof PROGRAMS[0]; onOpen?: () => void; onViewAlerts?: () => void; onViewLowCsat?: () => void; onViewDivergence?: () => void }) {
   const ins = PROGRAM_INSIGHTS[program.n] ?? GENERIC_INSIGHT(program)
   const attention = ins.kind === 'attention'
   const pending = ins.kind === 'pending'
@@ -1173,8 +1171,9 @@ function InsightBanner({ program, onViewAlerts, onViewLowCsat, onViewDivergence 
     const activeAccent = tier === 'attention' ? critical : warning
     const activeWash = tier === 'attention' ? criticalWash : warningWash
     return (
-      <div>
-        <div style={{ display: 'flex', width: 'fit-content', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+      /* Same soft band the dashboard's "Today's highlights" sits on, so the white cards read as one family. */
+      <div style={{ background: 'rgba(143,115,227,0.10)', borderRadius: 'var(--radius-lg)', padding: '14px 16px 12px' }}>
+        <div style={{ display: 'flex', width: 'fit-content', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
           <button type="button" onClick={() => setTier('attention')} style={{ padding: '4px 16px', font: `500 12px/16px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'attention' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'attention' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)', borderRight: '1px solid var(--lyra-color-border-subtle)' }}>
             Need attention <span style={{ fontWeight: 400, opacity: 0.7 }}>{ins.problem.length}</span>
           </button>
@@ -3200,6 +3199,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const [tab, setTab] = useState('All')
   const [range, setRange] = useState<DateRange | null>(DEFAULT_RANGE)
   const [openRow, setOpenRow] = useState<ResponseRow | null>(null)
+  const [showInsight, setShowInsight] = useState(false)
   const [rowStatusFilter, setRowStatusFilter] = useState<string[]>([])
   const [rowAgentFilter, setRowAgentFilter] = useState<string[]>([])
   const [rowTopicFilter, setRowTopicFilter] = useState<string[]>([])
@@ -3320,7 +3320,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
-          <InsightBanner program={program} onViewAlerts={viewAlertedInteractions} onViewLowCsat={viewLowCsatInteractions} onViewDivergence={viewDivergentInteractions} />
+          <InsightBanner program={program} onOpen={() => setShowInsight(true)} onViewAlerts={viewAlertedInteractions} onViewLowCsat={viewLowCsatInteractions} onViewDivergence={viewDivergentInteractions} />
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
@@ -3497,6 +3497,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
           onClose={() => setOpenRow(null)}
         />
       )}
+      {showInsight && <InsightDrawer program={program} onClose={() => setShowInsight(false)} onOpenProgram={() => setShowInsight(false)} />}
     </div>
   )
 }

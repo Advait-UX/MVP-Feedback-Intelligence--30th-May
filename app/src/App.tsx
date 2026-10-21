@@ -31,6 +31,7 @@ import { ProgramHealth2Page } from './pages/ProgramHealth2Page'
 import { ProgramHealth3Page } from './pages/ProgramHealth3Page'
 import { ProgramHealth4Page } from './pages/ProgramHealth4Page'
 import { ProgramHealth5Page } from './pages/ProgramHealth5Page'
+import { ProgramHealth6Page } from './pages/ProgramHealth6Page'
 import { Dashboard7Page } from './pages/Dashboard7Page'
 import { Dashboard6Page } from './pages/Dashboard6Page'
 import { SurveyDetailPage } from './pages/SurveyDetailPage'
@@ -403,7 +404,7 @@ export default function App() {
   const [flow, setFlow] = useState<'admin' | 'landing' | 'feedback' | 'agent' | 'prototype'>('feedback')
   const [page, setPage] = useState<'campaign-portfolio' | 'dashboard' | 'analysis' | 'cohort' | 'interaction' | 'campaign-monitor' | 'survey-detail' | 'campaign-insight'>('campaign-portfolio')
   // Active section within the Feedback Intelligence shell (drives the sidebar)
-  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'dashboard6' | 'dashboard7' | 'programhealth2' | 'programhealth3' | 'programhealth4' | 'programhealth5' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'alert2' | 'health'>('programhealth4')
+  const [fiSection, setFiSection] = useState<'dashboard' | 'dashboard2' | 'dashboard3' | 'dashboard4' | 'dashboard5' | 'dashboard6' | 'dashboard7' | 'programhealth2' | 'programhealth3' | 'programhealth4' | 'programhealth5' | 'programhealth6' | 'programs' | 'surveys' | 'themes' | 'alerts' | 'alert2' | 'health'>('programhealth4')
   // Selected campaign drives Level 2 and Level 3 scoping. Defaults to the
   // demo star performer so the campaign-context strip always has a value.
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(CAMPAIGNS[0].id)
@@ -510,6 +511,7 @@ export default function App() {
   const FI_NAV_ITEMS = [
     { id: 'dashboard5', label: 'Program Health', icon: LayoutGrid },
   { id: 'programhealth4', label: 'Program Health 2', icon: LayoutGrid },
+  { id: 'programhealth6', label: 'Program Health 3', icon: LayoutGrid },
     {
       type: 'group' as const,
       id: 'old-dashboards',
@@ -552,6 +554,7 @@ export default function App() {
     programhealth2: 'Program Health 18th Oct',
     programhealth3: 'Program Health 2 (21st Oct)',
   programhealth4: 'Program Health 2',
+  programhealth6: 'Program Health 3',
   programhealth5: 'Program Health 4 (21st Oct)',
     programs: page === 'campaign-portfolio'
       ? 'Programs'
@@ -601,6 +604,8 @@ export default function App() {
         <ProgramHealth3Page />
       ) : fiSection === 'programhealth4' ? (
         <ProgramHealth4Page />
+      ) : fiSection === 'programhealth6' ? (
+        <ProgramHealth6Page />
       ) : fiSection === 'programhealth5' ? (
         <ProgramHealth5Page />
       ) : fiSection === 'dashboard7' ? (
