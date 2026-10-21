@@ -644,7 +644,7 @@ function buildHighlights({ programs, inter, elig, onSelectProgram, onShowNotElig
       : `${attention.length} of ${programs.length} programs need attention`,
     body: attention.length === 0
       ? 'No program is below its CSAT or response-rate target.'
-      : `${parts.join(', and ')}.${watch.length ? ` ${watch.map(p => p.n).join(' and ')} ${plural(watch.length, 'is', 'are')} close to a limit.` : ''}`,
+      : `${parts.join(', and ')}.${watch.length ? ` ${watch.length} more ${plural(watch.length, 'is', 'are')} close to a limit.` : ''}`,
     rows: [...attention.map(p => row(p, false)), ...watch.map(p => row(p, true))],
     action: 'View all programs', onAction: onShowPrograms,
   })
