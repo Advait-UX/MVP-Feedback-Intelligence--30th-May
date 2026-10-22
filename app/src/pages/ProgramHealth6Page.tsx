@@ -258,13 +258,13 @@ const NE_COLOR = 'var(--lyra-orange-500)'
 
 function MetricRow({ label, value, delta, icon, tone }: { label: string; value: string; delta: string; icon: React.ReactNode; tone: 'brand' | 'critical' }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gridTemplateAreas: '"icon label label" "icon val delta"', columnGap: 10, alignItems: 'center', padding: '12px 14px' }}>
-      <span style={{ gridArea: 'icon', width: 38, height: 38, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: tone === 'brand' ? 'var(--lyra-brand-50)' : 'var(--lyra-color-status-critical-subtle)', color: tone === 'brand' ? 'var(--lyra-brand-600)' : 'var(--lyra-color-status-critical-strong)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gridTemplateAreas: '"icon label label" "icon val delta"', columnGap: 10, alignItems: 'center', padding: '6px 14px' }}>
+      <span style={{ gridArea: 'icon', width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: tone === 'brand' ? 'var(--lyra-brand-50)' : 'var(--lyra-color-status-critical-subtle)', color: tone === 'brand' ? 'var(--lyra-brand-600)' : 'var(--lyra-color-status-critical-strong)' }}>
         {icon}
       </span>
       <span style={{ gridArea: 'label', alignSelf: 'end', font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
-      <b style={{ gridArea: 'val', alignSelf: 'baseline', font: `600 28px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{value}</b>
-      <span style={{ gridArea: 'delta', alignSelf: 'baseline', justifySelf: 'start' }}><Delta value={delta} size={13} /></span>
+      <b style={{ gridArea: 'val', alignSelf: 'baseline', font: `600 20px/1.2 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{value}</b>
+      <span style={{ gridArea: 'delta', alignSelf: 'baseline', justifySelf: 'start' }}><Delta value={delta} size={12} /></span>
     </div>
   )
 }
@@ -426,11 +426,11 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
             {/* ASAT + CSAT + Alerts */}
             <div style={{ paddingLeft: 16, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
               <div style={{ width: '100%', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--sol-effect-shadowsm)', overflow: 'hidden' }}>
-                <MetricRow label="ASAT" value={`${asat}%`} delta={deltas.asat} tone="brand" icon={<Headphones size={20} />} />
+                <MetricRow label="ASAT" value={`${asat}%`} delta={deltas.asat} tone="brand" icon={<Headphones size={16} />} />
                 <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)' }} />
-                <MetricRow label="CSAT" value={`${csat}%`} delta={deltas.csat} tone="brand" icon={<Smile size={20} />} />
+                <MetricRow label="CSAT" value={`${csat}%`} delta={deltas.csat} tone="brand" icon={<Smile size={16} />} />
                 <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)' }} />
-                <MetricRow label="Alerts" value={fmt(alerts)} delta={deltas.alerts} tone="critical" icon={<Bell size={20} />} />
+                <MetricRow label="Alerts" value={fmt(alerts)} delta={deltas.alerts} tone="critical" icon={<Bell size={16} />} />
               </div>
             </div>
           </div>
