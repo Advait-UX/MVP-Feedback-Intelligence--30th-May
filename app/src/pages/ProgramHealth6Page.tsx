@@ -3207,7 +3207,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
           </div>
 
           {/* 2b. System read — what this interaction was about, and separately, what happened with the survey */}
-          <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)', background: 'var(--lyra-color-bg-ai)', padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <div style={{ borderRadius: 10, background: 'var(--lyra-color-bg-ai)', padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <Sparkles size={14} style={{ color: 'var(--lyra-purple-700)', flexShrink: 0, marginTop: 3 }} />
             <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ font: `600 12px/16px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lyra-purple-700)' }}>System Read</div>
