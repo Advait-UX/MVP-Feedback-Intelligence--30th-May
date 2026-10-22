@@ -262,6 +262,7 @@ export function RowKebabMenu({ status = 'active', onDelete, onEdit, onDuplicate 
 export function ListPageHeader({
   title,
   breadcrumb: _breadcrumb,
+  count,
   actionLabel,
   onAction,
   description: _description,
@@ -272,6 +273,7 @@ export function ListPageHeader({
 }: {
   title: string
   breadcrumb?: string
+  count?: number
   actionLabel: string
   onAction?: () => void
   description?: string
@@ -311,6 +313,18 @@ export function ListPageHeader({
         }}>
           {title}
         </h1>
+        {typeof count === 'number' && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            minWidth: 22, height: 22, padding: '0 var(--space-2)',
+            borderRadius: 'var(--radius-full)',
+            background: 'var(--lyra-slate-100)',
+            color: 'var(--lyra-slate-600)',
+            font: '500 12px/16px var(--font-sans)',
+          }}>
+            {count}
+          </span>
+        )}
         {/* Info icon + tooltip wrapper */}
         <div
           ref={tooltipRef}

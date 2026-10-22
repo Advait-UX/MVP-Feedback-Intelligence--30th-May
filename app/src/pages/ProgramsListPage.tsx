@@ -578,6 +578,7 @@ export function ProgramsListPage({
       {/* ① Page header — always visible, never scrolls */}
       <ListPageHeader
         title="Programs"
+        count={allCampaigns.length}
         actionLabel="New program"
         onAction={onCreateCampaign}
         secondaryActionLabel="Set priority for programs"

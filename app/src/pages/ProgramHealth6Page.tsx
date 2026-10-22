@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Activity, AlertTriangle, ArrowLeftRight, Building2, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDashed, Headphones, Hourglass, Info, Lightbulb, Mail, MessageSquare, MinusCircle, Phone, Power, PowerOff, Search, Smile, Sparkles, Star, UserMinus, Wrench, X, XCircle } from 'lucide-react'
+import { Activity, AlertTriangle, ArrowLeftRight, Building2, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDashed, Headphones, Hourglass, Info, Lightbulb, Mail, MessageSquare, MinusCircle, Phone, Power, PowerOff, Search, Smile, Sparkles, Star, User, UserMinus, Wrench, X, XCircle } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
 import { MultiSelectField } from '../components/campaign-wizard/WizardPrimitives'
 
@@ -43,15 +43,17 @@ const TODAY = new Date(2026, 9, 12)
 const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
 const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-const fmtDay = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const fmtDay = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 const fmtRange = (r: DateRange | null) => (r ? `${fmtDay(r.start)} – ${fmtDay(r.end)}` : '')
 
 const lastN = (n: number): DateRange => ({ start: addDays(TODAY, -(n - 1)), end: TODAY })
+const lastMonths = (n: number): DateRange => ({ start: new Date(TODAY.getFullYear(), TODAY.getMonth() - n, TODAY.getDate()), end: TODAY })
 
 const RANGE_PRESETS: { label: string; range: () => DateRange }[] = [
   { label: 'Last 7 days', range: () => lastN(7) },
   { label: 'Current month', range: () => ({ start: new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), end: TODAY }) },
   { label: 'Last month', range: () => ({ start: new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, 1), end: new Date(TODAY.getFullYear(), TODAY.getMonth(), 0) }) },
+  { label: 'Last 6 months', range: () => lastMonths(6) },
 ]
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -113,7 +115,7 @@ function DateRangePicker({ value, onChange }: { value: DateRange | null; onChang
     <div ref={rootRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
       <button
         type="button" onClick={() => (open ? close() : setOpen(true))} aria-haspopup="dialog" aria-expanded={open} aria-label="Select date range"
-        style={{ display: 'flex', alignItems: 'center', height: 36, paddingLeft: 12, paddingRight: 12, width: 220, background: 'var(--lyra-color-bg-field)', border: `1px solid ${open ? 'var(--lyra-color-border-active)' : 'var(--lyra-color-border-soft)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer', textAlign: 'left' }}
+        style={{ display: 'flex', alignItems: 'center', height: 36, paddingLeft: 12, paddingRight: 12, width: 268, background: 'var(--lyra-color-bg-field)', border: `1px solid ${open ? 'var(--lyra-color-border-active)' : 'var(--lyra-color-border-soft)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer', textAlign: 'left' }}
       >
         <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: value ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-disabled)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {value ? fmtRange(value) : 'Start Date – End Date'}
@@ -228,7 +230,7 @@ const previousPeriodNote = (r: DateRange | null) => {
   const days = rangeDays(r), pEnd = addDays(r.start, -1), pStart = addDays(pEnd, -(days - 1))
   return `Trends Compared with the Previous Period (${fmtDay(pStart)} – ${fmtDay(pEnd)})`
 }
-const DEFAULT_RANGE = (): DateRange => lastN(7)
+const DEFAULT_RANGE = (): DateRange => lastMonths(6)
 const isDefaultRange = (r: DateRange | null) => !!r && sameDay(r.start, DEFAULT_RANGE().start) && sameDay(r.end, DEFAULT_RANGE().end)
 
 /* ── Deltas ── */
@@ -1153,7 +1155,7 @@ function AppliedChip({ group, value, onRemove }: { group: string; value: string;
 }
 
 const PROGRAM_COLUMNS: { label: string; key: string }[] = [
-  { label: 'Program', key: 'n' },
+  { label: 'Program name', key: 'n' },
   { label: 'Status', key: 'status' },
   { label: 'Eligible', key: 'elig' },
   { label: 'Coverage', key: 'coverage' },
@@ -1345,7 +1347,19 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
   return (
     <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
       <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-        <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Programs</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Programs</h3>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            minWidth: 22, height: 22, padding: '0 var(--space-2)',
+            borderRadius: 'var(--radius-full)',
+            background: 'var(--lyra-slate-100)',
+            color: 'var(--lyra-slate-600)',
+            font: `500 12px/16px ${FONT}`,
+          }}>
+            {filtered.length}
+          </span>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Group by</span>
           <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
@@ -1504,7 +1518,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
                     sortKey={col.key}
                     sort={sort}
                     onSort={handleSort}
-                    padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program' ? 'var(--space-6)' : 'var(--space-3)'}`}
+                    padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program name' ? 'var(--space-6)' : 'var(--space-3)'}`}
                   />
                 ))}
               </tr>
@@ -1720,12 +1734,19 @@ function makeFillerRows(programSeed: string, startId: number, count: number, top
 }
 
 /* Fallback detail for any row without a hand-authored CustomerDetail (i.e. the filler rows above). */
+/* Filler "Out of coverage" rows have no hand-authored reason, so give the program manager a plausible one
+   instead of just restating the status back at them. */
+const NOT_ELIGIBLE_REASONS: Record<string, string> = {
+  'out of coverage': 'the interaction’s channel, customer segment, or routing rules fell outside this program’s configured survey coverage',
+}
 function genericDetailFor(row: ResponseRow): CustomerDetail {
   const notSent = row.sent === null
   return {
     summary: null, read: null, alsoFound: [],
     questions: notSent || !row.topic ? [] : [{ q: TOPIC_QUESTIONS[row.topic] ?? 'How would you rate your experience with us today?', a: null }],
-    outcome: notSent ? `No survey was sent — ${row.status.toLowerCase()}.` : 'Not started — the customer has not opened the survey.',
+    outcome: notSent
+      ? `No survey was sent — ${NOT_ELIGIBLE_REASONS[row.status.toLowerCase()] ?? row.status.toLowerCase()}.`
+      : 'Not started — the customer has not opened the survey.',
     alert: null,
     phone: `+1 223-555-${(seededIndex(row.id, 9000) + 1000)}`,
     email: `${row.customer.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
@@ -1734,27 +1755,27 @@ function genericDetailFor(row: ResponseRow): CustomerDetail {
 
 const CRF_RESPONSES: ResponseRow[] = [
   { customer: 'Sophie Patel', id: 'INT-4064903', agent: 'Ben K.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
-  { customer: 'Olivia Smith', id: 'INT-6257112', agent: 'Tomás R.', topic: 'Technical Troubleshooting', sent: 'Jul 1, 15:32', response: 'Jul 1, 15:35', completed: 'Jul 1, 16:13', csat: 5, asat: 5, status: 'Response Received' },
-  { customer: 'Marcus Wright', id: 'INT-4789800', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 2, 08:35', response: 'Jul 2, 08:55', completed: 'Jul 2, 09:08', csat: 2, asat: 3, status: 'Response Received' },
-  { customer: 'Ava Johnson', id: 'INT-1601280', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 18, 08:05', response: 'Jul 18, 08:22', completed: null, csat: 1, asat: 2, status: 'Partially completed' },
-  { customer: 'Olivia Smith', id: 'INT-3002077', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 5, 11:53', response: 'Jul 5, 12:06', completed: 'Jul 5, 12:30', csat: 5, asat: null, status: 'Response Received' },
+  { customer: 'Olivia Smith', id: 'INT-6257112', agent: 'Tomás R.', topic: 'Technical Troubleshooting', sent: 'Jul 1, 15:32', response: 'Jul 1, 15:35', completed: 'Jul 1, 16:13', csat: 5, asat: 5, status: 'Survey completed' },
+  { customer: 'Marcus Wright', id: 'INT-4789800', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 2, 08:35', response: 'Jul 2, 08:55', completed: 'Jul 2, 09:08', csat: 2, asat: 3, status: 'Survey completed' },
+  { customer: 'Ava Johnson', id: 'INT-1601280', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 18, 08:05', response: 'Jul 18, 08:22', completed: null, csat: 1, asat: null, status: 'Partially completed' },
+  { customer: 'Olivia Smith', id: 'INT-3002077', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 5, 11:53', response: 'Jul 5, 12:06', completed: 'Jul 5, 12:30', csat: 5, asat: null, status: 'Survey completed' },
   { customer: 'Daniel Chen', id: 'INT-1249933', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 12, 16:19', response: 'Jul 12, 16:44', completed: null, csat: 1, asat: null, status: 'Partially completed' },
   { customer: 'Liam Al-Farsi', id: 'INT-5180251', agent: 'Priya M.', topic: 'Service Outage', sent: 'Jul 9, 13:54', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-  { customer: 'Marcus Smith', id: 'INT-2249741', agent: 'Rajat S.', topic: 'Technical Troubleshooting', sent: 'Jul 11, 14:35', response: 'Jul 11, 14:57', completed: 'Jul 11, 15:14', csat: null, asat: 5, status: 'Response Received' },
+  { customer: 'Marcus Smith', id: 'INT-2249741', agent: 'Rajat S.', topic: 'Technical Troubleshooting', sent: 'Jul 11, 14:35', response: 'Jul 11, 14:57', completed: 'Jul 11, 15:14', csat: null, asat: 5, status: 'Survey completed' },
   { customer: 'Noah Garcia', id: 'INT-7339243', agent: 'Priya M.', topic: 'Technical Troubleshooting', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
-  { customer: 'Noah Patel', id: 'INT-5451225', agent: 'Priya M.', topic: null, sent: 'Jul 9, 16:08', response: 'Jul 9, 16:18', completed: 'Jul 9, 16:49', csat: 4, asat: null, status: 'Response Received' },
+  { customer: 'Noah Patel', id: 'INT-5451225', agent: 'Priya M.', topic: null, sent: 'Jul 9, 16:08', response: 'Jul 9, 16:18', completed: 'Jul 9, 16:49', csat: 4, asat: null, status: 'Survey completed' },
   { customer: 'Derek Holloway', id: 'INT-4071012', agent: 'Ben K.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
   { customer: 'Priya Anand', id: 'INT-4071123', agent: 'Tomás R.', topic: 'Refund Processing', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
   { customer: 'Tobias Reed', id: 'INT-4071234', agent: 'Rajat S.', topic: 'Account Access', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
-  { customer: 'Grace Liu', id: 'INT-4071345', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 6, 09:40', response: 'Jul 6, 09:52', completed: 'Jul 6, 10:05', csat: 2, asat: 3, status: 'Response Received' },
+  { customer: 'Grace Liu', id: 'INT-4071345', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 6, 09:40', response: 'Jul 6, 09:52', completed: 'Jul 6, 10:05', csat: 2, asat: 3, status: 'Survey completed' },
   { customer: 'Mateo Alvarez', id: 'INT-4071456', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 8, 14:10', response: 'Jul 8, 14:25', completed: null, csat: null, asat: 3, status: 'Partially completed' },
-  { customer: 'Fatima Hassan', id: 'INT-4071567', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 9, 11:00', response: 'Jul 9, 11:18', completed: 'Jul 9, 11:30', csat: 3, asat: null, status: 'Response Received' },
+  { customer: 'Fatima Hassan', id: 'INT-4071567', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 9, 11:00', response: 'Jul 9, 11:18', completed: 'Jul 9, 11:30', csat: 3, asat: null, status: 'Survey completed' },
   { customer: 'Ethan Walsh', id: 'INT-4071678', agent: 'Liu Yang', topic: 'Service Outage', sent: 'Jul 10, 16:05', response: 'Jul 10, 16:20', completed: null, csat: null, asat: 2, status: 'Partially completed' },
-  { customer: 'Chloe Dubois', id: 'INT-4071789', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 13, 08:50', response: 'Jul 13, 09:05', completed: 'Jul 13, 09:20', csat: 1, asat: 2, status: 'Response Received' },
+  { customer: 'Chloe Dubois', id: 'INT-4071789', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 13, 08:50', response: 'Jul 13, 09:05', completed: 'Jul 13, 09:20', csat: 1, asat: 2, status: 'Survey completed' },
   { customer: 'Omar Farouk', id: 'INT-4071890', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 15, 13:30', response: 'Jul 15, 13:45', completed: null, csat: null, asat: 3, status: 'Partially completed' },
-  { customer: 'Ingrid Larsen', id: 'INT-4071999', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 17, 10:15', response: 'Jul 17, 10:33', completed: 'Jul 17, 10:50', csat: 2, asat: 3, status: 'Response Received' },
-  { customer: 'Noah Blake', id: 'INT-4072101', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 14, 09:15', response: 'Jul 14, 09:30', completed: 'Jul 14, 09:42', csat: 1, asat: 2, status: 'Response Received' },
-  { customer: 'Priya Kapoor', id: 'INT-4072212', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 16, 15:00', response: 'Jul 16, 15:18', completed: 'Jul 16, 15:30', csat: 5, asat: 5, status: 'Response Received' },
+  { customer: 'Ingrid Larsen', id: 'INT-4071999', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 17, 10:15', response: 'Jul 17, 10:33', completed: 'Jul 17, 10:50', csat: 2, asat: 3, status: 'Survey completed' },
+  { customer: 'Noah Blake', id: 'INT-4072101', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 14, 09:15', response: 'Jul 14, 09:30', completed: 'Jul 14, 09:42', csat: 1, asat: 2, status: 'Survey completed' },
+  { customer: 'Priya Kapoor', id: 'INT-4072212', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 16, 15:00', response: 'Jul 16, 15:18', completed: 'Jul 16, 15:30', csat: 5, asat: 5, status: 'Survey completed' },
 ]
 
 const RESPONSE_COLUMNS = ['Agent', 'Customer', 'Interaction ID', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'ASAT', 'Divergence', 'Alert', 'Status']
@@ -1776,6 +1797,9 @@ const agentName = (a: string) => AGENT_FULL_NAME[a] ?? a
 
 const CUSTOMER_COMPANIES = ['Northwind Traders', 'Contoso Ltd', 'Fabrikam Inc', 'Adventure Works', 'Tailspin Toys', 'Wide World Importers', 'Litware Inc', 'Proseware Inc', 'Woodgrove Bank', 'Alpine Ski House', 'Coho Winery', 'Lamna Healthcare']
 const companyFor = (customer: string) => CUSTOMER_COMPANIES[seededIndex(customer, CUSTOMER_COMPANIES.length)]
+const companySlug = (company: string) => company.toLowerCase().replace(/[^a-z0-9]+/g, '')
+/* The hand-authored emails are all `firstname.lastname@example.com` — swap in the customer's company domain. */
+const emailFor = (customer: string, email: string) => email.replace(/@example\.com$/, `@${companySlug(companyFor(customer))}.com`)
 /* One interaction set per program; each has its own reporting window, topics and ID range. */
 const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
   'Complaint Resolution Follow-Up': [
@@ -1783,15 +1807,15 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     ...makeFillerRows('crf', 4300000, 37, ['Technical Troubleshooting', 'Refund Processing', 'Service Outage', 'Billing Dispute', 'Account Access'], ['Ben K.', 'Tomás R.', 'Priya M.', 'Liu Yang', 'Rajat S.']),
   ],
   'Flight Disruption Recovery': [
-    { customer: 'Elena Rossi', id: 'INT-7102244', agent: 'Aisha N.', topic: 'Rebooking', sent: 'Jul 3, 09:12', response: 'Jul 3, 09:20', completed: 'Jul 3, 09:31', csat: 5, asat: 5, status: 'Response Received' },
-    { customer: 'Kwame Mensah', id: 'INT-7118830', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 4, 18:40', response: 'Jul 4, 18:52', completed: 'Jul 4, 19:05', csat: 4, asat: 4, status: 'Response Received' },
-    { customer: 'Hannah Weber', id: 'INT-7124519', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 5, 11:05', response: 'Jul 5, 11:30', completed: null, csat: 3, asat: 4, status: 'Partially completed' },
-    { customer: 'Diego Martín', id: 'INT-7131077', agent: 'Liu Yang', topic: 'Missed Connection', sent: 'Jul 7, 07:50', response: 'Jul 7, 08:04', completed: 'Jul 7, 08:16', csat: 2, asat: 3, status: 'Response Received' },
+    { customer: 'Elena Rossi', id: 'INT-7102244', agent: 'Aisha N.', topic: 'Rebooking', sent: 'Jul 3, 09:12', response: 'Jul 3, 09:20', completed: 'Jul 3, 09:31', csat: 5, asat: 5, status: 'Survey completed' },
+    { customer: 'Kwame Mensah', id: 'INT-7118830', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 4, 18:40', response: 'Jul 4, 18:52', completed: 'Jul 4, 19:05', csat: 4, asat: 4, status: 'Survey completed' },
+    { customer: 'Hannah Weber', id: 'INT-7124519', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 5, 11:05', response: 'Jul 5, 11:30', completed: null, csat: 3, asat: null, status: 'Partially completed' },
+    { customer: 'Diego Martín', id: 'INT-7131077', agent: 'Liu Yang', topic: 'Missed Connection', sent: 'Jul 7, 07:50', response: 'Jul 7, 08:04', completed: 'Jul 7, 08:16', csat: 2, asat: 3, status: 'Survey completed' },
     { customer: 'Mei Lin', id: 'INT-7139902', agent: 'Ben K.', topic: 'Baggage Delay', sent: 'Jul 8, 21:15', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Oliver Brooks', id: 'INT-7146218', agent: 'Rajat S.', topic: 'Hotel Voucher', sent: 'Jul 10, 23:02', response: 'Jul 11, 07:45', completed: 'Jul 11, 07:58', csat: 5, asat: 5, status: 'Response Received' },
+    { customer: 'Oliver Brooks', id: 'INT-7146218', agent: 'Rajat S.', topic: 'Hotel Voucher', sent: 'Jul 10, 23:02', response: 'Jul 11, 07:45', completed: 'Jul 11, 07:58', csat: 5, asat: 5, status: 'Survey completed' },
     { customer: 'Amara Okafor', id: 'INT-7151460', agent: 'Aisha N.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
-    { customer: 'Lucas Dubois', id: 'INT-7158331', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 12, 16:20', response: 'Jul 12, 16:33', completed: 'Jul 12, 16:50', csat: 4, asat: 5, status: 'Response Received' },
-    { customer: 'Sara Haddad', id: 'INT-7163904', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 14, 10:10', response: 'Jul 14, 10:40', completed: 'Jul 14, 10:55', csat: 5, asat: 4, status: 'Response Received' },
+    { customer: 'Lucas Dubois', id: 'INT-7158331', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 12, 16:20', response: 'Jul 12, 16:33', completed: 'Jul 12, 16:50', csat: 4, asat: 5, status: 'Survey completed' },
+    { customer: 'Sara Haddad', id: 'INT-7163904', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 14, 10:10', response: 'Jul 14, 10:40', completed: 'Jul 14, 10:55', csat: 5, asat: 4, status: 'Survey completed' },
     { customer: 'Jonas Berg', id: 'INT-7170125', agent: 'Liu Yang', topic: 'Missed Connection', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
     { customer: 'Freya Larsen', id: 'INT-7176231', agent: 'Rajat S.', topic: 'Compensation Claim', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
     { customer: 'Hassan Ali', id: 'INT-7176342', agent: 'Ben K.', topic: 'Delay Notification', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
@@ -1799,14 +1823,14 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     ...makeFillerRows('flight', 4310000, 37, ['Rebooking', 'Delay Notification', 'Compensation Claim', 'Missed Connection', 'Baggage Delay', 'Hotel Voucher'], ['Aisha N.', 'Tomás R.', 'Priya M.', 'Liu Yang', 'Rajat S.', 'Ben K.']),
   ],
   'Billing and Refund Recovery · All Digital': [
-    { customer: 'Grace Kim', id: 'INT-8201133', agent: 'Marco B.', topic: 'Refund Processing', sent: 'Jul 2, 10:05', response: 'Jul 2, 10:19', completed: 'Jul 2, 10:34', csat: 5, asat: 5, status: 'Response Received' },
-    { customer: 'Ahmed Siddiqui', id: 'INT-8207448', agent: 'Priya M.', topic: 'Duplicate Charge', sent: 'Jul 3, 14:22', response: 'Jul 3, 14:40', completed: null, csat: 4, asat: 4, status: 'Partially completed' },
-    { customer: 'Isabella Costa', id: 'INT-8213790', agent: 'Chloe D.', topic: 'Partial Refund', sent: 'Jul 5, 09:15', response: 'Jul 5, 09:28', completed: 'Jul 5, 09:44', csat: 1, asat: 2, status: 'Response Received' },
+    { customer: 'Grace Kim', id: 'INT-8201133', agent: 'Marco B.', topic: 'Refund Processing', sent: 'Jul 2, 10:05', response: 'Jul 2, 10:19', completed: 'Jul 2, 10:34', csat: 5, asat: 5, status: 'Survey completed' },
+    { customer: 'Ahmed Siddiqui', id: 'INT-8207448', agent: 'Priya M.', topic: 'Duplicate Charge', sent: 'Jul 3, 14:22', response: 'Jul 3, 14:40', completed: null, csat: 4, asat: null, status: 'Partially completed' },
+    { customer: 'Isabella Costa', id: 'INT-8213790', agent: 'Chloe D.', topic: 'Partial Refund', sent: 'Jul 5, 09:15', response: 'Jul 5, 09:28', completed: 'Jul 5, 09:44', csat: 1, asat: 2, status: 'Survey completed' },
     { customer: 'Ravi Nair', id: 'INT-8220015', agent: 'Ben K.', topic: 'Subscription Cancellation', sent: 'Jul 6, 17:50', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Chloe Martin', id: 'INT-8226672', agent: 'Marco B.', topic: 'Payment Failure', sent: 'Jul 8, 12:03', response: 'Jul 8, 12:15', completed: 'Jul 8, 12:30', csat: 4, asat: 4, status: 'Response Received' },
-    { customer: 'Tariq Hassan', id: 'INT-8233309', agent: 'Liu Yang', topic: 'Billing Dispute', sent: 'Jul 9, 15:40', response: 'Jul 9, 16:02', completed: null, csat: 3, asat: 3, status: 'Partially completed' },
-    { customer: 'Emily Zhang', id: 'INT-8239941', agent: 'Chloe D.', topic: 'Invoice Correction', sent: 'Jul 11, 11:11', response: 'Jul 11, 11:25', completed: 'Jul 11, 11:40', csat: 5, asat: 5, status: 'Response Received' },
-    { customer: 'Pedro Alves', id: 'INT-8246580', agent: 'Priya M.', topic: 'Refund Processing', sent: 'Jul 13, 08:30', response: 'Jul 13, 08:45', completed: 'Jul 13, 09:01', csat: 2, asat: 3, status: 'Response Received' },
+    { customer: 'Chloe Martin', id: 'INT-8226672', agent: 'Marco B.', topic: 'Payment Failure', sent: 'Jul 8, 12:03', response: 'Jul 8, 12:15', completed: 'Jul 8, 12:30', csat: 4, asat: 4, status: 'Survey completed' },
+    { customer: 'Tariq Hassan', id: 'INT-8233309', agent: 'Liu Yang', topic: 'Billing Dispute', sent: 'Jul 9, 15:40', response: 'Jul 9, 16:02', completed: null, csat: 3, asat: null, status: 'Partially completed' },
+    { customer: 'Emily Zhang', id: 'INT-8239941', agent: 'Chloe D.', topic: 'Invoice Correction', sent: 'Jul 11, 11:11', response: 'Jul 11, 11:25', completed: 'Jul 11, 11:40', csat: 5, asat: 5, status: 'Survey completed' },
+    { customer: 'Pedro Alves', id: 'INT-8246580', agent: 'Priya M.', topic: 'Refund Processing', sent: 'Jul 13, 08:30', response: 'Jul 13, 08:45', completed: 'Jul 13, 09:01', csat: 2, asat: 3, status: 'Survey completed' },
     { customer: 'Fatima Al-Sayed', id: 'INT-8252217', agent: 'Rajat S.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
     { customer: 'Henry Walsh', id: 'INT-8258866', agent: 'Marco B.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
     { customer: 'Nora Jensen', id: 'INT-8264977', agent: 'Priya M.', topic: 'Refund Processing', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
@@ -1815,15 +1839,15 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     ...makeFillerRows('billing', 4320000, 37, ['Refund Processing', 'Duplicate Charge', 'Partial Refund', 'Subscription Cancellation', 'Payment Failure', 'Billing Dispute', 'Invoice Correction'], ['Marco B.', 'Priya M.', 'Chloe D.', 'Ben K.', 'Liu Yang', 'Rajat S.']),
   ],
   'Omnichannel Escalation Recovery': [
-    { customer: 'Nadia Petrova', id: 'INT-9301207', agent: 'Sam O.', topic: 'Channel Hand-off', sent: 'Jul 4, 13:10', response: 'Jul 4, 13:25', completed: 'Jul 4, 13:40', csat: 4, asat: 4, status: 'Response Received' },
-    { customer: 'Caleb Johnson', id: 'INT-9307734', agent: 'Tomás R.', topic: 'Repeat Contact', sent: 'Jul 5, 16:45', response: 'Jul 5, 17:02', completed: 'Jul 5, 17:20', csat: 2, asat: 3, status: 'Response Received' },
-    { customer: 'Yuki Tanaka', id: 'INT-9313351', agent: 'Aisha N.', topic: 'Callback Not Received', sent: 'Jul 7, 09:30', response: 'Jul 7, 09:48', completed: null, csat: 1, asat: 1, status: 'Partially completed' },
-    { customer: 'Sofia Hernández', id: 'INT-9319986', agent: 'Liu Yang', topic: 'Supervisor Escalation', sent: 'Jul 8, 11:20', response: 'Jul 8, 11:40', completed: 'Jul 8, 11:58', csat: 5, asat: 5, status: 'Response Received' },
+    { customer: 'Nadia Petrova', id: 'INT-9301207', agent: 'Sam O.', topic: 'Channel Hand-off', sent: 'Jul 4, 13:10', response: 'Jul 4, 13:25', completed: 'Jul 4, 13:40', csat: 4, asat: 4, status: 'Survey completed' },
+    { customer: 'Caleb Johnson', id: 'INT-9307734', agent: 'Tomás R.', topic: 'Repeat Contact', sent: 'Jul 5, 16:45', response: 'Jul 5, 17:02', completed: 'Jul 5, 17:20', csat: 2, asat: 3, status: 'Survey completed' },
+    { customer: 'Yuki Tanaka', id: 'INT-9313351', agent: 'Aisha N.', topic: 'Callback Not Received', sent: 'Jul 7, 09:30', response: 'Jul 7, 09:48', completed: null, csat: 1, asat: null, status: 'Partially completed' },
+    { customer: 'Sofia Hernández', id: 'INT-9319986', agent: 'Liu Yang', topic: 'Supervisor Escalation', sent: 'Jul 8, 11:20', response: 'Jul 8, 11:40', completed: 'Jul 8, 11:58', csat: 5, asat: 5, status: 'Survey completed' },
     { customer: 'Ibrahim Yusuf', id: 'INT-9326604', agent: 'Sam O.', topic: 'Bot Transfer Friction', sent: 'Jul 9, 19:05', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Laura Fischer', id: 'INT-9332240', agent: 'Priya M.', topic: 'Case Reopened', sent: 'Jul 11, 10:15', response: 'Jul 11, 10:30', completed: 'Jul 11, 10:47', csat: 3, asat: 4, status: 'Response Received' },
-    { customer: 'Mateo Silva', id: 'INT-9338877', agent: 'Ben K.', topic: 'Channel Hand-off', sent: 'Jul 12, 14:55', response: 'Jul 12, 15:10', completed: 'Jul 12, 15:25', csat: 5, asat: 5, status: 'Response Received' },
+    { customer: 'Laura Fischer', id: 'INT-9332240', agent: 'Priya M.', topic: 'Case Reopened', sent: 'Jul 11, 10:15', response: 'Jul 11, 10:30', completed: 'Jul 11, 10:47', csat: 3, asat: 4, status: 'Survey completed' },
+    { customer: 'Mateo Silva', id: 'INT-9338877', agent: 'Ben K.', topic: 'Channel Hand-off', sent: 'Jul 12, 14:55', response: 'Jul 12, 15:10', completed: 'Jul 12, 15:25', csat: 5, asat: 5, status: 'Survey completed' },
     { customer: 'Zara Ahmed', id: 'INT-9345513', agent: 'Rajat S.', topic: 'Repeat Contact', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
-    { customer: 'Thomas Müller', id: 'INT-9352159', agent: 'Tomás R.', topic: 'Supervisor Escalation', sent: 'Jul 15, 08:40', response: 'Jul 15, 08:55', completed: 'Jul 15, 09:12', csat: 4, asat: 4, status: 'Response Received' },
+    { customer: 'Thomas Müller', id: 'INT-9352159', agent: 'Tomás R.', topic: 'Supervisor Escalation', sent: 'Jul 15, 08:40', response: 'Jul 15, 08:55', completed: 'Jul 15, 09:12', csat: 4, asat: 4, status: 'Survey completed' },
     { customer: 'Grace Oduya', id: 'INT-9358260', agent: 'Sam O.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
     { customer: 'Victor Hale', id: 'INT-9358371', agent: 'Liu Yang', topic: 'Channel Hand-off', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
     { customer: 'Nadia Costa', id: 'INT-9358482', agent: 'Ben K.', topic: 'Case Reopened', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
@@ -1831,14 +1855,14 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     ...makeFillerRows('omni', 4330000, 37, ['Channel Hand-off', 'Repeat Contact', 'Callback Not Received', 'Supervisor Escalation', 'Bot Transfer Friction', 'Case Reopened'], ['Sam O.', 'Tomás R.', 'Aisha N.', 'Liu Yang', 'Priya M.', 'Ben K.', 'Rajat S.']),
   ],
   'Product Feedback - Beta Testers': [
-    { customer: 'Jordan Lee', id: 'INT-6401118', agent: 'Chloe D.', topic: 'Mobile App Sync', sent: 'Jul 1, 10:00', response: 'Jul 1, 10:20', completed: 'Jul 1, 10:38', csat: 2, asat: 4, status: 'Response Received' },
-    { customer: 'Priyanka Rao', id: 'INT-6407752', agent: 'Sam O.', topic: 'Onboarding Flow', sent: 'Jul 2, 15:30', response: 'Jul 2, 15:45', completed: 'Jul 2, 16:02', csat: 4, asat: 5, status: 'Response Received' },
-    { customer: 'Ethan Clarke', id: 'INT-6413397', agent: 'Marco B.', topic: 'Dashboard Export', sent: 'Jul 4, 11:12', response: 'Jul 4, 11:30', completed: null, csat: 3, asat: 4, status: 'Partially completed' },
-    { customer: 'Aisha Bello', id: 'INT-6420030', agent: 'Chloe D.', topic: 'Notification Settings', sent: 'Jul 6, 09:45', response: 'Jul 6, 10:00', completed: 'Jul 6, 10:15', csat: 5, asat: 5, status: 'Response Received' },
+    { customer: 'Jordan Lee', id: 'INT-6401118', agent: 'Chloe D.', topic: 'Mobile App Sync', sent: 'Jul 1, 10:00', response: 'Jul 1, 10:20', completed: 'Jul 1, 10:38', csat: 2, asat: 4, status: 'Survey completed' },
+    { customer: 'Priyanka Rao', id: 'INT-6407752', agent: 'Sam O.', topic: 'Onboarding Flow', sent: 'Jul 2, 15:30', response: 'Jul 2, 15:45', completed: 'Jul 2, 16:02', csat: 4, asat: 5, status: 'Survey completed' },
+    { customer: 'Ethan Clarke', id: 'INT-6413397', agent: 'Marco B.', topic: 'Dashboard Export', sent: 'Jul 4, 11:12', response: 'Jul 4, 11:30', completed: null, csat: 3, asat: null, status: 'Partially completed' },
+    { customer: 'Aisha Bello', id: 'INT-6420030', agent: 'Chloe D.', topic: 'Notification Settings', sent: 'Jul 6, 09:45', response: 'Jul 6, 10:00', completed: 'Jul 6, 10:15', csat: 5, asat: 5, status: 'Survey completed' },
     { customer: 'Victor Novak', id: 'INT-6426661', agent: 'Priya M.', topic: 'Data Import', sent: 'Jul 8, 13:20', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Hana Sato', id: 'INT-6433298', agent: 'Sam O.', topic: 'Mobile App Sync', sent: 'Jul 9, 17:05', response: 'Jul 9, 17:25', completed: 'Jul 9, 17:40', csat: 1, asat: 3, status: 'Response Received' },
-    { customer: 'Daniel Osei', id: 'INT-6439934', agent: 'Marco B.', topic: 'Feature Request', sent: 'Jul 11, 10:30', response: 'Jul 11, 10:50', completed: 'Jul 11, 11:05', csat: 4, asat: 4, status: 'Response Received' },
-    { customer: 'Lena Hoffmann', id: 'INT-6446570', agent: 'Rajat S.', topic: 'Bug Report', sent: 'Jul 13, 14:15', response: 'Jul 13, 14:30', completed: 'Jul 13, 14:48', csat: 4, asat: 5, status: 'Response Received' },
+    { customer: 'Hana Sato', id: 'INT-6433298', agent: 'Sam O.', topic: 'Mobile App Sync', sent: 'Jul 9, 17:05', response: 'Jul 9, 17:25', completed: 'Jul 9, 17:40', csat: 1, asat: 3, status: 'Survey completed' },
+    { customer: 'Daniel Osei', id: 'INT-6439934', agent: 'Marco B.', topic: 'Feature Request', sent: 'Jul 11, 10:30', response: 'Jul 11, 10:50', completed: 'Jul 11, 11:05', csat: 4, asat: 4, status: 'Survey completed' },
+    { customer: 'Lena Hoffmann', id: 'INT-6446570', agent: 'Rajat S.', topic: 'Bug Report', sent: 'Jul 13, 14:15', response: 'Jul 13, 14:30', completed: 'Jul 13, 14:48', csat: 4, asat: 5, status: 'Survey completed' },
     { customer: 'Omar Farouk', id: 'INT-6453206', agent: 'Chloe D.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
     { customer: 'Mia Andersen', id: 'INT-6459843', agent: 'Priya M.', topic: 'Dashboard Export', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
     { customer: 'Felix Brandt', id: 'INT-6465974', agent: 'Marco B.', topic: 'Notification Settings', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Not eligible for survey' },
@@ -1849,10 +1873,7 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
 }
 
 function ResponseStatus({ status }: { status: string }) {
-  if (status === 'Not Started') {
-    return <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>{status}</span>
-  }
-  const tone = status === 'Response Received'
+  const tone = status === 'Survey completed'
     ? { bg: 'var(--lyra-color-status-success-subtle)', fg: 'var(--lyra-color-status-success-strong)', border: undefined }
     : status === 'Partially completed'
     ? { bg: 'var(--lyra-color-status-warning-subtle)', fg: 'var(--lyra-color-status-warning-strong)', border: undefined }
@@ -2088,12 +2109,12 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
     phone: '+1 223-555-7739', email: 'omar.farouk@example.com',
   },
   'INT-4071999': {
-    summary: 'The system read this billing dispute as partially resolved — a credit was issued but the customer still disputed the original charge.',
+    summary: 'The system read this billing dispute as partially resolved — a half refund was issued but the customer still disputed the remaining balance.',
     read: { tone: 'mixed', label: 'Partially resolved · mixed', expected: [2, 3], asatExpected: [3, 4] },
     alsoFound: [],
     questions: [
-      { q: 'How would you rate how we handled your billing dispute today?', a: '2 of 5', alternatives: ['Did the credit cover what you were disputing?', 'How clear was the explanation of the credit?'] },
-      { q: 'What could have made the billing dispute experience better?', a: '"The credit only covered part of the charge I was disputing."' },
+      { q: 'How would you rate how we handled your billing dispute today?', a: '2 of 5', alternatives: ['Did the refund cover what you were disputing?', 'How clear was the explanation of the refund amount?'] },
+      { q: 'What could have made the billing dispute experience better?', a: '"The refund only covered half of the charge I was disputing."' },
     ],
     outcome: 'Survey completed · Jul 17, 10:50',
     alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Billing Dispute interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 17, 10:52' },
@@ -2761,6 +2782,32 @@ function surveySteps(questions: SurveyQuestion[], row: ResponseRow): SurveyQuest
   return out
 }
 
+/* `d.outcome` doubles as the footer timestamp line ("Survey completed · Jul 1, 16:13") — drop the
+   timestamp when reusing its reason text in prose elsewhere. */
+const reasonFromOutcome = (outcome: string) => outcome.replace(/\s*·\s*[A-Za-z]{3} \d{1,2}, \d{2}:\d{2}$/, '')
+
+/* A single sentence for the program manager, shown right under the CSAT/ASAT/Outcome strip: what the
+   interaction was about and whether — and how — the survey was completed. Uses the hand-authored system
+   read when there is one (completed/partial interactions), and falls back to the outcome's own reason
+   (why no survey was sent, why it's still open) when there isn't. */
+/* Two short, separately labeled facts rather than one run-on paragraph: what the system read happened in
+   the interaction itself (story — absent for interactions with no transcript read), and, independently,
+   what happened with the survey (survey — always shown except for a plain completed survey, since the
+   Outcome pill already says "Completed"). Keeping them apart avoids reading like a single garbled story
+   when the two sentences come from unrelated sources (a hand-authored chat summary vs. a derived outcome). */
+function systemReadParts(row: ResponseRow, d: CustomerDetail, outcomeType: OutcomeType, questionLabels: string[]): { story: string | null; survey: string | null } {
+  if (outcomeType === 'completed') return { story: d.summary ?? reasonFromOutcome(d.outcome), survey: null }
+  if (outcomeType === 'partial') {
+    const n = parseInt(d.outcome.match(/Q(\d+)/)?.[1] ?? '1', 10)
+    const ratingSteps = questionLabels.filter(l => l.endsWith('question'))
+    const stoppedAt = ratingSteps[n - 1] ?? `question ${n}`
+    return { story: d.summary, survey: `Customer answered the ${stoppedAt}, then stopped — the rest of the survey went unanswered.` }
+  }
+  // 'no_follow_up' (not eligible / out of coverage) and 'abandoned' (sent but no response).
+  const reason = reasonFromOutcome(d.outcome)
+  return { story: d.summary, survey: d.summary ? reason : `${reason}${row.topic ? ` (${row.topic})` : ''}` }
+}
+
 function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: ResponseRow; detail: CustomerDetail; programAlertCount: number; onClose: () => void }) {
 
   useEffect(() => {
@@ -2794,6 +2841,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
   const steps = surveySteps(d.questions, row)
   const questionLabels = surveyLabels(steps)
   const notAsked = row.response !== null
+  const narrative = systemReadParts(row, d, outcomeType, questionLabels)
 
   const SH = { font: `500 12px/16px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)' }
 
@@ -2913,6 +2961,24 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             </div>
           </div>
 
+          {/* 2b. System read — what this interaction was about, and separately, what happened with the survey */}
+          <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)', background: 'var(--lyra-color-bg-ai)', padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <Sparkles size={14} style={{ color: 'var(--lyra-purple-700)', flexShrink: 0, marginTop: 3 }} />
+            <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ font: `600 12px/16px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lyra-purple-700)' }}>System read</div>
+              {narrative.story && (
+                <p style={{ margin: 0, font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <span style={{ font: `600 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>What happened — </span>{narrative.story}
+                </p>
+              )}
+              {narrative.survey && (
+                <p style={{ margin: 0, font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
+                  <span style={{ font: `600 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Survey — </span>{narrative.survey}
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* 3. System read — CSAT + ASAT comparison */}
           {d.read && (
             <div>
@@ -2921,12 +2987,6 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
                 <AiChip />
               </div>
               <div style={{ borderRadius: 12, border: `1px solid ${anyDiverges ? 'rgba(78,57,168,0.25)' : 'var(--lyra-color-border-soft)'}`, overflow: 'hidden' }}>
-                {d.summary && (
-                  <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                    <p style={{ margin: 0, font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{d.summary}</p>
-                  </div>
-                )}
-
                 {/* CSAT + ASAT comparison, stacked */}
                 <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {/* CSAT row */}
@@ -3066,9 +3126,10 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             <div style={{ ...SH, marginBottom: 8 }}>Contact</div>
             <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-soft)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {([
+                [<User size={13} />, row.customer],
                 [<Building2 size={13} />, companyFor(row.customer)],
                 [<Phone size={13} />, d.phone],
-                [<Mail size={13} />, d.email],
+                [<Mail size={13} />, emailFor(row.customer, d.email)],
               ] as [React.ReactNode, string][]).map(([icon, value]) => (
                 <div key={value} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   <span style={{ display: 'inline-flex', color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }}>{icon}</span>
@@ -3215,10 +3276,9 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const [rowDivergeFilter, setRowDivergeFilter] = useState<'All' | 'Diverges' | 'Matches'>('All')
   const responsesRef = useRef<HTMLDivElement>(null)
 
-  const k = range ? rangeDays(range) / 7 : 1
   const perf: PerfData = {
-    inter: (PROGRAM_INTER_OVERRIDE[program.n] ?? program.inter) * k,
-    elig: program.elig * k, sent: program.sent * k, rec: program.rec * k, comp: program.comp * k,
+    inter: PROGRAM_INTER_OVERRIDE[program.n] ?? program.inter,
+    elig: program.elig, sent: program.sent, rec: program.rec, comp: program.comp,
     csat: program.csat, asat: program.asat, alerts: program.alerts,
   }
   const status = program.tags.find(t => t === 'Active' || t === 'Inactive') || ''
@@ -3510,20 +3570,18 @@ const TOPICS = ['Service Disruption', 'Billing Recovery', 'Service Recovery', 'P
 function useSlicedData(filters: { progs: string[]; chs: string[]; cats: string[]; days: number }) {
   return useMemo(() => {
     const allCh = filters.chs.length === 0
-    const k = filters.days / 7
     const S = PROGRAMS
       .filter(p => (filters.progs.length === 0 || filters.progs.includes(p.n)) && (filters.cats.length === 0 || filters.cats.includes(p.cat)))
       .map(p => {
         const c = allCh ? 1 : filters.chs.reduce((a, x) => a + ((p.ch as Record<string, number>)[x] || 0), 0)
         if (!c) return null
-        const m = c * k
-        return { ...p, inter: p.inter * m, elig: p.elig * m, sent: p.sent * m, rec: p.rec * m, comp: p.comp * m, alerts: Math.round(p.alerts * c) }
+        return { ...p, inter: p.inter * c, elig: p.elig * c, sent: p.sent * c, rec: p.rec * c, comp: p.comp * c, alerts: Math.round(p.alerts * c) }
       })
       .filter(Boolean) as typeof PROGRAMS
 
     const sum = (f: 'inter' | 'elig' | 'sent' | 'rec' | 'comp' | 'alerts') => S.reduce((a, p) => a + p[f], 0)
     const inter = sum('inter'), elig = sum('elig'), sent = sum('sent'), rec = sum('rec'), comp = sum('comp'), alerts = sum('alerts')
-    const isAll = S.length === PROGRAMS.length && allCh && filters.days === 7
+    const isAll = S.length === PROGRAMS.length && allCh
     const csat = isAll ? 76 : rec ? Math.round(S.reduce((a, p) => a + p.csat * p.rec, 0) / rec) : 0
     const asat = isAll ? 81 : rec ? Math.round(S.reduce((a, p) => a + p.asat * p.rec, 0) / rec) : 0
 
