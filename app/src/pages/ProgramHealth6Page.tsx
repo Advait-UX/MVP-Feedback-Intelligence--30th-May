@@ -1088,11 +1088,11 @@ function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat }: { progr
       /* Same soft band the dashboard's "Today's highlights" sits on, so the white cards read as one family. */
       <div style={{ background: 'rgba(143,115,227,0.10)', borderRadius: 'var(--radius-lg)', padding: '14px 16px 12px' }}>
         <div style={{ display: 'flex', width: 'fit-content', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
-          <button type="button" onClick={() => setTier('attention')} style={{ padding: '4px 16px', font: `500 12px/16px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'attention' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'attention' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)', borderRight: '1px solid var(--lyra-color-border-subtle)' }}>
+          <button type="button" onClick={() => setTier('attention')} style={{ padding: '4px 16px', font: `500 14px/20px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'attention' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'attention' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)', borderRight: '1px solid var(--lyra-color-border-subtle)' }}>
             Need attention <span style={{ fontWeight: 400, opacity: 0.7 }}>{ins.problem.length}</span>
           </button>
           {watch.length > 0 && (
-            <button type="button" onClick={() => setTier('watch')} style={{ padding: '4px 16px', font: `500 12px/16px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'watch' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'watch' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)' }}>
+            <button type="button" onClick={() => setTier('watch')} style={{ padding: '4px 16px', font: `500 14px/20px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'watch' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'watch' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)' }}>
               To watch <span style={{ fontWeight: 400, opacity: 0.7 }}>{watch.length}</span>
             </button>
           )}
@@ -3326,7 +3326,7 @@ function SegmentedFilter({ value, onChange, options }: { value: string; onChange
         <button
           key={opt} type="button" onClick={() => onChange(opt)}
           style={{
-            padding: '0 12px', font: `500 13px/18px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+            padding: '0 12px', font: `500 14px/20px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
             background: value === opt ? 'var(--lyra-color-bg-active-subtle)' : 'var(--lyra-color-bg-surface-base)',
             color: value === opt ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)',
             borderRight: i < options.length - 1 ? '1px solid var(--lyra-color-border-soft)' : 'none',
@@ -3478,7 +3478,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                   key={t}
                   onClick={() => setTab(t)}
                   style={{
-                    padding: '4px 16px', font: `500 12px/16px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
+                    padding: '4px 16px', font: `500 14px/20px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
                     background: tab === t ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
                     color: tab === t ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)',
                     borderRight: i < responseTabs.length - 1 ? '1px solid var(--lyra-color-border-subtle)' : 'none',
