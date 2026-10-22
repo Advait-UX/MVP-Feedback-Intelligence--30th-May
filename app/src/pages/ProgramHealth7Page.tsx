@@ -17,8 +17,8 @@ const PROGRAMS = [
 /* "Program not found" was folded out — every interaction now routes to a program, so those 2,134
    interactions were redistributed proportionally across the remaining reasons, keeping the same total. */
 const REASONS: [string, number, string][] = [
-  ['No matching skill/team', 5305, 't'], ['Recency window', 4045, 't'],
-  ['Interaction too short', 2364, 't'], ['Outside send window', 970, 't'], ['Survey refused', 1232, 'c'], ['Internal interaction', 779, 'c'],
+  ['No Matching Skill/Team', 5305, 't'], ['Recency Window', 4045, 't'],
+  ['Interaction Too Short', 2364, 't'], ['Outside Send Window', 970, 't'], ['Survey Refused', 1232, 'c'], ['Internal Interaction', 779, 'c'],
 ]
 const SKIP_ALL = 14695
 
@@ -293,7 +293,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
     }
   })
   const pctOf = (x: number) => `${(x / VW * 100).toFixed(2)}%`
-  const convs: [number, number, string][] = [[(BW + CW) / 2, cov, 'Survey coverage'], [(CW + BW + 2 * CW) / 2, rr, 'Response rate']]
+  const convs: [number, number, string][] = [[(BW + CW) / 2, cov, 'Survey Coverage'], [(CW + BW + 2 * CW) / 2, rr, 'Response Rate']]
 
   // Not-sent reasons, scaled to this slice's skipped volume.
   const share = skipped / SKIP_ALL
@@ -349,14 +349,14 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
       <div style={{ padding: '20px 22px 22px' }}>
       <div style={{ margin: '-4px -6px 24px', padding: '20px 22px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-active-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10, whiteSpace: 'nowrap' }}>
-          <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total interactions</span>
+          <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total Interactions</span>
           <b style={{ font: `600 26px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
             {fmt(inter)}<span style={{ marginLeft: 6 }}><Delta value={deltas.total} size={15} /></span>
           </b>
         </div>
         <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 1060 }}>
-          {selector('el', 'Eligible for survey', 'Track sent, responded, completed', elig, deltas.elig, er)}
-          {selector('ne', 'Not eligible for survey', 'See why no survey was sent', skipped, undefined, 100 - er, NE_COLOR)}
+          {selector('el', 'Eligible for Survey', 'Track sent, responded, completed', elig, deltas.elig, er)}
+          {selector('ne', 'Not Eligible for Survey', 'See why no survey was sent', skipped, undefined, 100 - er, NE_COLOR)}
         </div>
         {open === null && (
           <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Select a tab to see the detail</div>
@@ -376,7 +376,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
                 <i key={x} aria-hidden="true" style={{ position: 'absolute', top: 0, bottom: 0, left: pctOf(x), width: 1.5, pointerEvents: 'none', zIndex: 2, backgroundImage: 'repeating-linear-gradient(to bottom, var(--lyra-slate-400) 0, var(--lyra-slate-400) 3px, transparent 3px, transparent 7px)' }} />
               ))}
               <div style={{ display: 'grid', gridTemplateColumns: `${CW}fr ${CW}fr ${BW}fr` }}>
-                {['Eligible for survey', 'Surveys sent', 'Responses received'].map(l => (
+                {['Eligible for Survey', 'Surveys Sent', 'Responses Received'].map(l => (
                   <div key={l} style={{ padding: '0 6px 0 10px', minHeight: 36, marginBottom: 8 }}>
                     <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>{l}</span>
                   </div>
@@ -402,10 +402,10 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
             {/* Split of responses */}
             <div style={{ paddingLeft: 16, display: 'flex', flexDirection: 'column' }}>
               <div style={{ minHeight: 36, marginBottom: 8, display: 'flex', alignItems: 'center' }}>
-                <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>Split of responses received</span>
+                <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>Split of Responses Received</span>
               </div>
               <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', gap: 6, marginBottom: 14 }}>
-                {([["Survey's completed", comp, deltas.comp, EL_COLOR, false], ['Partially Responded', part, deltas.part, NE_COLOR, true]] as [string, number, string, string, boolean][]).map(([l, v, d, c, right]) => (
+                {([["Survey's Completed", comp, deltas.comp, EL_COLOR, false], ['Partially Responded', part, deltas.part, NE_COLOR, true]] as [string, number, string, string, boolean][]).map(([l, v, d, c, right]) => (
                   <div key={l} style={{ display: 'flex', flexDirection: 'column', alignItems: right ? 'flex-end' : 'flex-start' }}>
                     <span style={{ display: 'block', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', marginBottom: 4, textAlign: right ? 'right' : 'left' }}>{l}</span>
                     <b style={{ display: 'flex', alignItems: 'center', gap: 6, font: `500 18px/22px ${FONT}`, whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-default)' }}>
@@ -441,7 +441,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
       {open === 'ne' && (
         <div style={{ marginTop: 'var(--space-4)' }}>
           <div style={{ display: 'grid', rowGap: 3, marginBottom: 16 }}>
-            <b style={{ font: `600 17px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Why surveys were not sent</b>
+            <b style={{ font: `600 17px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Why Surveys Were Not Sent</b>
             <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
               {fmt(skipped)} interactions ({pct(skipped, inter)}%) did not qualify for a survey, so none was sent. The reasons below explain the drop. {fmt(tun)} of them sit behind program settings you can change; the rest are fixed by compliance rules.
             </span>
@@ -774,7 +774,7 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
     rules: ['Partially Responded responses above 25% for 14 days', 'Survey coverage below 90% on WhatsApp'],
     problem: [
       { label: 'Partially Responded', value: '28%', delta: '+4pp' },
-      { label: 'Survey coverage', value: '86%', delta: '-3pp' },
+      { label: 'Survey Coverage', value: '86%', delta: '-3pp' },
       { label: 'CSAT', value: '86%', delta: '+2pp' },
     ],
     causes: [
@@ -791,7 +791,7 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
     kind: 'watch',
     rules: ['Response rate below 50% for 7 consecutive days', 'Partially Responded responses above 40%'],
     problem: [
-      { label: 'Response rate', value: '45%', delta: '+3pp' },
+      { label: 'Response Rate', value: '45%', delta: '+3pp' },
       { label: 'Partially Responded', value: '47%', delta: '-2pp' },
       { label: 'CSAT', value: '81%', delta: '+1pp' },
       { label: 'Alerts', value: '4', delta: '-4%' },
@@ -828,7 +828,7 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
     kind: 'attention',
     rules: ['Program end date passed — no surveys sent since Oct 9', 'Survey coverage below 75%'],
     problem: [
-      { label: 'Survey coverage', value: '72%', delta: '-11pp', stat: '600 of 834 eligible interactions got a survey, down from 692 last period.' },
+      { label: 'Survey Coverage', value: '72%', delta: '-11pp', stat: '600 of 834 eligible interactions got a survey, down from 692 last period.' },
       { label: 'Surveys sent', value: '600', delta: '-13%', cause: 'The program expired on Oct 9 and stopped sending', action: 'Extend the end date to resume surveys' },
       { label: 'Alerts', value: '5', delta: '0%', stat: '5 alerts still open from before the program expired.' },
     ],
@@ -846,7 +846,7 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
     kind: 'attention',
     rules: ['Response rate below 40% for 7 consecutive days', 'CSAT dropped 5pp or more vs. the previous period'],
     problem: [
-      { label: 'Response rate', value: '30%', delta: '-9pp', cause: 'Surveys land outside customer hours', action: 'Move the SMS send window to 9am–6pm' },
+      { label: 'Response Rate', value: '30%', delta: '-9pp', cause: 'Surveys land outside customer hours', action: 'Move the SMS send window to 9am–6pm' },
       { label: 'CSAT', value: '59%', delta: '-6pp', stat: '34 interactions rated 1–2 this period, up from 21 last period.' },
       { label: 'Alerts', value: '10', delta: '+18%', stat: '10 alerts this period, up from 8 last period.' },
     ],
@@ -873,7 +873,7 @@ const GENERIC_INSIGHT = (p: typeof PROGRAMS[0]): ProgramInsight => ({
   kind: 'pending',
   rules: [],
   problem: [
-    { label: 'Response rate', value: `${pct(p.rec, p.sent)}%`, delta: p.rrD ?? '0pp' },
+    { label: 'Response Rate', value: `${pct(p.rec, p.sent)}%`, delta: p.rrD ?? '0pp' },
     { label: 'CSAT', value: `${p.csat}%`, delta: p.csatD ?? '0pp' },
     { label: 'Alerts', value: fmt(p.alerts), delta: '0%' },
   ],
@@ -1041,7 +1041,7 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
    cause + action line (a metric with one clear fix). A metric wired to a table filter also gets a small
    jump-to-table link. */
 const METRIC_ICON: Record<string, React.ReactNode> = {
-  'Response rate': <Activity size={16} />,
+  'Response Rate': <Activity size={16} />,
   CSAT: <Smile size={16} />,
   ASAT: <Headphones size={16} />,
   Alerts: <Bell size={16} />,
@@ -1203,7 +1203,7 @@ function AppliedChip({ group, value, onRemove }: { group: string; value: string;
 }
 
 const PROGRAM_COLUMNS: { label: string; key: string }[] = [
-  { label: 'Program name', key: 'n' },
+  { label: 'Program Name', key: 'n' },
   { label: 'Status', key: 'status' },
   { label: 'Eligible', key: 'elig' },
   { label: 'Coverage', key: 'coverage' },
@@ -1746,7 +1746,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
                     sortKey={col.key}
                     sort={sort}
                     onSort={handleSort}
-                    padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program name' ? 'var(--space-6)' : 'var(--space-3)'}`}
+                    padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program Name' ? 'var(--space-6)' : 'var(--space-3)'}`}
                   />
                 ))}
               </tr>
@@ -3459,7 +3459,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         <div ref={responsesRef} style={{ marginTop: 'var(--space-6)', background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
           <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
             <div>
-              <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Customer responses</h3>
+              <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Customer Responses</h3>
               <div style={{ font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>A reviewable sample of every interaction in the period, whether or not a survey was sent.</div>
             </div>
             <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
@@ -3485,7 +3485,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
               search box above (free-text beats a dropdown once there are dozens of names). */}
           <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
             <div style={{ width: 250 }}>
-              <MultiSelectField options={rowStatusOptions} groups={rowStatusGroups} value={rowStatusFilter} onChange={setRowStatusFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowStatusFilter, 'All statuses', 'statuses')} radius="var(--radius-md)" />
+              <MultiSelectField options={rowStatusOptions} groups={rowStatusGroups} value={rowStatusFilter} onChange={setRowStatusFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowStatusFilter, 'All Statuses', 'statuses')} radius="var(--radius-md)" />
             </div>
             <SegmentedFilter
               value={rowAlertFilter}
@@ -3503,10 +3503,10 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
               <MultiSelectField options={ratingOptions} value={rowAsatFilter} onChange={setRowAsatFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowAsatFilter, 'ASAT: Any', 'ratings')} radius="var(--radius-md)" />
             </div>
             <div style={{ width: 250 }}>
-              <MultiSelectField options={rowAgentOptions} value={rowAgentFilter} onChange={setRowAgentFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowAgentFilter, 'All agents', 'agents')} radius="var(--radius-md)" />
+              <MultiSelectField options={rowAgentOptions} value={rowAgentFilter} onChange={setRowAgentFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowAgentFilter, 'All Agents', 'agents')} radius="var(--radius-md)" />
             </div>
             <div style={{ width: 250 }}>
-              <MultiSelectField options={rowTopicOptions} value={rowTopicFilter} onChange={setRowTopicFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowTopicFilter, 'All topics', 'topics')} radius="var(--radius-md)" />
+              <MultiSelectField options={rowTopicOptions} value={rowTopicFilter} onChange={setRowTopicFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowTopicFilter, 'All Topics', 'topics')} radius="var(--radius-md)" />
             </div>
             {rowFiltersActive && (
               <button
@@ -3690,10 +3690,10 @@ export function ProgramHealth7Page() {
           <SearchInput value={search} onChange={setSearch} placeholder="Search program name" />
           <DateRangePicker value={range} onChange={setRange} />
           <div style={{ width: 250 }}>
-            <MultiSelectField options={PROGRAMS.map(p => p.n)} value={progs} onChange={setProgs} mutedPlaceholder={false} labelOverride={multiLabel(progs, 'All programs', 'programs')} radius="var(--radius-md)" optionStatus={opt => PROGRAMS.find(p => p.n === opt)?.tags.includes('Active')} />
+            <MultiSelectField options={PROGRAMS.map(p => p.n)} value={progs} onChange={setProgs} mutedPlaceholder={false} labelOverride={multiLabel(progs, 'All Programs', 'programs')} radius="var(--radius-md)" optionStatus={opt => PROGRAMS.find(p => p.n === opt)?.tags.includes('Active')} />
           </div>
           <div style={{ width: 250 }}>
-            <MultiSelectField options={CHANNELS} value={chs} onChange={setChs} mutedPlaceholder={false} labelOverride={multiLabel(chs, 'All channels', 'channels')} radius="var(--radius-md)" />
+            <MultiSelectField options={CHANNELS} value={chs} onChange={setChs} mutedPlaceholder={false} labelOverride={multiLabel(chs, 'All Channels', 'channels')} radius="var(--radius-md)" />
           </div>
           <div style={{ width: 250 }}>
             <MultiSelectField options={TOPICS} value={cats} onChange={setCats} mutedPlaceholder={false} labelOverride={multiLabel(cats, 'All Topics', 'topics')} radius="var(--radius-md)" />
