@@ -510,9 +510,7 @@ export default function App() {
   // Dashboard renders the native nice_world dashboard; the other three render
   // the prototype screens (own chrome hidden via ?embed=full).
   const FI_NAV_ITEMS = [
-    { id: 'dashboard5', label: 'Program Health', icon: LayoutGrid },
-  { id: 'programhealth4', label: 'Program Health 2', icon: LayoutGrid },
-  { id: 'programhealth6', label: 'Program Health 3', icon: LayoutGrid },
+    { id: 'programhealth6', label: 'Program Health', icon: LayoutGrid },
     {
       type: 'group' as const,
       id: 'old-dashboards',
@@ -525,6 +523,8 @@ export default function App() {
         { id: 'dashboard4', label: 'Dashboard 3' },
         { id: 'dashboard6', label: 'Dashboard 4' },
         { id: 'dashboard7', label: 'Dashboard 5' },
+        { id: 'dashboard5', label: 'Program Health (22nd Oct)' },
+        { id: 'programhealth4', label: 'Program Health 2 (22nd Oct)' },
         { id: 'programhealth2', label: 'Program Health 18th Oct' },
         { id: 'programhealth3', label: 'Program Health 2 (21st Oct)' },
         { id: 'programhealth5', label: 'Program Health 4 (21st Oct)' },
@@ -552,11 +552,11 @@ export default function App() {
     dashboard4: 'Dashboard 3',
     dashboard6: 'Dashboard 4',
     dashboard7: 'Dashboard 5',
-    dashboard5: 'Program Health',
+    dashboard5: 'Program Health (22nd Oct)',
     programhealth2: 'Program Health 18th Oct',
     programhealth3: 'Program Health 2 (21st Oct)',
-  programhealth4: 'Program Health 2',
-  programhealth6: 'Program Health 3',
+  programhealth4: 'Program Health 2 (22nd Oct)',
+  programhealth6: 'Program Health',
   programhealth7: 'Program Health 3 - 21st Oct',
   programhealth5: 'Program Health 4 (21st Oct)',
     programs: page === 'campaign-portfolio'

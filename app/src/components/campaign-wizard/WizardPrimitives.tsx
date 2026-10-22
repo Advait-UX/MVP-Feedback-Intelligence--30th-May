@@ -217,7 +217,7 @@ export function SurveyingDays({ value, onChange }: { value: string[]; onChange: 
 
 /* ── MultiSelectField ── */
 export function MultiSelectField({
-  options, value, onChange, placeholder, error, mutedPlaceholder = true, labelOverride, borderColor, radius, optionStatus
+  options, value, onChange, placeholder, error, mutedPlaceholder = true, labelOverride, borderColor, radius, optionStatus, groups
 }: {
   options: string[]; value: string[]; onChange: (v: string[]) => void
   placeholder?: string; error?: boolean
@@ -230,12 +230,19 @@ export function MultiSelectField({
   radius?: string
   /** When provided, shows a status dot before each option's label (true = active/green, false = inactive/grey) with a matching tooltip on hover. */
   optionStatus?: (opt: string) => boolean | undefined
+  /** When provided, options render under labeled section headers instead of one flat list (e.g. Survey
+      Status's "Invitation Delivered" vs "Skipped" groups) — same row styling and search, just grouped.
+      `options` should still list every option across all groups (used for the trigger label/count). */
+  groups?: { label: string; options: string[] }[]
 }) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const ref = useRef<HTMLDivElement>(null)
 
   const filtered = options.filter(o => o.toLowerCase().includes(search.toLowerCase()))
+  const filteredGroups = groups
+    ?.map(g => ({ label: g.label, options: g.options.filter(o => o.toLowerCase().includes(search.toLowerCase())) }))
+    .filter(g => g.options.length > 0)
 
   useEffect(() => {
     if (!open) return
@@ -248,6 +255,42 @@ export function MultiSelectField({
 
   function toggle(opt: string) {
     onChange(value.includes(opt) ? value.filter(v => v !== opt) : [...value, opt])
+  }
+
+  function OptionRow({ opt }: { opt: string }) {
+    const selected = value.includes(opt)
+    const status = optionStatus?.(opt)
+    return (
+      <div
+        key={opt}
+        onMouseDown={() => toggle(opt)}
+        title={status === undefined ? undefined : status ? 'Active program' : 'Inactive program'}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '7px 12px', cursor: 'pointer',
+          background: selected ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
+          font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)',
+        }}
+        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+      >
+        <span style={{
+          width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+          border: `1.5px solid ${selected ? 'var(--lyra-brand-600)' : 'var(--lyra-color-border-medium)'}`,
+          background: selected ? 'var(--lyra-brand-600)' : 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {selected && <Check size={10} stroke="#fff" strokeWidth={2.5} />}
+        </span>
+        {status !== undefined && (
+          <span style={{
+            width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+            background: status ? 'rgba(100,185,111,0.55)' : 'var(--lyra-slate-400)',
+          }} />
+        )}
+        {opt}
+      </div>
+    )
   }
 
   const label = labelOverride ?? (value.length === 0
@@ -300,43 +343,22 @@ export function MultiSelectField({
             </div>
           </div>
           <div style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 0' }}>
-            {filtered.length === 0
-              ? <div style={{ padding: '8px 12px', font: '400 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>No results</div>
-              : filtered.map(opt => {
-                const selected = value.includes(opt)
-                const status = optionStatus?.(opt)
-                return (
-                  <div
-                    key={opt}
-                    onMouseDown={() => toggle(opt)}
-                    title={status === undefined ? undefined : status ? 'Active program' : 'Inactive program'}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '7px 12px', cursor: 'pointer',
-                      background: selected ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
-                      font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)',
-                    }}
-                    onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-                    onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-                  >
-                    <span style={{
-                      width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                      border: `1.5px solid ${selected ? 'var(--lyra-brand-600)' : 'var(--lyra-color-border-medium)'}`,
-                      background: selected ? 'var(--lyra-brand-600)' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {selected && <Check size={10} stroke="#fff" strokeWidth={2.5} />}
-                    </span>
-                    {status !== undefined && (
-                      <span style={{
-                        width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-                        background: status ? 'rgba(100,185,111,0.55)' : 'var(--lyra-slate-400)',
-                      }} />
-                    )}
-                    {opt}
+            {groups ? (
+              !filteredGroups || filteredGroups.length === 0
+                ? <div style={{ padding: '8px 12px', font: '400 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>No results</div>
+                : filteredGroups.map(g => (
+                  <div key={g.label}>
+                    <div style={{ padding: '6px 12px 4px', font: '500 11px/14px var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>
+                      {g.label}
+                    </div>
+                    {g.options.map(opt => <OptionRow key={opt} opt={opt} />)}
                   </div>
-                )
-              })}
+                ))
+            ) : (
+              filtered.length === 0
+                ? <div style={{ padding: '8px 12px', font: '400 13px/20px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>No results</div>
+                : filtered.map(opt => <OptionRow key={opt} opt={opt} />)
+            )}
           </div>
         </div>
       )}

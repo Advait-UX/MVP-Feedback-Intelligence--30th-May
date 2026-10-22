@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
-import { Activity, AlertTriangle, ArrowLeftRight, Building2, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDashed, Headphones, Hourglass, Info, Lightbulb, Mail, MessageSquare, MinusCircle, Phone, Power, PowerOff, Search, Smile, Sparkles, Star, User, UserMinus, Wrench, X, XCircle } from 'lucide-react'
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react'
+import { Activity, AlertTriangle, ArrowLeftRight, ArrowRight, Bell, BellOff, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDashed, Headphones, Hourglass, Info, Lightbulb, MessageSquare, MinusCircle, Power, PowerOff, Search, Smile, Sparkles, Star, UserMinus, Wrench, X, XCircle } from 'lucide-react'
 import { SearchInput } from '../components/feedback-management/ListPagePrimitives'
 import { MultiSelectField } from '../components/campaign-wizard/WizardPrimitives'
 
@@ -14,9 +14,11 @@ const PROGRAMS = [
   { n: 'Product Feedback - Beta Testers', tags: ['Inactive', 'Static questions', 'Needs attention'], expiredOn: 'Oct 9', cat: 'Product', ch: { Email: 0.7, WhatsApp: 0.3 }, inter: 2555, elig: 834, sent: 600, rec: 457, comp: 329, csat: 75, asat: 80, alerts: 5, coverageUp: false, responseRateUp: true, completionRateUp: true, csatUp: true },
 ]
 
+/* "Program not found" was folded out — every interaction now routes to a program, so those 2,134
+   interactions were redistributed proportionally across the remaining reasons, keeping the same total. */
 const REASONS: [string, number, string][] = [
-  ['No matching skill/team', 4534, 't'], ['Recency window', 3458, 't'], ['Program not found', 2134, 't'],
-  ['Interaction too short', 2021, 't'], ['Outside send window', 829, 't'], ['Survey refused', 1053, 'c'], ['Internal interaction', 666, 'c'],
+  ['No matching skill/team', 5305, 't'], ['Recency window', 4045, 't'],
+  ['Interaction too short', 2364, 't'], ['Outside send window', 970, 't'], ['Survey refused', 1232, 'c'], ['Internal interaction', 779, 'c'],
 ]
 const SKIP_ALL = 14695
 
@@ -354,7 +356,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
         </div>
         <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 1060 }}>
           {selector('el', 'Eligible for survey', 'Track sent, responded, completed', elig, deltas.elig, er)}
-          {selector('ne', 'Not eligible for survey', 'See why no survey was sent', skipped, undefined, 100 - er, NE_COLOR)}
+          {selector('ne', 'Skipped', 'See why no survey was sent', skipped, undefined, 100 - er, NE_COLOR)}
         </div>
         {open === null && (
           <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Select a tab to see the detail</div>
@@ -403,7 +405,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
                 <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>Split of responses received</span>
               </div>
               <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', gap: 6, marginBottom: 14 }}>
-                {([["Survey's completed", comp, deltas.comp, EL_COLOR, false], ['Partially completed', part, deltas.part, NE_COLOR, true]] as [string, number, string, string, boolean][]).map(([l, v, d, c, right]) => (
+                {([["Survey's completed", comp, deltas.comp, EL_COLOR, false], ['Partially Responded', part, deltas.part, NE_COLOR, true]] as [string, number, string, string, boolean][]).map(([l, v, d, c, right]) => (
                   <div key={l} style={{ display: 'flex', flexDirection: 'column', alignItems: right ? 'flex-end' : 'flex-start' }}>
                     <span style={{ display: 'block', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', marginBottom: 4, textAlign: right ? 'right' : 'left' }}>{l}</span>
                     <b style={{ display: 'flex', alignItems: 'center', gap: 6, font: `500 18px/22px ${FONT}`, whiteSpace: 'nowrap', color: 'var(--lyra-color-fg-default)' }}>
@@ -444,7 +446,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
               {fmt(skipped)} interactions ({pct(skipped, inter)}%) did not qualify for a survey, so none was sent. The reasons below explain the drop. {fmt(tun)} of them sit behind program settings you can change; the rest are fixed by compliance rules.
             </span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, alignItems: 'end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${rs.length}, 1fr)`, gap: 10, alignItems: 'end' }}>
             {rs.map(([n, v, k]) => (
               <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ width: '100%', height: 140, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -773,9 +775,9 @@ type ProgramInsight = {
 const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
   'Flight Disruption Recovery': {
     kind: 'watch',
-    rules: ['Partially completed responses above 25% for 14 days', 'Survey coverage below 90% on WhatsApp'],
+    rules: ['Partially Responded responses above 25% for 14 days', 'Survey coverage below 90% on WhatsApp'],
     problem: [
-      { label: 'Partially completed', value: '28%', delta: '+4pp' },
+      { label: 'Partially Responded', value: '28%', delta: '+4pp' },
       { label: 'Survey coverage', value: '86%', delta: '-3pp' },
       { label: 'CSAT', value: '86%', delta: '+2pp' },
     ],
@@ -791,10 +793,10 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
   },
   'Billing and Refund Recovery · All Digital': {
     kind: 'watch',
-    rules: ['Response rate below 50% for 7 consecutive days', 'Partially completed responses above 40%'],
+    rules: ['Response rate below 50% for 7 consecutive days', 'Partially Responded responses above 40%'],
     problem: [
       { label: 'Response rate', value: '45%', delta: '+3pp' },
-      { label: 'Partially completed', value: '47%', delta: '-2pp' },
+      { label: 'Partially Responded', value: '47%', delta: '-2pp' },
       { label: 'CSAT', value: '81%', delta: '+1pp' },
       { label: 'Alerts', value: '4', delta: '-4%' },
     ],
@@ -862,10 +864,9 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
       { title: 'Review the 10 detractor alerts', detail: 'All 10 are open. Three are from repeat customers.', cta: 'Open alerts' },
     ],
     watch: [
-      { label: 'Divergence', value: '3', delta: '+2', stat: '3 interactions diverged from the system read this period, up from 1 last period.' },
       { label: 'ASAT', value: '72%', delta: '-3%', stat: '19 interactions rated 1–2 this period, up from 13 last period.' },
-      { label: 'Not eligible for survey', value: '57%', delta: 'of interactions', cause: 'Mostly "no matching skill or team" (454 of 1,466 skipped)', action: 'Review skill routing for these queues' },
-      { label: 'Partially completed', value: '182', delta: '+4%', cause: 'Most drop-offs happen after the refund question', action: 'Move that question earlier in the survey' },
+      { label: 'Skipped', value: '57%', delta: 'of interactions', cause: 'Mostly "no matching skill or team" (454 of 1,466 skipped)', action: 'Review skill routing for these queues' },
+      { label: 'Partially Responded', value: '182', delta: '+4%', cause: 'Most drop-offs happen after the refund question', action: 'Move that question earlier in the survey' },
     ],
   },
 }
@@ -1048,9 +1049,8 @@ const METRIC_ICON: Record<string, React.ReactNode> = {
   CSAT: <Smile size={16} />,
   ASAT: <Headphones size={16} />,
   Alerts: <Bell size={16} />,
-  'Not eligible for survey': <UserMinus size={16} />,
-  'Partially completed': <CircleDashed size={16} />,
-  Divergence: <ArrowLeftRight size={16} />,
+  Skipped: <UserMinus size={16} />,
+  'Partially Responded': <CircleDashed size={16} />,
 }
 
 /* A sleeker, lower-chrome take on the same metric card: a slim accent rail instead of a thick wash, the
@@ -1121,7 +1121,7 @@ function InsightCard({ m, accent, wash }: { m: InsightMetric; accent: string; wa
   )
 }
 
-function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat, onViewDivergence }: { program: typeof PROGRAMS[0]; onOpen?: () => void; onViewAlerts?: () => void; onViewLowCsat?: () => void; onViewDivergence?: () => void }) {
+function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat }: { program: typeof PROGRAMS[0]; onOpen?: () => void; onViewAlerts?: () => void; onViewLowCsat?: () => void }) {
   const ins = PROGRAM_INSIGHTS[program.n] ?? GENERIC_INSIGHT(program)
   const attention = ins.kind === 'attention'
   const pending = ins.kind === 'pending'
@@ -1138,9 +1138,7 @@ function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat, onViewDiv
       m.label === 'CSAT' && onViewLowCsat ? { ...m, onAction: onViewLowCsat, actionLabel: 'View low-CSAT interactions' } :
       m
     ))
-    const watch = (ins.watch ?? []).map(m => (
-      m.label === 'Divergence' && onViewDivergence ? { ...m, onAction: onViewDivergence, actionLabel: 'View divergent interactions' } : m
-    ))
+    const watch = ins.watch ?? []
     const active = tier === 'attention' ? problem : watch
     const activeAccent = tier === 'attention' ? critical : warning
     const activeWash = tier === 'attention' ? criticalWash : warningWash
@@ -1245,6 +1243,23 @@ const CHANNEL_DATA = [
   { channel: 'Email', elig: 2890, coverage: 87, sent: 2507, responseRate: 39, rec: 977, completionRate: 58, comp: 567, partial: 410, csat: 72, asat: 79, alerts: 11 },
 ]
 
+/* Which programs deliver on each channel, and each one's slice of that channel's volume. Eligible/sent/
+   responses/completed/partial/alerts sum exactly to the matching CHANNEL_DATA row above — expanding a
+   channel should never show numbers that don't add back up to the total it's a breakdown of. */
+const CHANNEL_PROGRAMS: Record<string, { name: string; elig: number; sent: number; rec: number; comp: number; partial: number; csat: number; asat: number; alerts: number }[]> = {
+  SMS: [
+    { name: 'Complaint Resolution Follow-Up', elig: 2745, sent: 2452, rec: 1618, comp: 1133, partial: 485, csat: 78, asat: 82, alerts: 10 },
+  ],
+  WhatsApp: [
+    { name: 'Flight Disruption Recovery', elig: 800, sent: 702, rec: 421, comp: 274, partial: 147, csat: 79, asat: 82, alerts: 3 },
+    { name: 'Omnichannel Escalation Recovery', elig: 498, sent: 437, rec: 262, comp: 171, partial: 91, csat: 76, asat: 79, alerts: 2 },
+    { name: 'Product Feedback - Beta Testers', elig: 292, sent: 256, rec: 154, comp: 100, partial: 54, csat: 74, asat: 78, alerts: 1 },
+  ],
+  Email: [
+    { name: 'Billing and Refund Recovery · All Digital', elig: 2890, sent: 2507, rec: 977, comp: 567, partial: 410, csat: 72, asat: 79, alerts: 11 },
+  ],
+}
+
 const TOPIC_COLUMNS: { label: string; key: string }[] = [
   { label: 'Topic', key: 'topic' },
   { label: 'Eligible', key: 'elig' },
@@ -1271,6 +1286,47 @@ const TOPIC_DATA = [
   { topic: 'Bot Transfer Friction', elig: 221, coverage: 86, sent: 190, responseRate: 48, rec: 91, completionRate: 58, comp: 53, partial: 38, csat: 86, asat: 88, alerts: 1 },
   { topic: 'Other topics', elig: 2458, coverage: 85, sent: 2089, responseRate: 48, rec: 999, completionRate: 57, comp: 565, partial: 434, csat: 75, asat: 81, alerts: 1 },
 ]
+
+/* Which programs raised each topic, and each one's slice of that topic's volume. A program can — and
+   often does — show up under more than one topic (the same team handles several issue types), and a
+   topic can be raised across more than one program; every child row's numbers still sum exactly to the
+   matching TOPIC_DATA row above. */
+type TopicProgramSlice = { name: string; elig: number; sent: number; rec: number; comp: number; partial: number; csat: number; asat: number; alerts: number }
+const TOPIC_PROGRAMS: Record<string, TopicProgramSlice[]> = {
+  'Service Outage': [
+    { name: 'Complaint Resolution Follow-Up', elig: 1192, sent: 1077, rec: 475, comp: 269, partial: 206, csat: 74, asat: 79, alerts: 6 },
+  ],
+  'Rebooking': [
+    { name: 'Flight Disruption Recovery', elig: 816, sent: 702, rec: 459, comp: 338, partial: 121, csat: 81, asat: 84, alerts: 4 },
+  ],
+  'Refund Processing': [
+    { name: 'Complaint Resolution Follow-Up', elig: 269, sent: 238, rec: 136, comp: 94, partial: 42, csat: 68, asat: 74, alerts: 2 },
+    { name: 'Billing and Refund Recovery · All Digital', elig: 375, sent: 332, rec: 189, comp: 131, partial: 58, csat: 76, asat: 81, alerts: 2 },
+  ],
+  'Delivery Delay': [
+    { name: 'Flight Disruption Recovery', elig: 619, sent: 533, rec: 339, comp: 255, partial: 84, csat: 78, asat: 83, alerts: 2 },
+  ],
+  'Technical Troubleshooting': [
+    { name: 'Complaint Resolution Follow-Up', elig: 571, sent: 533, rec: 323, comp: 237, partial: 86, csat: 70, asat: 76, alerts: 3 },
+  ],
+  'Billing Dispute': [
+    { name: 'Complaint Resolution Follow-Up', elig: 180, sent: 168, rec: 121, comp: 94, partial: 27, csat: 75, asat: 80, alerts: 1 },
+    { name: 'Billing and Refund Recovery · All Digital', elig: 252, sent: 234, rec: 168, comp: 131, partial: 37, csat: 84, asat: 89, alerts: 1 },
+  ],
+  'Account Access': [
+    { name: 'Complaint Resolution Follow-Up', elig: 272, sent: 258, rec: 132, comp: 78, partial: 54, csat: 70, asat: 77, alerts: 4 },
+  ],
+  'Bot Transfer Friction': [
+    { name: 'Omnichannel Escalation Recovery', elig: 221, sent: 190, rec: 91, comp: 53, partial: 38, csat: 86, asat: 88, alerts: 1 },
+  ],
+  'Other topics': [
+    { name: 'Complaint Resolution Follow-Up', elig: 376, sent: 319, rec: 153, comp: 86, partial: 66, csat: 55, asat: 68, alerts: 0 },
+    { name: 'Flight Disruption Recovery', elig: 783, sent: 666, rec: 319, comp: 180, partial: 138, csat: 84, asat: 89, alerts: 1 },
+    { name: 'Billing and Refund Recovery · All Digital', elig: 524, sent: 446, rec: 213, comp: 121, partial: 93, csat: 76, asat: 81, alerts: 0 },
+    { name: 'Omnichannel Escalation Recovery', elig: 488, sent: 415, rec: 198, comp: 112, partial: 86, csat: 75, asat: 80, alerts: 0 },
+    { name: 'Product Feedback - Beta Testers', elig: 287, sent: 243, rec: 116, comp: 66, partial: 51, csat: 72, asat: 77, alerts: 0 },
+  ],
+}
 
 function NeedsAttentionChip() {
   return (
@@ -1385,6 +1441,12 @@ function SortableTh({ label, sortKey, sort, onSort, padding }: { label: string; 
 /* ── Programs Table ── */
 function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }: { programs: typeof PROGRAMS; searchQuery: string; onSelectProgram: (p: typeof PROGRAMS[0]) => void; onOpenInsight: (p: typeof PROGRAMS[0]) => void }) {
   const [groupBy, setGroupBy] = useState<'Program' | 'Channel' | 'Topic'>('Program')
+  const [expandedChannel, setExpandedChannel] = useState<string | null>(null)
+  const [expandedTopic, setExpandedTopic] = useState<string | null>(null)
+  const goToProgram = (name: string) => {
+    const prog = programs.find(pr => pr.n === name)
+    if (prog) onSelectProgram(prog)
+  }
   const [sort, setSort] = useState<SortState>(null)
   const handleSort = (key: string) => setSort(s => s?.key === key ? (s.dir === 'desc' ? { key, dir: 'asc' } : null) : { key, dir: 'desc' })
   const q = searchQuery.trim().toLowerCase()
@@ -1402,17 +1464,21 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
     <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
       <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Programs</h3>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            minWidth: 22, height: 22, padding: '0 var(--space-2)',
-            borderRadius: 'var(--radius-full)',
-            background: 'var(--lyra-slate-100)',
-            color: 'var(--lyra-slate-600)',
-            font: `500 12px/16px ${FONT}`,
-          }}>
-            {filtered.length}
-          </span>
+          <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>
+            Programs{groupBy !== 'Program' ? ` — grouped by ${groupBy.toLowerCase()}` : ''}
+          </h3>
+          {groupBy === 'Program' && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              minWidth: 22, height: 22, padding: '0 var(--space-2)',
+              borderRadius: 'var(--radius-full)',
+              background: 'var(--lyra-slate-100)',
+              color: 'var(--lyra-slate-600)',
+              font: `500 12px/16px ${FONT}`,
+            }}>
+              {filtered.length}
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Group by</span>
@@ -1420,7 +1486,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
             {(['Program', 'Channel', 'Topic'] as const).map((g, i) => (
               <button
                 key={g}
-                onClick={() => { setGroupBy(g); setSort(null) }}
+                onClick={() => { setGroupBy(g); setSort(null); setExpandedChannel(null); setExpandedTopic(null) }}
                 style={{
                   padding: '6px 16px', font: `500 12px/16px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
                   background: groupBy === g ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
@@ -1453,46 +1519,102 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
               </tr>
             </thead>
             <tbody>
-              {sortRows(CHANNEL_DATA, sort).map(c => (
-                <tr key={c.channel} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {c.channel}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(c.elig)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{c.coverage}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(c.sent)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{c.responseRate}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(c.rec)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{c.completionRate}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(c.comp)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(c.partial)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{c.csat}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{c.asat}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
-                    {c.alerts}
-                  </td>
-                </tr>
-              ))}
+              {sortRows(CHANNEL_DATA, sort).map(c => {
+                const isOpen = expandedChannel === c.channel
+                const children = CHANNEL_PROGRAMS[c.channel] ?? []
+                return (
+                  <Fragment key={c.channel}>
+                    <tr
+                      role="button" tabIndex={0} aria-expanded={isOpen}
+                      style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer' }}
+                      onClick={() => setExpandedChannel(isOpen ? null : c.channel)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedChannel(isOpen ? null : c.channel) } }}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
+                    >
+                      <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <ChevronDown size={14} style={{ color: 'var(--lyra-color-fg-secondary)', transform: isOpen ? 'none' : 'rotate(-90deg)', transition: 'transform 0.15s', flexShrink: 0 }} />
+                          {c.channel}
+                        </span>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(c.elig)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{c.coverage}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(c.sent)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{c.responseRate}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(c.rec)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{c.completionRate}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(c.comp)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(c.partial)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{c.csat}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{c.asat}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {c.alerts}
+                      </td>
+                    </tr>
+                    {isOpen && children.map(p => (
+                      <tr key={p.name} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', background: 'var(--lyra-color-bg-surface-canvas)' }}>
+                        <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) calc(var(--space-6) + 20px)', whiteSpace: 'nowrap' }}>
+                          <span onClick={() => goToProgram(p.name)} style={{ font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-link)', cursor: 'pointer' }}>{p.name}</span>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.elig)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{pct(p.sent, p.elig)}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.sent)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{pct(p.rec, p.sent)}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.rec)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{pct(p.comp, p.rec)}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.comp)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.partial)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{p.csat}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{p.asat}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {p.alerts}
+                        </td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -1514,46 +1636,102 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
               </tr>
             </thead>
             <tbody>
-              {sortRows(TOPIC_DATA, sort).map(t => (
-                <tr key={t.topic} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {t.topic}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(t.elig)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{t.coverage}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(t.sent)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{t.responseRate}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(t.rec)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{t.completionRate}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(t.comp)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
-                    {fmt(t.partial)}
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{t.csat}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
-                    <GreyBadge>{t.asat}%</GreyBadge>
-                  </td>
-                  <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
-                    {t.alerts}
-                  </td>
-                </tr>
-              ))}
+              {sortRows(TOPIC_DATA, sort).map(t => {
+                const isOpen = expandedTopic === t.topic
+                const children = TOPIC_PROGRAMS[t.topic] ?? []
+                return (
+                  <Fragment key={t.topic}>
+                    <tr
+                      role="button" tabIndex={0} aria-expanded={isOpen}
+                      style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer' }}
+                      onClick={() => setExpandedTopic(isOpen ? null : t.topic)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedTopic(isOpen ? null : t.topic) } }}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
+                    >
+                      <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) var(--space-6)', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <ChevronDown size={14} style={{ color: 'var(--lyra-color-fg-secondary)', transform: isOpen ? 'none' : 'rotate(-90deg)', transition: 'transform 0.15s', flexShrink: 0 }} />
+                          {t.topic}
+                        </span>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(t.elig)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{t.coverage}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(t.sent)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{t.responseRate}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(t.rec)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{t.completionRate}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(t.comp)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {fmt(t.partial)}
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{t.csat}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                        <GreyBadge>{t.asat}%</GreyBadge>
+                      </td>
+                      <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                        {t.alerts}
+                      </td>
+                    </tr>
+                    {isOpen && children.map(p => (
+                      <tr key={p.name} style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', background: 'var(--lyra-color-bg-surface-canvas)' }}>
+                        <td style={{ padding: 'var(--space-3) var(--space-3) var(--space-3) calc(var(--space-6) + 20px)', whiteSpace: 'nowrap' }}>
+                          <span onClick={() => goToProgram(p.name)} style={{ font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-link)', cursor: 'pointer' }}>{p.name}</span>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.elig)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{pct(p.sent, p.elig)}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.sent)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{pct(p.rec, p.sent)}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.rec)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{pct(p.comp, p.rec)}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.comp)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {fmt(p.partial)}
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{p.csat}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
+                          <GreyBadge>{p.asat}%</GreyBadge>
+                        </td>
+                        <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
+                          {p.alerts}
+                        </td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                )
+              })}
             </tbody>
           </table>
           <div style={{ padding: 'var(--space-3) var(--space-4)', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', fontStyle: 'italic' }}>
@@ -1644,7 +1822,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
                       <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
                         <GreyBadge>{p.asat}%</GreyBadge>
                       </td>
-                      <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: 'var(--space-3)', font: `600 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap' }}>
                         {p.alerts}
                       </td>
                     </tr>
@@ -1769,6 +1947,10 @@ function makeFillerRows(programSeed: string, startId: number, count: number, top
     const day = 1 + (i % 28)
     const hour = 8 + (i % 12)
     const minute = (i * 13) % 60
+    /* Everyone here got an invite and just never came back — all of that is "Survey Not Started" under
+       the Invitation Delivered taxonomy. A handful of rows near the end demonstrate the other Invitation
+       Delivered substatuses (Declined / Invalid / Test) so they're selectable in the status filter. */
+    const status = i === 10 ? 'Survey Declined' : i === 11 ? 'Invalid Response' : i === 12 ? 'Test Survey' : 'Survey Not Started'
     return {
       customer: `${first} ${last}`,
       id: `INT-${startId + i}`,
@@ -1776,16 +1958,27 @@ function makeFillerRows(programSeed: string, startId: number, count: number, top
       topic,
       sent: `Jul ${day}, ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
       response: null, completed: null, csat: null, asat: null,
-      status: 'Not Started',
+      status,
     }
   })
 }
 
 /* Fallback detail for any row without a hand-authored CustomerDetail (i.e. the filler rows above). */
-/* Filler "Out of coverage" rows have no hand-authored reason, so give the program manager a plausible one
-   instead of just restating the status back at them. */
+/* Filler Skipped rows have no hand-authored reason, so give the program manager a plausible one instead
+   of just restating the status back at them. */
 const NOT_ELIGIBLE_REASONS: Record<string, string> = {
-  'out of coverage': 'the interaction’s channel, customer segment, or routing rules fell outside this program’s configured survey coverage',
+  'opted out': 'the customer has opted out of surveys',
+  'recency window': 'this interaction fell outside the recency window for a follow-up',
+  'no matching survey window': 'the interaction happened outside the program’s configured survey send window',
+  'no matching skill or team': 'no matching skill or team was available to route the case',
+  'internal interaction': 'this interaction was flagged as internal and excluded from customer surveys',
+}
+/* Invitation Delivered substatuses that still mean "no usable response" — each gets its own plain-language
+   outcome line instead of defaulting to the generic "hasn't opened it yet" text. */
+const SENT_STATUS_OUTCOMES: Record<string, string> = {
+  'Survey Declined': 'The customer opened the survey and declined to respond.',
+  'Invalid Response': 'The response could not be scored — the answer didn’t match a valid option.',
+  'Test Survey': 'This was a test send, excluded from reporting.',
 }
 function genericDetailFor(row: ResponseRow): CustomerDetail {
   const notSent = row.sent === null
@@ -1794,7 +1987,7 @@ function genericDetailFor(row: ResponseRow): CustomerDetail {
     questions: notSent || !row.topic ? [] : [{ q: TOPIC_QUESTIONS[row.topic] ?? 'How would you rate your experience with us today?', a: null }],
     outcome: notSent
       ? `No survey was sent — ${NOT_ELIGIBLE_REASONS[row.status.toLowerCase()] ?? row.status.toLowerCase()}.`
-      : 'Not started — the customer has not opened the survey.',
+      : SENT_STATUS_OUTCOMES[row.status] ?? 'Not started — the customer has not opened the survey.',
     alert: null,
     phone: `+1 223-555-${(seededIndex(row.id, 9000) + 1000)}`,
     email: `${row.customer.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
@@ -1802,31 +1995,31 @@ function genericDetailFor(row: ResponseRow): CustomerDetail {
 }
 
 const CRF_RESPONSES: ResponseRow[] = [
-  { customer: 'Sophie Patel', id: 'INT-4064903', agent: 'Ben K.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
-  { customer: 'Olivia Smith', id: 'INT-6257112', agent: 'Tomás R.', topic: 'Technical Troubleshooting', sent: 'Jul 1, 15:32', response: 'Jul 1, 15:35', completed: 'Jul 1, 16:13', csat: 5, asat: 5, status: 'Survey completed' },
-  { customer: 'Marcus Wright', id: 'INT-4789800', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 2, 08:35', response: 'Jul 2, 08:55', completed: 'Jul 2, 09:08', csat: 2, asat: 3, status: 'Survey completed' },
+  { customer: 'Sophie Patel', id: 'INT-4064903', agent: 'Ben K.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Internal Interaction' },
+  { customer: 'Olivia Smith', id: 'INT-6257112', agent: 'Tomás R.', topic: 'Technical Troubleshooting', sent: 'Jul 1, 15:32', response: 'Jul 1, 15:35', completed: 'Jul 1, 16:13', csat: 5, asat: 5, status: 'Survey Completed' },
+  { customer: 'Marcus Wright', id: 'INT-4789800', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 2, 08:35', response: 'Jul 2, 08:55', completed: 'Jul 2, 09:08', csat: 2, asat: 3, status: 'Survey Completed' },
   { customer: 'Ava Johnson', id: 'INT-1601280', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 18, 08:05', response: 'Jul 18, 08:22', completed: null, csat: 1, asat: null, status: 'Partially Responded' },
-  { customer: 'Olivia Smith', id: 'INT-3002077', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 5, 11:53', response: 'Jul 5, 12:06', completed: 'Jul 5, 12:30', csat: 5, asat: 4, status: 'Survey completed' },
+  { customer: 'Olivia Smith', id: 'INT-3002077', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 5, 11:53', response: 'Jul 5, 12:06', completed: 'Jul 5, 12:30', csat: 5, asat: 4, status: 'Survey Completed' },
   { customer: 'Daniel Chen', id: 'INT-1249933', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 12, 16:19', response: 'Jul 12, 16:44', completed: null, csat: 1, asat: null, status: 'Partially Responded' },
-  { customer: 'Liam Al-Farsi', id: 'INT-5180251', agent: 'Priya M.', topic: 'Service Outage', sent: 'Jul 9, 13:54', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-  { customer: 'Marcus Smith', id: 'INT-2249741', agent: 'Rajat S.', topic: 'Technical Troubleshooting', sent: 'Jul 11, 14:35', response: 'Jul 11, 14:57', completed: 'Jul 11, 15:14', csat: 5, asat: 5, status: 'Survey completed' },
+  { customer: 'Liam Al-Farsi', id: 'INT-5180251', agent: 'Priya M.', topic: 'Service Outage', sent: 'Jul 9, 13:54', response: null, completed: null, csat: null, asat: null, status: 'Survey Not Started' },
+  { customer: 'Marcus Smith', id: 'INT-2249741', agent: 'Rajat S.', topic: 'Technical Troubleshooting', sent: 'Jul 11, 14:35', response: 'Jul 11, 14:57', completed: 'Jul 11, 15:14', csat: 5, asat: 5, status: 'Survey Completed' },
   { customer: 'Noah Garcia', id: 'INT-7339243', agent: 'Priya M.', topic: 'Technical Troubleshooting', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
-  { customer: 'Noah Patel', id: 'INT-5451225', agent: 'Priya M.', topic: null, sent: 'Jul 9, 16:08', response: 'Jul 9, 16:18', completed: 'Jul 9, 16:49', csat: 4, asat: 4, status: 'Survey completed' },
-  { customer: 'Derek Holloway', id: 'INT-4071012', agent: 'Ben K.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+  { customer: 'Noah Patel', id: 'INT-5451225', agent: 'Priya M.', topic: null, sent: 'Jul 9, 16:08', response: 'Jul 9, 16:18', completed: 'Jul 9, 16:49', csat: 4, asat: 4, status: 'Survey Completed' },
+  { customer: 'Derek Holloway', id: 'INT-4071012', agent: 'Ben K.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Opted Out' },
   { customer: 'Priya Anand', id: 'INT-4071123', agent: 'Tomás R.', topic: 'Refund Processing', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
-  { customer: 'Tobias Reed', id: 'INT-4071234', agent: 'Rajat S.', topic: 'Account Access', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Outside Send Window' },
-  { customer: 'Grace Liu', id: 'INT-4071345', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 6, 09:40', response: 'Jul 6, 09:52', completed: 'Jul 6, 10:05', csat: 2, asat: 3, status: 'Survey completed' },
+  { customer: 'Tobias Reed', id: 'INT-4071234', agent: 'Rajat S.', topic: 'Account Access', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Survey Window' },
+  { customer: 'Grace Liu', id: 'INT-4071345', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 6, 09:40', response: 'Jul 6, 09:52', completed: 'Jul 6, 10:05', csat: 2, asat: 3, status: 'Survey Completed' },
   { customer: 'Mateo Alvarez', id: 'INT-4071456', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 8, 14:10', response: 'Jul 8, 14:25', completed: null, csat: null, asat: 3, status: 'Partially Responded' },
-  { customer: 'Fatima Hassan', id: 'INT-4071567', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 9, 11:00', response: 'Jul 9, 11:18', completed: 'Jul 9, 11:30', csat: 3, asat: 4, status: 'Survey completed' },
+  { customer: 'Fatima Hassan', id: 'INT-4071567', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 9, 11:00', response: 'Jul 9, 11:18', completed: 'Jul 9, 11:30', csat: 3, asat: 4, status: 'Survey Completed' },
   { customer: 'Ethan Walsh', id: 'INT-4071678', agent: 'Liu Yang', topic: 'Service Outage', sent: 'Jul 10, 16:05', response: 'Jul 10, 16:20', completed: null, csat: null, asat: 2, status: 'Partially Responded' },
-  { customer: 'Chloe Dubois', id: 'INT-4071789', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 13, 08:50', response: 'Jul 13, 09:05', completed: 'Jul 13, 09:20', csat: 1, asat: 2, status: 'Survey completed' },
+  { customer: 'Chloe Dubois', id: 'INT-4071789', agent: 'Tomás R.', topic: 'Refund Processing', sent: 'Jul 13, 08:50', response: 'Jul 13, 09:05', completed: 'Jul 13, 09:20', csat: 1, asat: 2, status: 'Survey Completed' },
   { customer: 'Omar Farouk', id: 'INT-4071890', agent: 'Ben K.', topic: 'Technical Troubleshooting', sent: 'Jul 15, 13:30', response: 'Jul 15, 13:45', completed: null, csat: null, asat: 3, status: 'Partially Responded' },
-  { customer: 'Ingrid Larsen', id: 'INT-4071999', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 17, 10:15', response: 'Jul 17, 10:33', completed: 'Jul 17, 10:50', csat: 2, asat: 3, status: 'Survey completed' },
-  { customer: 'Noah Blake', id: 'INT-4072101', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 14, 09:15', response: 'Jul 14, 09:30', completed: 'Jul 14, 09:42', csat: 1, asat: 2, status: 'Survey completed' },
-  { customer: 'Priya Kapoor', id: 'INT-4072212', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 16, 15:00', response: 'Jul 16, 15:18', completed: 'Jul 16, 15:30', csat: 5, asat: 5, status: 'Survey completed' },
+  { customer: 'Ingrid Larsen', id: 'INT-4071999', agent: 'Rajat S.', topic: 'Billing Dispute', sent: 'Jul 17, 10:15', response: 'Jul 17, 10:33', completed: 'Jul 17, 10:50', csat: 2, asat: 3, status: 'Survey Completed' },
+  { customer: 'Noah Blake', id: 'INT-4072101', agent: 'Priya M.', topic: 'Account Access', sent: 'Jul 14, 09:15', response: 'Jul 14, 09:30', completed: 'Jul 14, 09:42', csat: 1, asat: 2, status: 'Survey Completed' },
+  { customer: 'Priya Kapoor', id: 'INT-4072212', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 16, 15:00', response: 'Jul 16, 15:18', completed: 'Jul 16, 15:30', csat: 5, asat: 5, status: 'Survey Completed' },
 ]
 
-const RESPONSE_COLUMNS = ['Customer', 'Interaction ID', 'Agent', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'ASAT', 'Divergence', 'Alert', 'Status']
+const RESPONSE_COLUMNS = ['Customer', 'Interaction ID', 'Agent', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'ASAT', 'Alert', 'Survey Status']
 /* One interaction set per program; each has its own reporting window, topics and ID range. */
 const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
   'Complaint Resolution Follow-Up': [
@@ -1834,81 +2027,123 @@ const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
     ...makeFillerRows('crf', 4300000, 37, ['Technical Troubleshooting', 'Refund Processing', 'Service Outage', 'Billing Dispute', 'Account Access'], ['Ben K.', 'Tomás R.', 'Priya M.', 'Liu Yang', 'Rajat S.']),
   ],
   'Flight Disruption Recovery': [
-    { customer: 'Elena Rossi', id: 'INT-7102244', agent: 'Aisha N.', topic: 'Rebooking', sent: 'Jul 3, 09:12', response: 'Jul 3, 09:20', completed: 'Jul 3, 09:31', csat: 5, asat: 5, status: 'Survey completed' },
-    { customer: 'Kwame Mensah', id: 'INT-7118830', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 4, 18:40', response: 'Jul 4, 18:52', completed: 'Jul 4, 19:05', csat: 4, asat: 4, status: 'Survey completed' },
+    { customer: 'Elena Rossi', id: 'INT-7102244', agent: 'Aisha N.', topic: 'Rebooking', sent: 'Jul 3, 09:12', response: 'Jul 3, 09:20', completed: 'Jul 3, 09:31', csat: 5, asat: 5, status: 'Survey Completed' },
+    { customer: 'Kwame Mensah', id: 'INT-7118830', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 4, 18:40', response: 'Jul 4, 18:52', completed: 'Jul 4, 19:05', csat: 4, asat: 4, status: 'Survey Completed' },
     { customer: 'Hannah Weber', id: 'INT-7124519', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 5, 11:05', response: 'Jul 5, 11:30', completed: null, csat: 3, asat: null, status: 'Partially Responded' },
-    { customer: 'Diego Martín', id: 'INT-7131077', agent: 'Liu Yang', topic: 'Missed Connection', sent: 'Jul 7, 07:50', response: 'Jul 7, 08:04', completed: 'Jul 7, 08:16', csat: 2, asat: 3, status: 'Survey completed' },
-    { customer: 'Mei Lin', id: 'INT-7139902', agent: 'Ben K.', topic: 'Baggage Delay', sent: 'Jul 8, 21:15', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Oliver Brooks', id: 'INT-7146218', agent: 'Rajat S.', topic: 'Hotel Voucher', sent: 'Jul 10, 23:02', response: 'Jul 11, 07:45', completed: 'Jul 11, 07:58', csat: 5, asat: 5, status: 'Survey completed' },
-    { customer: 'Amara Okafor', id: 'INT-7151460', agent: 'Aisha N.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
-    { customer: 'Lucas Dubois', id: 'INT-7158331', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 12, 16:20', response: 'Jul 12, 16:33', completed: 'Jul 12, 16:50', csat: 4, asat: 5, status: 'Survey completed' },
-    { customer: 'Sara Haddad', id: 'INT-7163904', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 14, 10:10', response: 'Jul 14, 10:40', completed: 'Jul 14, 10:55', csat: 5, asat: 4, status: 'Survey completed' },
+    { customer: 'Diego Martín', id: 'INT-7131077', agent: 'Liu Yang', topic: 'Missed Connection', sent: 'Jul 7, 07:50', response: 'Jul 7, 08:04', completed: 'Jul 7, 08:16', csat: 2, asat: 3, status: 'Survey Completed' },
+    { customer: 'Mei Lin', id: 'INT-7139902', agent: 'Ben K.', topic: 'Baggage Delay', sent: 'Jul 8, 21:15', response: null, completed: null, csat: null, asat: null, status: 'Survey Not Started' },
+    { customer: 'Oliver Brooks', id: 'INT-7146218', agent: 'Rajat S.', topic: 'Hotel Voucher', sent: 'Jul 10, 23:02', response: 'Jul 11, 07:45', completed: 'Jul 11, 07:58', csat: 5, asat: 5, status: 'Survey Completed' },
+    { customer: 'Amara Okafor', id: 'INT-7151460', agent: 'Aisha N.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Internal Interaction' },
+    { customer: 'Lucas Dubois', id: 'INT-7158331', agent: 'Tomás R.', topic: 'Delay Notification', sent: 'Jul 12, 16:20', response: 'Jul 12, 16:33', completed: 'Jul 12, 16:50', csat: 4, asat: 5, status: 'Survey Completed' },
+    { customer: 'Sara Haddad', id: 'INT-7163904', agent: 'Priya M.', topic: 'Compensation Claim', sent: 'Jul 14, 10:10', response: 'Jul 14, 10:40', completed: 'Jul 14, 10:55', csat: 5, asat: 4, status: 'Survey Completed' },
     { customer: 'Jonas Berg', id: 'INT-7170125', agent: 'Liu Yang', topic: 'Missed Connection', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
-    { customer: 'Freya Larsen', id: 'INT-7176231', agent: 'Rajat S.', topic: 'Compensation Claim', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Freya Larsen', id: 'INT-7176231', agent: 'Rajat S.', topic: 'Compensation Claim', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Opted Out' },
     { customer: 'Hassan Ali', id: 'INT-7176342', agent: 'Ben K.', topic: 'Delay Notification', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
     { customer: 'Clara Dubois', id: 'INT-7176453', agent: 'Aisha N.', topic: 'Rebooking', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Interaction Too Short' },
     ...makeFillerRows('flight', 4310000, 37, ['Rebooking', 'Delay Notification', 'Compensation Claim', 'Missed Connection', 'Baggage Delay', 'Hotel Voucher'], ['Aisha N.', 'Tomás R.', 'Priya M.', 'Liu Yang', 'Rajat S.', 'Ben K.']),
   ],
   'Billing and Refund Recovery · All Digital': [
-    { customer: 'Grace Kim', id: 'INT-8201133', agent: 'Marco B.', topic: 'Refund Processing', sent: 'Jul 2, 10:05', response: 'Jul 2, 10:19', completed: 'Jul 2, 10:34', csat: 5, asat: 5, status: 'Survey completed' },
+    { customer: 'Grace Kim', id: 'INT-8201133', agent: 'Marco B.', topic: 'Refund Processing', sent: 'Jul 2, 10:05', response: 'Jul 2, 10:19', completed: 'Jul 2, 10:34', csat: 5, asat: 5, status: 'Survey Completed' },
     { customer: 'Ahmed Siddiqui', id: 'INT-8207448', agent: 'Priya M.', topic: 'Duplicate Charge', sent: 'Jul 3, 14:22', response: 'Jul 3, 14:40', completed: null, csat: 4, asat: null, status: 'Partially Responded' },
-    { customer: 'Isabella Costa', id: 'INT-8213790', agent: 'Chloe D.', topic: 'Partial Refund', sent: 'Jul 5, 09:15', response: 'Jul 5, 09:28', completed: 'Jul 5, 09:44', csat: 1, asat: 2, status: 'Survey completed' },
-    { customer: 'Ravi Nair', id: 'INT-8220015', agent: 'Ben K.', topic: 'Subscription Cancellation', sent: 'Jul 6, 17:50', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Chloe Martin', id: 'INT-8226672', agent: 'Marco B.', topic: 'Payment Failure', sent: 'Jul 8, 12:03', response: 'Jul 8, 12:15', completed: 'Jul 8, 12:30', csat: 4, asat: 4, status: 'Survey completed' },
+    { customer: 'Isabella Costa', id: 'INT-8213790', agent: 'Chloe D.', topic: 'Partial Refund', sent: 'Jul 5, 09:15', response: 'Jul 5, 09:28', completed: 'Jul 5, 09:44', csat: 1, asat: 2, status: 'Survey Completed' },
+    { customer: 'Ravi Nair', id: 'INT-8220015', agent: 'Ben K.', topic: 'Subscription Cancellation', sent: 'Jul 6, 17:50', response: null, completed: null, csat: null, asat: null, status: 'Survey Not Started' },
+    { customer: 'Chloe Martin', id: 'INT-8226672', agent: 'Marco B.', topic: 'Payment Failure', sent: 'Jul 8, 12:03', response: 'Jul 8, 12:15', completed: 'Jul 8, 12:30', csat: 4, asat: 4, status: 'Survey Completed' },
     { customer: 'Tariq Hassan', id: 'INT-8233309', agent: 'Liu Yang', topic: 'Billing Dispute', sent: 'Jul 9, 15:40', response: 'Jul 9, 16:02', completed: null, csat: 3, asat: null, status: 'Partially Responded' },
-    { customer: 'Emily Zhang', id: 'INT-8239941', agent: 'Chloe D.', topic: 'Invoice Correction', sent: 'Jul 11, 11:11', response: 'Jul 11, 11:25', completed: 'Jul 11, 11:40', csat: 5, asat: 5, status: 'Survey completed' },
-    { customer: 'Pedro Alves', id: 'INT-8246580', agent: 'Priya M.', topic: 'Refund Processing', sent: 'Jul 13, 08:30', response: 'Jul 13, 08:45', completed: 'Jul 13, 09:01', csat: 2, asat: 3, status: 'Survey completed' },
-    { customer: 'Fatima Al-Sayed', id: 'INT-8252217', agent: 'Rajat S.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
-    { customer: 'Henry Walsh', id: 'INT-8258866', agent: 'Marco B.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Emily Zhang', id: 'INT-8239941', agent: 'Chloe D.', topic: 'Invoice Correction', sent: 'Jul 11, 11:11', response: 'Jul 11, 11:25', completed: 'Jul 11, 11:40', csat: 5, asat: 5, status: 'Survey Completed' },
+    { customer: 'Pedro Alves', id: 'INT-8246580', agent: 'Priya M.', topic: 'Refund Processing', sent: 'Jul 13, 08:30', response: 'Jul 13, 08:45', completed: 'Jul 13, 09:01', csat: 2, asat: 3, status: 'Survey Completed' },
+    { customer: 'Fatima Al-Sayed', id: 'INT-8252217', agent: 'Rajat S.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Internal Interaction' },
+    { customer: 'Henry Walsh', id: 'INT-8258866', agent: 'Marco B.', topic: 'Billing Dispute', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Opted Out' },
     { customer: 'Nora Jensen', id: 'INT-8264977', agent: 'Priya M.', topic: 'Refund Processing', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
     { customer: 'Omar Bashir', id: 'INT-8265088', agent: 'Liu Yang', topic: 'Duplicate Charge', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
-    { customer: 'Sofia Russo', id: 'INT-8265199', agent: 'Chloe D.', topic: 'Invoice Correction', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Outside Send Window' },
+    { customer: 'Sofia Russo', id: 'INT-8265199', agent: 'Chloe D.', topic: 'Invoice Correction', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Survey Window' },
     ...makeFillerRows('billing', 4320000, 37, ['Refund Processing', 'Duplicate Charge', 'Partial Refund', 'Subscription Cancellation', 'Payment Failure', 'Billing Dispute', 'Invoice Correction'], ['Marco B.', 'Priya M.', 'Chloe D.', 'Ben K.', 'Liu Yang', 'Rajat S.']),
   ],
   'Omnichannel Escalation Recovery': [
-    { customer: 'Nadia Petrova', id: 'INT-9301207', agent: 'Sam O.', topic: 'Channel Hand-off', sent: 'Jul 4, 13:10', response: 'Jul 4, 13:25', completed: 'Jul 4, 13:40', csat: 4, asat: 4, status: 'Survey completed' },
-    { customer: 'Caleb Johnson', id: 'INT-9307734', agent: 'Tomás R.', topic: 'Repeat Contact', sent: 'Jul 5, 16:45', response: 'Jul 5, 17:02', completed: 'Jul 5, 17:20', csat: 2, asat: 3, status: 'Survey completed' },
+    { customer: 'Nadia Petrova', id: 'INT-9301207', agent: 'Sam O.', topic: 'Channel Hand-off', sent: 'Jul 4, 13:10', response: 'Jul 4, 13:25', completed: 'Jul 4, 13:40', csat: 4, asat: 4, status: 'Survey Completed' },
+    { customer: 'Caleb Johnson', id: 'INT-9307734', agent: 'Tomás R.', topic: 'Repeat Contact', sent: 'Jul 5, 16:45', response: 'Jul 5, 17:02', completed: 'Jul 5, 17:20', csat: 2, asat: 3, status: 'Survey Completed' },
     { customer: 'Yuki Tanaka', id: 'INT-9313351', agent: 'Aisha N.', topic: 'Callback Not Received', sent: 'Jul 7, 09:30', response: 'Jul 7, 09:48', completed: null, csat: 1, asat: null, status: 'Partially Responded' },
-    { customer: 'Sofia Hernández', id: 'INT-9319986', agent: 'Liu Yang', topic: 'Supervisor Escalation', sent: 'Jul 8, 11:20', response: 'Jul 8, 11:40', completed: 'Jul 8, 11:58', csat: 5, asat: 5, status: 'Survey completed' },
-    { customer: 'Ibrahim Yusuf', id: 'INT-9326604', agent: 'Sam O.', topic: 'Bot Transfer Friction', sent: 'Jul 9, 19:05', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Laura Fischer', id: 'INT-9332240', agent: 'Priya M.', topic: 'Case Reopened', sent: 'Jul 11, 10:15', response: 'Jul 11, 10:30', completed: 'Jul 11, 10:47', csat: 3, asat: 4, status: 'Survey completed' },
-    { customer: 'Mateo Silva', id: 'INT-9338877', agent: 'Ben K.', topic: 'Channel Hand-off', sent: 'Jul 12, 14:55', response: 'Jul 12, 15:10', completed: 'Jul 12, 15:25', csat: 5, asat: 5, status: 'Survey completed' },
+    { customer: 'Sofia Hernández', id: 'INT-9319986', agent: 'Liu Yang', topic: 'Supervisor Escalation', sent: 'Jul 8, 11:20', response: 'Jul 8, 11:40', completed: 'Jul 8, 11:58', csat: 5, asat: 5, status: 'Survey Completed' },
+    { customer: 'Ibrahim Yusuf', id: 'INT-9326604', agent: 'Sam O.', topic: 'Bot Transfer Friction', sent: 'Jul 9, 19:05', response: null, completed: null, csat: null, asat: null, status: 'Survey Not Started' },
+    { customer: 'Laura Fischer', id: 'INT-9332240', agent: 'Priya M.', topic: 'Case Reopened', sent: 'Jul 11, 10:15', response: 'Jul 11, 10:30', completed: 'Jul 11, 10:47', csat: 3, asat: 4, status: 'Survey Completed' },
+    { customer: 'Mateo Silva', id: 'INT-9338877', agent: 'Ben K.', topic: 'Channel Hand-off', sent: 'Jul 12, 14:55', response: 'Jul 12, 15:10', completed: 'Jul 12, 15:25', csat: 5, asat: 5, status: 'Survey Completed' },
     { customer: 'Zara Ahmed', id: 'INT-9345513', agent: 'Rajat S.', topic: 'Repeat Contact', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
-    { customer: 'Thomas Müller', id: 'INT-9352159', agent: 'Tomás R.', topic: 'Supervisor Escalation', sent: 'Jul 15, 08:40', response: 'Jul 15, 08:55', completed: 'Jul 15, 09:12', csat: 4, asat: 4, status: 'Survey completed' },
-    { customer: 'Grace Oduya', id: 'INT-9358260', agent: 'Sam O.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
-    { customer: 'Victor Hale', id: 'INT-9358371', agent: 'Liu Yang', topic: 'Channel Hand-off', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Thomas Müller', id: 'INT-9352159', agent: 'Tomás R.', topic: 'Supervisor Escalation', sent: 'Jul 15, 08:40', response: 'Jul 15, 08:55', completed: 'Jul 15, 09:12', csat: 4, asat: 4, status: 'Survey Completed' },
+    { customer: 'Grace Oduya', id: 'INT-9358260', agent: 'Sam O.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Internal Interaction' },
+    { customer: 'Victor Hale', id: 'INT-9358371', agent: 'Liu Yang', topic: 'Channel Hand-off', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Opted Out' },
     { customer: 'Nadia Costa', id: 'INT-9358482', agent: 'Ben K.', topic: 'Case Reopened', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
-    { customer: 'Samir Khoury', id: 'INT-9358593', agent: 'Priya M.', topic: 'Repeat Contact', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Outside Send Window' },
+    { customer: 'Samir Khoury', id: 'INT-9358593', agent: 'Priya M.', topic: 'Repeat Contact', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Survey Window' },
     ...makeFillerRows('omni', 4330000, 37, ['Channel Hand-off', 'Repeat Contact', 'Callback Not Received', 'Supervisor Escalation', 'Bot Transfer Friction', 'Case Reopened'], ['Sam O.', 'Tomás R.', 'Aisha N.', 'Liu Yang', 'Priya M.', 'Ben K.', 'Rajat S.']),
   ],
   'Product Feedback - Beta Testers': [
-    { customer: 'Jordan Lee', id: 'INT-6401118', agent: 'Chloe D.', topic: 'Mobile App Sync', sent: 'Jul 1, 10:00', response: 'Jul 1, 10:20', completed: 'Jul 1, 10:38', csat: 2, asat: 4, status: 'Survey completed' },
-    { customer: 'Priyanka Rao', id: 'INT-6407752', agent: 'Sam O.', topic: 'Onboarding Flow', sent: 'Jul 2, 15:30', response: 'Jul 2, 15:45', completed: 'Jul 2, 16:02', csat: 4, asat: 5, status: 'Survey completed' },
+    { customer: 'Jordan Lee', id: 'INT-6401118', agent: 'Chloe D.', topic: 'Mobile App Sync', sent: 'Jul 1, 10:00', response: 'Jul 1, 10:20', completed: 'Jul 1, 10:38', csat: 2, asat: 4, status: 'Survey Completed' },
+    { customer: 'Priyanka Rao', id: 'INT-6407752', agent: 'Sam O.', topic: 'Onboarding Flow', sent: 'Jul 2, 15:30', response: 'Jul 2, 15:45', completed: 'Jul 2, 16:02', csat: 4, asat: 5, status: 'Survey Completed' },
     { customer: 'Ethan Clarke', id: 'INT-6413397', agent: 'Marco B.', topic: 'Dashboard Export', sent: 'Jul 4, 11:12', response: 'Jul 4, 11:30', completed: null, csat: 3, asat: null, status: 'Partially Responded' },
-    { customer: 'Aisha Bello', id: 'INT-6420030', agent: 'Chloe D.', topic: 'Notification Settings', sent: 'Jul 6, 09:45', response: 'Jul 6, 10:00', completed: 'Jul 6, 10:15', csat: 5, asat: 5, status: 'Survey completed' },
-    { customer: 'Victor Novak', id: 'INT-6426661', agent: 'Priya M.', topic: 'Data Import', sent: 'Jul 8, 13:20', response: null, completed: null, csat: null, asat: null, status: 'Not Started' },
-    { customer: 'Hana Sato', id: 'INT-6433298', agent: 'Sam O.', topic: 'Mobile App Sync', sent: 'Jul 9, 17:05', response: 'Jul 9, 17:25', completed: 'Jul 9, 17:40', csat: 1, asat: 3, status: 'Survey completed' },
-    { customer: 'Daniel Osei', id: 'INT-6439934', agent: 'Marco B.', topic: 'Feature Request', sent: 'Jul 11, 10:30', response: 'Jul 11, 10:50', completed: 'Jul 11, 11:05', csat: 4, asat: 4, status: 'Survey completed' },
-    { customer: 'Lena Hoffmann', id: 'INT-6446570', agent: 'Rajat S.', topic: 'Bug Report', sent: 'Jul 13, 14:15', response: 'Jul 13, 14:30', completed: 'Jul 13, 14:48', csat: 4, asat: 5, status: 'Survey completed' },
-    { customer: 'Omar Farouk', id: 'INT-6453206', agent: 'Chloe D.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Program Not Found' },
+    { customer: 'Aisha Bello', id: 'INT-6420030', agent: 'Chloe D.', topic: 'Notification Settings', sent: 'Jul 6, 09:45', response: 'Jul 6, 10:00', completed: 'Jul 6, 10:15', csat: 5, asat: 5, status: 'Survey Completed' },
+    { customer: 'Victor Novak', id: 'INT-6426661', agent: 'Priya M.', topic: 'Data Import', sent: 'Jul 8, 13:20', response: null, completed: null, csat: null, asat: null, status: 'Survey Not Started' },
+    { customer: 'Hana Sato', id: 'INT-6433298', agent: 'Sam O.', topic: 'Mobile App Sync', sent: 'Jul 9, 17:05', response: 'Jul 9, 17:25', completed: 'Jul 9, 17:40', csat: 1, asat: 3, status: 'Survey Completed' },
+    { customer: 'Daniel Osei', id: 'INT-6439934', agent: 'Marco B.', topic: 'Feature Request', sent: 'Jul 11, 10:30', response: 'Jul 11, 10:50', completed: 'Jul 11, 11:05', csat: 4, asat: 4, status: 'Survey Completed' },
+    { customer: 'Lena Hoffmann', id: 'INT-6446570', agent: 'Rajat S.', topic: 'Bug Report', sent: 'Jul 13, 14:15', response: 'Jul 13, 14:30', completed: 'Jul 13, 14:48', csat: 4, asat: 5, status: 'Survey Completed' },
+    { customer: 'Omar Farouk', id: 'INT-6453206', agent: 'Chloe D.', topic: null, sent: null, response: null, completed: null, csat: null, asat: null, status: 'Internal Interaction' },
     { customer: 'Mia Andersen', id: 'INT-6459843', agent: 'Priya M.', topic: 'Dashboard Export', sent: null, response: null, completed: null, csat: null, asat: null, status: 'No Matching Skill or Team' },
-    { customer: 'Felix Brandt', id: 'INT-6465974', agent: 'Marco B.', topic: 'Notification Settings', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Survey Refused' },
+    { customer: 'Felix Brandt', id: 'INT-6465974', agent: 'Marco B.', topic: 'Notification Settings', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Opted Out' },
     { customer: 'Zainab Idris', id: 'INT-6466085', agent: 'Sam O.', topic: 'Feature Request', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Recency Window' },
     { customer: 'Theo Walker', id: 'INT-6466196', agent: 'Chloe D.', topic: 'Bug Report', sent: null, response: null, completed: null, csat: null, asat: null, status: 'Interaction Too Short' },
     ...makeFillerRows('beta', 4340000, 37, ['Mobile App Sync', 'Onboarding Flow', 'Dashboard Export', 'Notification Settings', 'Data Import', 'Feature Request', 'Bug Report'], ['Chloe D.', 'Sam O.', 'Marco B.', 'Priya M.', 'Rajat S.']),
   ],
 }
 
-function ResponseStatus({ status }: { status: string }) {
-  const tone = status === 'Survey completed'
+/* Which parent group each selectable Survey Status substatus belongs to, per the CXFI-34/CXFI-29
+   taxonomy — shown as a small secondary line under the status pill so a PM can tell at a glance whether
+   an interaction got an invite at all. */
+const STATUS_GROUP: Record<string, string> = {
+  'Survey Completed': 'Invitation Delivered',
+  'Partially Responded': 'Invitation Delivered',
+  'Survey Not Started': 'Invitation Delivered',
+  'Survey Declined': 'Invitation Delivered',
+  'Invalid Response': 'Invitation Delivered',
+  'Test Survey': 'Invitation Delivered',
+  'Opted Out': 'Skipped',
+  'Recency Window': 'Skipped',
+  'No Matching Survey Window': 'Skipped',
+  'No Matching Skill or Team': 'Skipped',
+  'Internal Interaction': 'Skipped',
+  'Interaction Too Short': 'Skipped',
+}
+
+/* `secondarySide` controls where the group label sits relative to the pill: 'below' is the table's
+   right-aligned stack (secondary text's right edge lines up with the pill's own text), 'left' puts it
+   inline before the pill — used in the drawer, where it reads as a sentence next to a field label rather
+   than a stacked table cell. `align` only matters for 'below' (the drawer's centered OUTCOME box). */
+function ResponseStatus({ status, secondarySide = 'below', align = 'end' }: { status: string; secondarySide?: 'below' | 'left'; align?: 'start' | 'center' | 'end' }) {
+  const tone = status === 'Survey Completed'
     ? { bg: 'var(--lyra-color-status-success-subtle)', fg: 'var(--lyra-color-status-success-strong)', border: undefined }
     : status === 'Partially Responded'
     ? { bg: 'var(--lyra-color-status-warning-subtle)', fg: 'var(--lyra-color-status-warning-strong)', border: undefined }
+    : status === 'Survey Declined' || status === 'Invalid Response'
+    ? { bg: 'var(--lyra-color-status-critical-subtle)', fg: 'var(--lyra-color-status-critical-strong)', border: undefined }
     : { bg: 'var(--lyra-slate-100)', fg: 'var(--lyra-color-fg-default)', border: '1px solid var(--lyra-color-border-soft)' }
-  return (
+  const group = STATUS_GROUP[status]
+  const badge = (
     <span style={{ display: 'inline-block', font: `500 12px/18px ${FONT}`, padding: '2px 10px', borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap', background: tone.bg, color: tone.fg, border: tone.border }}>
       {status}
     </span>
+  )
+  if (!group) return badge
+  if (secondarySide === 'left') {
+    return (
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ font: `400 11px/14px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>{group}</span>
+        {badge}
+      </div>
+    )
+  }
+  return (
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: align === 'center' ? 'center' : align === 'start' ? 'flex-start' : 'flex-end', gap: 2 }}>
+      {badge}
+      <span style={{ font: `400 11px/14px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', ...(align === 'end' ? { marginRight: 10 } : align === 'start' ? { marginLeft: 10 } : {}) }}>
+        {group}
+      </span>
+    </div>
   )
 }
 
@@ -1933,7 +2168,7 @@ type CustomerDetail = {
 const CRF_DETAILS: Record<string, CustomerDetail> = {
   'INT-4064903': {
     summary: null, read: null, alsoFound: [], questions: [],
-    outcome: 'No survey was sent — no program matched this interaction.',
+    outcome: 'No survey was sent — this interaction was flagged as internal and excluded from customer surveys.',
     alert: null,
     phone: '+1 223-555-7714', email: 'sophie.patel@example.com',
   },
@@ -1945,7 +2180,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your technical troubleshooting today?', a: '5 of 5', alternatives: ['Did the troubleshooting steps fix your device for good?', 'How satisfied are you with the help you got with your device today?'] },
       { q: 'What could have made the technical troubleshooting experience better?', a: '"It was already the right call, I would not change it."' },
     ],
-    outcome: 'Survey completed · Jul 1, 16:13',
+    outcome: 'Survey Completed · Jul 1, 16:13',
     alert: null,
     phone: '+1 223-555-5382', email: 'olivia.smith@example.com',
   },
@@ -1957,7 +2192,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your refund today?', a: '2 of 5', alternatives: ['Were you told when your refund will arrive?', 'How confident are you that your refund is on its way?'] },
       { q: 'What could have made the refund experience better?', a: '"I still don\'t know when the money will arrive. A date would have helped."' },
     ],
-    outcome: 'Survey completed · Jul 2, 09:08',
+    outcome: 'Survey Completed · Jul 2, 09:08',
     alert: { name: 'Detractor alert', rule: 'CSAT ≤ 2 on a Refund Processing interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 2, 09:10' },
     phone: '+1 223-555-2041', email: 'marcus.wright@example.com',
   },
@@ -1981,7 +2216,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your account access issue today?', a: '5 of 5', alternatives: ['Were you able to sign in after the reset?', 'How easy was it to get back into your account today?'] },
       { q: 'What could have made the account access experience better?', a: '"Fast and friendly, nothing to add."' },
     ],
-    outcome: 'Survey completed · Jul 5, 12:30',
+    outcome: 'Survey Completed · Jul 5, 12:30',
     alert: null,
     phone: '+1 223-555-5382', email: 'olivia.smith@example.com',
   },
@@ -2017,7 +2252,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your technical troubleshooting today?', a: '5 of 5', alternatives: ['Is your device staying connected after the reset?', 'How easy were the reset steps to follow?'] },
       { q: 'What could have made the technical troubleshooting experience better?', a: '"Clear steps, worked first time."' },
     ],
-    outcome: 'Survey completed · Jul 11, 15:14',
+    outcome: 'Survey Completed · Jul 11, 15:14',
     alert: null,
     phone: '+1 223-555-8821', email: 'marcus.smith@example.com',
   },
@@ -2037,7 +2272,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate your experience with us today?', a: '4 of 5' },
       { q: 'What could have made your experience better?', a: '"A shorter wait before someone picked up."' },
     ],
-    outcome: 'Survey completed · Jul 9, 16:49',
+    outcome: 'Survey Completed · Jul 9, 16:49',
     alert: null,
     phone: '+1 223-555-1193', email: 'noah.patel@example.com',
   },
@@ -2071,7 +2306,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your technical troubleshooting today?', a: '2 of 5', alternatives: ['Is your device still dropping connection?', 'How many times did you need to retry the fix?'] },
       { q: 'What could have made the technical troubleshooting experience better?', a: '"The fix only lasted a few minutes before it happened again."' },
     ],
-    outcome: 'Survey completed · Jul 6, 10:05',
+    outcome: 'Survey Completed · Jul 6, 10:05',
     alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Technical Troubleshooting interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 6, 10:07' },
     phone: '+1 223-555-2284', email: 'grace.liu@example.com',
   },
@@ -2095,7 +2330,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your account access issue today?', a: '3 of 5', alternatives: ['Did the reset work on the first try?', 'How easy was it to get back into your account today?'] },
       { q: 'What could have made the account access experience better?', a: '"It took two tries to get the reset link working."' },
     ],
-    outcome: 'Survey completed · Jul 9, 11:30',
+    outcome: 'Survey Completed · Jul 9, 11:30',
     alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Account Access interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 9, 11:32' },
     phone: '+1 223-555-4406', email: 'fatima.hassan@example.com',
   },
@@ -2119,7 +2354,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your refund today?', a: '1 of 5', alternatives: ['Was the refund amount what you expected?', 'How clear was the explanation of your refund amount?'] },
       { q: 'What could have made the refund experience better?', a: '"The amount quoted was far less than what I paid."' },
     ],
-    outcome: 'Survey completed · Jul 13, 09:20',
+    outcome: 'Survey Completed · Jul 13, 09:20',
     alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Refund Processing interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 13, 09:22' },
     phone: '+1 223-555-6628', email: 'chloe.dubois@example.com',
   },
@@ -2143,7 +2378,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your billing dispute today?', a: '2 of 5', alternatives: ['Did the refund cover what you were disputing?', 'How clear was the explanation of the refund amount?'] },
       { q: 'What could have made the billing dispute experience better?', a: '"The refund only covered half of the charge I was disputing."' },
     ],
-    outcome: 'Survey completed · Jul 17, 10:50',
+    outcome: 'Survey Completed · Jul 17, 10:50',
     alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Billing Dispute interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 17, 10:52' },
     phone: '+1 223-555-8840', email: 'ingrid.larsen@example.com',
   },
@@ -2155,7 +2390,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your account access issue today?', a: '1 of 5', alternatives: ['Were you able to stay signed in after the reset?', 'How easy was it to get back into your account today?'] },
       { q: 'What could have made the account access experience better?', a: '"The reset worked in the chat, but I was locked out again an hour later — nobody mentioned that could happen."' },
     ],
-    outcome: 'Survey completed · Jul 14, 09:42',
+    outcome: 'Survey Completed · Jul 14, 09:42',
     alert: { name: 'Detractor alert', rule: 'CSAT ≤ 3 on a Account Access interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 14, 09:44' },
     phone: '+1 223-555-9951', email: 'noah.blake@example.com',
   },
@@ -2167,7 +2402,7 @@ const CRF_DETAILS: Record<string, CustomerDetail> = {
       { q: 'How would you rate how we handled your refund today?', a: '5 of 5', alternatives: ['Did you get a firm date for the refund?', 'How confident are you that your refund is on its way?'] },
       { q: 'What could have made the refund experience better?', a: '"Nothing — they followed up by email an hour later with the exact date, which is all I needed."' },
     ],
-    outcome: 'Survey completed · Jul 16, 15:30',
+    outcome: 'Survey Completed · Jul 16, 15:30',
     alert: null,
     phone: '+1 223-555-1062', email: 'priya.kapoor@example.com',
   },
@@ -2185,7 +2420,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your rebooking today?', a: '5 of 5', alternatives: ['Did the new flight work for your plans?', 'How easy was it to get rebooked after the cancellation?'] },
         { q: 'What could have made the rebooking experience better?', a: '"Honestly nothing — I had the new boarding pass before I reached the gate."' },
       ],
-      outcome: 'Survey completed · Jul 3, 09:31', alert: null,
+      outcome: 'Survey Completed · Jul 3, 09:31', alert: null,
       phone: '+1 223-555-4102', email: 'elena.rossi@example.com',
     },
     'INT-7118830': {
@@ -2196,7 +2431,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the way we kept you informed about your delay?', a: '4 of 5', alternatives: ['Did you hear about the delay before you left for the airport?', 'Was the delay information clear and on time?'] },
         { q: 'What could have made the delay experience better?', a: '"An earlier message — I was already in the taxi."' },
       ],
-      outcome: 'Survey completed · Jul 4, 19:05', alert: null,
+      outcome: 'Survey Completed · Jul 4, 19:05', alert: null,
       phone: '+1 223-555-4188', email: 'kwame.mensah@example.com',
     },
     'INT-7124519': {
@@ -2218,7 +2453,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your missed connection?', a: '2 of 5', alternatives: ['Was the overnight stay arranged smoothly?', 'How satisfied are you with the next flight we found?'] },
         { q: 'What could have made the missed connection experience better?', a: '"The hotel voucher only arrived after I had paid for a room myself."' },
       ],
-      outcome: 'Survey completed · Jul 7, 08:16',
+      outcome: 'Survey Completed · Jul 7, 08:16',
       alert: { name: 'Detractor alert', rule: 'CSAT ≤ 2 on a Missed Connection interaction', sentTo: 'Airport Operations lead (Farah K.)', via: 'Email', when: 'Jul 7, 08:18' },
       phone: '+1 223-555-4310', email: 'diego.martin@example.com',
     },
@@ -2241,12 +2476,12 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the hotel arrangements we made for you?', a: '5 of 5', alternatives: ['Was the hotel voucher easy to use?', 'How was the transfer to the hotel?'] },
         { q: 'What could have made the overnight stay better?', a: '"Quick and painless. The transfer was waiting when I got out."' },
       ],
-      outcome: 'Survey completed · Jul 11, 07:58', alert: null,
+      outcome: 'Survey Completed · Jul 11, 07:58', alert: null,
       phone: '+1 223-555-4462', email: 'oliver.brooks@example.com',
     },
     'INT-7151460': {
       summary: null, read: null, alsoFound: [], questions: [],
-      outcome: 'No survey was sent — no program matched this interaction.', alert: null,
+      outcome: 'No survey was sent — this interaction was flagged as internal and excluded from customer surveys.', alert: null,
       phone: '+1 223-555-4514', email: 'amara.okafor@example.com',
     },
     'INT-7158331': {
@@ -2257,7 +2492,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the way we handled your 4-hour delay?', a: '4 of 5', alternatives: ['Were you offered anything during the delay?', 'Did the delay updates arrive when you needed them?'] },
         { q: 'What could have made the delay experience better?', a: '"The agent could not do much, but the lounge pass she sent made the wait fine."' },
       ],
-      outcome: 'Survey completed · Jul 12, 16:50', alert: null,
+      outcome: 'Survey Completed · Jul 12, 16:50', alert: null,
       phone: '+1 223-555-4583', email: 'lucas.dubois@example.com',
     },
     'INT-7163904': {
@@ -2268,7 +2503,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your compensation claim?', a: '5 of 5', alternatives: ['Was the compensation amount explained clearly?', 'Do you know when the payment will arrive?'] },
         { q: 'What could have made the claim experience better?', a: '"Approved on the spot — that never happens."' },
       ],
-      outcome: 'Survey completed · Jul 14, 10:55', alert: null,
+      outcome: 'Survey Completed · Jul 14, 10:55', alert: null,
       phone: '+1 223-555-4639', email: 'sara.haddad@example.com',
     },
     'INT-7170125': {
@@ -2306,7 +2541,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your refund today?', a: '5 of 5', alternatives: ['Were you told when the refund will arrive?', 'Was the refund amount what you expected?'] },
         { q: 'What could have made the refund experience better?', a: '"Nothing — I had the confirmation before the chat ended."' },
       ],
-      outcome: 'Survey completed · Jul 2, 10:34', alert: null,
+      outcome: 'Survey Completed · Jul 2, 10:34', alert: null,
       phone: '+1 223-555-5108', email: 'grace.kim@example.com',
     },
     'INT-8207448': {
@@ -2328,7 +2563,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your refund today?', a: '1 of 5', alternatives: ['Was the deducted fee explained before the refund?', 'Was the refund amount what you expected?'] },
         { q: 'What could have made the refund experience better?', a: '"Nobody mentioned a fee until the money arrived short. I would have cancelled differently."' },
       ],
-      outcome: 'Survey completed · Jul 5, 09:44',
+      outcome: 'Survey Completed · Jul 5, 09:44',
       alert: { name: 'Detractor alert', rule: 'CSAT ≤ 2 on a Partial Refund interaction', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 5, 09:46' },
       phone: '+1 223-555-5236', email: 'isabella.costa@example.com',
     },
@@ -2351,7 +2586,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the help you got with the failed payment?', a: '4 of 5', alternatives: ['Was the reason for the failed payment clear?', 'How easy was it to update your card?'] },
         { q: 'What could have made this experience better?', a: '"Fine, though I had to re-enter the card twice."' },
       ],
-      outcome: 'Survey completed · Jul 8, 12:30', alert: null,
+      outcome: 'Survey Completed · Jul 8, 12:30', alert: null,
       phone: '+1 223-555-5347', email: 'chloe.martin@example.com',
     },
     'INT-8233309': {
@@ -2373,7 +2608,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we corrected your invoice?', a: '5 of 5', alternatives: ['Did the corrected invoice have everything you needed?', 'How quickly did we fix your invoice?'] },
         { q: 'What could have made this experience better?', a: '"Corrected invoice in my inbox in four minutes. Perfect."' },
       ],
-      outcome: 'Survey completed · Jul 11, 11:40', alert: null,
+      outcome: 'Survey Completed · Jul 11, 11:40', alert: null,
       phone: '+1 223-555-5468', email: 'emily.zhang@example.com',
     },
     'INT-8246580': {
@@ -2384,13 +2619,13 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your refund today?', a: '2 of 5', alternatives: ['Is this the first time you have contacted us about this refund?', 'Were you told when the refund will arrive?'] },
         { q: 'What could have made the refund experience better?', a: '"Second chat, same answer: it is being processed. Give me a date."' },
       ],
-      outcome: 'Survey completed · Jul 13, 09:01',
+      outcome: 'Survey Completed · Jul 13, 09:01',
       alert: { name: 'Detractor alert', rule: 'CSAT ≤ 2 on a repeat Refund Processing contact', sentTo: 'Billing supervisor (Dana M.)', via: 'Email', when: 'Jul 13, 09:03' },
       phone: '+1 223-555-5521', email: 'pedro.alves@example.com',
     },
     'INT-8252217': {
       summary: null, read: null, alsoFound: [], questions: [],
-      outcome: 'No survey was sent — no program matched this interaction.', alert: null,
+      outcome: 'No survey was sent — this interaction was flagged as internal and excluded from customer surveys.', alert: null,
       phone: '+1 223-555-5587', email: 'fatima.alsayed@example.com',
     },
     'INT-8258866': {
@@ -2430,7 +2665,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the hand-over from chat to a phone call today?', a: '4 of 5', alternatives: ['Did you have to repeat your issue after the transfer?', 'How long did you wait for the call after the chat?'] },
         { q: 'What could have made the hand-over better?', a: '"The agent on the phone already knew everything. Just a slightly long wait."' },
       ],
-      outcome: 'Survey completed · Jul 4, 13:40', alert: null,
+      outcome: 'Survey Completed · Jul 4, 13:40', alert: null,
       phone: '+1 223-555-6112', email: 'nadia.petrova@example.com',
     },
     'INT-9307734': {
@@ -2441,7 +2676,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your issue this time?', a: '2 of 5', alternatives: ['Is your account lock finally fixed?', 'How many times have you had to contact us about this?'] },
         { q: 'What could have made this experience better?', a: '"Three chats, three different agents, same lock. Someone needs to own it."' },
       ],
-      outcome: 'Survey completed · Jul 5, 17:20',
+      outcome: 'Survey Completed · Jul 5, 17:20',
       alert: { name: 'Repeat-contact alert', rule: 'CSAT ≤ 2 on a third contact within 14 days', sentTo: 'Escalations supervisor (Jordan P.)', via: 'Email', when: 'Jul 5, 17:22' },
       phone: '+1 223-555-6179', email: 'caleb.johnson@example.com',
     },
@@ -2465,7 +2700,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the way your case was escalated today?', a: '5 of 5', alternatives: ['How long did you wait for the supervisor?', 'Did the supervisor resolve what the first agent could not?'] },
         { q: 'What could have made the escalation better?', a: '"Six minutes to a supervisor and a yes. Nothing to add."' },
       ],
-      outcome: 'Survey completed · Jul 8, 11:58', alert: null,
+      outcome: 'Survey Completed · Jul 8, 11:58', alert: null,
       phone: '+1 223-555-6298', email: 'sofia.hernandez@example.com',
     },
     'INT-9326604': {
@@ -2487,7 +2722,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your reopened case?', a: '3 of 5', alternatives: ['Is the issue fixed for good this time?', 'Was it easy to reopen your case?'] },
         { q: 'What could have made this experience better?', a: '"Fixed again, yes — but it is the second time. I am waiting to see if it holds."' },
       ],
-      outcome: 'Survey completed · Jul 11, 10:47', alert: null,
+      outcome: 'Survey Completed · Jul 11, 10:47', alert: null,
       phone: '+1 223-555-6417', email: 'laura.fischer@example.com',
     },
     'INT-9338877': {
@@ -2498,7 +2733,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the hand-over from chat to a phone call today?', a: '5 of 5', alternatives: ['Did you have to repeat your issue after the transfer?', 'Was the person on the phone able to help straight away?'] },
         { q: 'What could have made the hand-over better?', a: '"Had to give the order number again, but the agent sorted it in two minutes."' },
       ],
-      outcome: 'Survey completed · Jul 12, 15:25', alert: null,
+      outcome: 'Survey Completed · Jul 12, 15:25', alert: null,
       phone: '+1 223-555-6480', email: 'mateo.silva@example.com',
     },
     'INT-9345513': {
@@ -2516,12 +2751,12 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the way your case was escalated today?', a: '4 of 5', alternatives: ['How long did you wait for the supervisor?', 'Did the escalation get you a different answer?'] },
         { q: 'What could have made the escalation better?', a: '"Good outcome. Would have preferred to stay in the chat rather than wait for a call."' },
       ],
-      outcome: 'Survey completed · Jul 15, 09:12', alert: null,
+      outcome: 'Survey Completed · Jul 15, 09:12', alert: null,
       phone: '+1 223-555-6591', email: 'thomas.muller@example.com',
     },
     'INT-9358260': {
       summary: null, read: null, alsoFound: [], questions: [],
-      outcome: 'No survey was sent — no program matched this interaction.', alert: null,
+      outcome: 'No survey was sent — this interaction was flagged as internal and excluded from customer surveys.', alert: null,
       phone: '+1 223-555-6647', email: 'grace.oduya@example.com',
     },
     'INT-9358371': {
@@ -2554,7 +2789,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate your experience with mobile sync in the beta?', a: '2 of 5', alternatives: ['How often do your desktop changes fail to appear on mobile?', 'Did the workaround the agent suggested help?'] },
         { q: 'What would make the mobile app more useful for you?', a: '"Sync. That is it. I stopped trusting the mobile numbers."' },
       ],
-      outcome: 'Survey completed · Jul 1, 10:38',
+      outcome: 'Survey Completed · Jul 1, 10:38',
       alert: { name: 'Beta blocker alert', rule: 'CSAT ≤ 2 on a Mobile App Sync interaction', sentTo: 'Product owner (Maya R.)', via: 'Email', when: 'Jul 1, 10:40' },
       phone: '+1 223-555-7109', email: 'jordan.lee@example.com',
     },
@@ -2566,7 +2801,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate getting started with the beta?', a: '4 of 5', alternatives: ['How long did setup take you?', 'Did the data import work first time?'] },
         { q: 'What would have made onboarding smoother?', a: '"Good overall. The import step needed a second read of the instructions."' },
       ],
-      outcome: 'Survey completed · Jul 2, 16:02', alert: null,
+      outcome: 'Survey Completed · Jul 2, 16:02', alert: null,
       phone: '+1 223-555-7163', email: 'priyanka.rao@example.com',
     },
     'INT-6413397': {
@@ -2588,7 +2823,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate managing your notifications in the beta?', a: '5 of 5', alternatives: ['Were the notification options easy to find?', 'Are you getting the right amount of notifications now?'] },
         { q: 'What would make notifications better?', a: '"Exactly what I wanted once I knew where it was."' },
       ],
-      outcome: 'Survey completed · Jul 6, 10:15', alert: null,
+      outcome: 'Survey Completed · Jul 6, 10:15', alert: null,
       phone: '+1 223-555-7284', email: 'aisha.bello@example.com',
     },
     'INT-6426661': {
@@ -2610,7 +2845,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate your experience with mobile sync in the beta?', a: '1 of 5', alternatives: ['Did the manual refresh fix it for good?', 'How often do your desktop changes fail to appear on mobile?'] },
         { q: 'What would make the mobile app more useful for you?', a: '"A manual refresh is not a fix. It was out of date again an hour later."' },
       ],
-      outcome: 'Survey completed · Jul 9, 17:40',
+      outcome: 'Survey Completed · Jul 9, 17:40',
       alert: { name: 'Beta blocker alert', rule: 'CSAT ≤ 2 on a Mobile App Sync interaction', sentTo: 'Product owner (Maya R.)', via: 'Email', when: 'Jul 9, 17:42' },
       phone: '+1 223-555-7396', email: 'hana.sato@example.com',
     },
@@ -2622,7 +2857,7 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate the response to your feature request?', a: '4 of 5', alternatives: ['Was it clear whether your request will be built?', 'Did we suggest a workaround that helps?'] },
         { q: 'What feature would make the biggest difference for you?', a: '"Scheduled reports. They said no for now, but explained why — I can live with that."' },
       ],
-      outcome: 'Survey completed · Jul 11, 11:05', alert: null,
+      outcome: 'Survey Completed · Jul 11, 11:05', alert: null,
       phone: '+1 223-555-7452', email: 'daniel.osei@example.com',
     },
     'INT-6446570': {
@@ -2633,12 +2868,12 @@ const CUSTOMER_DETAILS: Record<string, Record<string, CustomerDetail>> = {
         { q: 'How would you rate how we handled your bug report?', a: '4 of 5', alternatives: ['Was the bug reproduced while you were in the chat?', 'Do you know when the fix will ship?'] },
         { q: 'What would make reporting bugs easier?', a: '"A way to attach a screen recording from inside the app."' },
       ],
-      outcome: 'Survey completed · Jul 13, 14:48', alert: null,
+      outcome: 'Survey Completed · Jul 13, 14:48', alert: null,
       phone: '+1 223-555-7517', email: 'lena.hoffmann@example.com',
     },
     'INT-6453206': {
       summary: null, read: null, alsoFound: [], questions: [],
-      outcome: 'No survey was sent — no program matched this interaction.', alert: null,
+      outcome: 'No survey was sent — this interaction was flagged as internal and excluded from customer surveys.', alert: null,
       phone: '+1 223-555-7573', email: 'omar.farouk@example.com',
     },
     'INT-6459843': {
@@ -2769,7 +3004,7 @@ function RatingBar({ value, expected, size = 5 }: { value: number | null; expect
   )
 }
 
-/* `d.outcome` doubles as the footer timestamp line ("Survey completed · Jul 1, 16:13") — drop the
+/* `d.outcome` doubles as the footer timestamp line ("Survey Completed · Jul 1, 16:13") — drop the
    timestamp when reusing its reason text in prose elsewhere. */
 const reasonFromOutcome = (outcome: string) => outcome.replace(/\s*·\s*[A-Za-z]{3} \d{1,2}, \d{2}:\d{2}$/, '')
 
@@ -2805,17 +3040,8 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
   const outcomeType = deriveOutcomeType(row)
   const outcomeMeta = OUTCOME_META[outcomeType]
 
-  const csatExp = d.read?.expected ?? null
-  const asatExp = d.read?.asatExpected ?? null
   const csatGot = row.csat
   const asatGot = row.asat
-  const csatDiverges = csatExp !== null && csatGot !== null && (csatGot < csatExp[0] || csatGot > csatExp[1])
-  const asatDiverges = asatExp !== null && asatGot !== null && (asatGot < asatExp[0] || asatGot > asatExp[1])
-  const csatMatches = csatExp !== null && csatGot !== null && !csatDiverges
-  const asatMatches = asatExp !== null && asatGot !== null && !asatDiverges
-  const anyDiverges = csatDiverges || asatDiverges
-  const allMatch = csatMatches && asatMatches
-  const verbatim = d.questions[1]?.a && !/^\d of 5$/.test(d.questions[1].a) ? d.questions[1].a : null
   const narrative = systemReadParts(row, d, outcomeType)
 
   const SH = { font: `500 12px/16px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'var(--lyra-color-fg-secondary)' }
@@ -2856,6 +3082,24 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
           </button>
         </div>
 
+        {/* ── Interaction + contact details ── */}
+        <dl style={{ margin: '0 24px 16px', padding: '10px 14px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', rowGap: 10, columnGap: 16, borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)' }}>
+          {([
+            ['Customer', row.customer, 1],
+            ['Channel', 'Chat', 1],
+            ['Interaction ID', row.id, 1],
+            ['Survey sent', row.sent ?? 'Not sent', 1],
+            ['Company', companyFor(row.customer), 1],
+            ['Phone', d.phone, 1],
+            ['Email', emailFor(row.customer, d.email), 2],
+          ] as [string, string, number][]).map(([label, value, span]) => (
+            <div key={label} style={{ minWidth: 0, gridColumn: `span ${span}` }}>
+              <dt style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{label}</dt>
+              <dd title={value} style={{ margin: '2px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{value}</dd>
+            </div>
+          ))}
+        </dl>
+
         {/* ── Scores strip ── */}
         <div style={{ padding: '0 24px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
           {[
@@ -2871,7 +3115,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
           ))}
           <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-surface-canvas)', border: '1px solid var(--lyra-color-border-subtle)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <div style={{ ...SH }}>Outcome</div>
-            <OutcomePill type={outcomeType} />
+            <ResponseStatus status={row.status} align="center" />
           </div>
         </div>
 
@@ -2883,7 +3127,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             <div style={{ borderRadius: '0 12px 12px 0', border: '1px solid var(--lyra-color-border-soft)', borderLeft: '4px solid var(--lyra-color-status-critical-strong)', background: 'var(--lyra-color-bg-surface-base)', padding: '14px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <Bell size={15} style={{ color: 'var(--lyra-color-status-critical-strong)', flexShrink: 0 }} />
-                <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>{d.alert.name} triggered</span>
+                <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>Alert triggered</span>
               </div>
               <div style={{ font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)', marginBottom: 10 }}>
                 {d.alert.rule}
@@ -2947,97 +3191,6 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             </div>
           </div>
 
-          {/* 3. System read — CSAT + ASAT comparison */}
-          {d.read && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ ...SH }}>System read vs customer rating</div>
-                <AiChip />
-              </div>
-              <div style={{ borderRadius: 12, border: `1px solid ${anyDiverges ? 'rgba(78,57,168,0.25)' : 'var(--lyra-color-border-soft)'}`, overflow: 'hidden' }}>
-
-                {/* CSAT + ASAT comparison, stacked */}
-                <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {/* CSAT row */}
-                  <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)', background: 'var(--lyra-color-bg-surface-base)', padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <span style={{ font: `700 12px/16px ${FONT}`, letterSpacing: '0.05em', color: csatDiverges ? 'var(--lyra-purple-700)' : csatMatches ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-secondary)' }}>CSAT</span>
-                      {csatDiverges && <ArrowLeftRight size={13} style={{ color: 'var(--lyra-purple-600)' }} />}
-                      {csatMatches && <CheckCircle2 size={13} style={{ color: 'var(--lyra-color-status-success-strong)' }} />}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 4 }}>System read rating</div>
-                        <span style={{ font: `600 15px/19px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                          {csatExp ? (csatExp[0] === csatExp[1] ? csatExp[0] : `${csatExp[0]}–${csatExp[1]}`) : '—'}
-                          {csatExp && <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span>}
-                        </span>
-                      </div>
-                      <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--lyra-color-border-subtle)', margin: '0 16px' }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 4 }}>Actual customer rating</div>
-                        {csatGot !== null
-                          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                              <Stars n={csatGot} size={12} />
-                              <span style={{ font: `600 15px/19px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{csatGot}<span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span></span>
-                            </span>
-                          : <Muted>{surveySent ? 'Pending' : 'No survey'}</Muted>}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ASAT row */}
-                  <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)', background: 'var(--lyra-color-bg-surface-base)', padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <span style={{ font: `700 12px/16px ${FONT}`, letterSpacing: '0.05em', color: asatDiverges ? 'var(--lyra-purple-700)' : asatMatches ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-secondary)' }}>ASAT</span>
-                      {asatDiverges && <ArrowLeftRight size={13} style={{ color: 'var(--lyra-purple-600)' }} />}
-                      {asatMatches && <CheckCircle2 size={13} style={{ color: 'var(--lyra-color-status-success-strong)' }} />}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 4 }}>System read rating</div>
-                        <span style={{ font: `600 15px/19px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                          {asatExp ? (asatExp[0] === asatExp[1] ? asatExp[0] : `${asatExp[0]}–${asatExp[1]}`) : '—'}
-                          {asatExp && <span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span>}
-                        </span>
-                      </div>
-                      <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--lyra-color-border-subtle)', margin: '0 16px' }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 4 }}>Actual customer rating</div>
-                        {asatGot !== null
-                          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                              <Stars n={asatGot} size={12} />
-                              <span style={{ font: `600 15px/19px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{asatGot}<span style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span></span>
-                            </span>
-                          : <Muted>{surveySent ? 'Pending' : 'No survey'}</Muted>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Verdict banner */}
-                {anyDiverges && (
-                  <div style={{ borderTop: '1px solid rgba(78,57,168,0.15)', padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 8, background: 'var(--lyra-color-bg-ai)' }}>
-                    <ArrowLeftRight size={13} style={{ color: 'var(--lyra-purple-700)', flexShrink: 0, marginTop: 2 }} />
-                    <span style={{ font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
-                      {csatDiverges && asatDiverges
-                        ? <>Customer's CSAT and ASAT ratings <b>don't match</b> the system read{verbatim ? <> — customer said: <i>{verbatim}</i></> : '.'}</>
-                        : csatDiverges
-                        ? <>Customer's CSAT rating <b>doesn't match</b> the system read{verbatim ? <> — customer said: <i>{verbatim}</i></> : '.'}</>
-                        : <>Customer's ASAT rating <b>doesn't match</b> the system read.</>}
-                    </span>
-                  </div>
-                )}
-                {allMatch && (
-                  <div style={{ borderTop: '1px solid var(--lyra-color-border-subtle)', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--lyra-color-status-success-subtle)' }}>
-                    <CheckCircle2 size={13} style={{ color: 'var(--lyra-color-status-success-strong)', flexShrink: 0 }} />
-                    <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-status-success-strong)' }}>Both customer ratings match the system read ratings</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* 4. Survey conversation */}
           <div>
             <div style={{ ...SH, marginBottom: 8 }}>Survey conversation</div>
@@ -3050,16 +3203,6 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
                       <AiChip />
                     </div>
                     <p style={{ margin: '0 0 10px', font: `600 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{item.q}</p>
-                    {item.alternatives && item.alternatives.length > 0 && (
-                      <details style={{ marginBottom: 10 }}>
-                        <summary style={{ cursor: 'pointer', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-link)', listStyle: 'none' }}>
-                          {item.alternatives.length} other question{item.alternatives.length > 1 ? 's' : ''} considered by AI
-                        </summary>
-                        <ul style={{ margin: '4px 0 0', paddingLeft: 14, font: `400 12px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
-                          {item.alternatives.map(alt => <li key={alt} style={{ marginBottom: 2 }}>{alt}</li>)}
-                        </ul>
-                      </details>
-                    )}
                     <div style={{ padding: '6px 10px', borderRadius: 8, background: item.a ? 'var(--lyra-color-bg-surface-canvas)' : 'transparent', border: item.a ? '1px solid var(--lyra-color-border-subtle)' : '1px dashed var(--lyra-color-border-soft)' }}>
                       <div style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginBottom: 2 }}>Response</div>
                       {item.a
@@ -3071,38 +3214,24 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
                   </TimelineNode>
                 ))}
                 <TimelineNode color={outcomeMeta.dot} last>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', color: 'var(--lyra-color-fg-secondary)' }}>Outcome</span>
-                    <OutcomePill type={outcomeType} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', color: 'var(--lyra-color-fg-secondary)' }}>Survey status</span>
+                    <ResponseStatus status={row.status} secondarySide="left" />
                   </div>
                   <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 4 }}>{d.outcome}</div>
                 </TimelineNode>
               </div>
             ) : (
               <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-soft)', padding: '12px 14px' }}>
-                <div style={{ font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 6 }}>{d.outcome}</div>
-                <OutcomePill type={outcomeType} />
+                <div style={{ font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 10 }}>{d.outcome}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', color: 'var(--lyra-color-fg-secondary)' }}>Survey status</span>
+                  <ResponseStatus status={row.status} secondarySide="left" />
+                </div>
               </div>
             )}
           </div>
 
-          {/* 5. Contact */}
-          <div>
-            <div style={{ ...SH, marginBottom: 8 }}>Contact</div>
-            <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-soft)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {([
-                [<User size={13} />, row.customer],
-                [<Building2 size={13} />, companyFor(row.customer)],
-                [<Phone size={13} />, d.phone],
-                [<Mail size={13} />, emailFor(row.customer, d.email)],
-              ] as [React.ReactNode, string][]).map(([icon, value]) => (
-                <div key={value} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <span style={{ display: 'inline-flex', color: 'var(--lyra-color-fg-secondary)', flexShrink: 0 }}>{icon}</span>
-                  <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* ── Footer ── */}
@@ -3170,34 +3299,6 @@ function AlertCell({ hasAlert }: { hasAlert: boolean }) {
   )
 }
 
-/* Same rule the detail drawer uses to flag "⚠ Diverges from customer rating": the system's expected
-   range for the interaction's tone vs. the rating the customer actually gave. A distinct signal from
-   Alerts — a rating can diverge from what was expected without ever being low enough to alert on (a
-   customer rating 5 after a system read of "likely negative" never trips a detractor rule), and an
-   alerted interaction isn't automatically a surprise (a low rating the system also expected is not). */
-function rowDiverges(row: ResponseRow, details: Record<string, CustomerDetail>): boolean {
-  const d = details[row.id] ?? genericDetailFor(row)
-  const exp = d.read?.expected ?? null
-  const got = row.csat
-  return exp !== null && got !== null && (got < exp[0] || got > exp[1])
-}
-
-/* Whether there's even a system read + a customer rating to compare — rows without either (no topic
-   detected, no survey sent, no response yet) are neither a match nor a divergence. */
-function rowComparable(row: ResponseRow, details: Record<string, CustomerDetail>): boolean {
-  const d = details[row.id] ?? genericDetailFor(row)
-  return (d.read?.expected ?? null) !== null && row.csat !== null
-}
-
-function DivergenceCell({ diverges }: { diverges: boolean }) {
-  return diverges ? (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, font: `500 13px/18px ${FONT}`, color: 'var(--lyra-purple-700)', whiteSpace: 'nowrap' }}>
-      <ArrowLeftRight size={13} />Diverges
-    </span>
-  ) : (
-    <Muted>—</Muted>
-  )
-}
 
 /* Small segmented control for a 3-state filter (All / Yes / No) — same visual language as the
    response-tab and group-by pill controls already used elsewhere on this page. */
@@ -3238,13 +3339,11 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const [rowCsatFilter, setRowCsatFilter] = useState<string[]>([])
   const [rowAsatFilter, setRowAsatFilter] = useState<string[]>([])
   const [rowAlertFilter, setRowAlertFilter] = useState<'All' | 'Alert' | 'No alert'>('All')
-  const [rowDivergeFilter, setRowDivergeFilter] = useState<'All' | 'Diverges' | 'Matches'>('All')
   const responsesRef = useRef<HTMLDivElement>(null)
 
   const jumpToResponses = () => { setTab('All'); responsesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
-  const viewAlertedInteractions = () => { setRowAlertFilter('Alert'); setRowCsatFilter([]); setRowDivergeFilter('All'); jumpToResponses() }
-  const viewLowCsatInteractions = () => { setRowCsatFilter(['1', '2']); setRowAlertFilter('All'); setRowDivergeFilter('All'); jumpToResponses() }
-  const viewDivergentInteractions = () => { setRowDivergeFilter('Diverges'); setRowAlertFilter('All'); setRowCsatFilter([]); jumpToResponses() }
+  const viewAlertedInteractions = () => { setRowAlertFilter('Alert'); setRowCsatFilter([]); jumpToResponses() }
+  const viewLowCsatInteractions = () => { setRowCsatFilter(['1', '2']); setRowAlertFilter('All'); jumpToResponses() }
 
   const perf: PerfData = {
     inter: PROGRAM_INTER_OVERRIDE[program.n] ?? program.inter,
@@ -3268,11 +3367,12 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const tabTotal = tab === 'Survey sent' ? totalSent : tab === 'Not sent' ? totalNotSent : totalInter
 
   const rowStatusOptions = Array.from(new Set(allRows.map(r => r.status))).sort()
+  const rowStatusGroups = (['Invitation Delivered', 'Skipped'] as const)
+    .map(label => ({ label, options: Object.keys(STATUS_GROUP).filter(s => STATUS_GROUP[s] === label && rowStatusOptions.includes(s)) }))
+    .filter(g => g.options.length > 0)
   const rowAgentOptions = Array.from(new Set(allRows.map(r => r.agent))).sort()
   const rowTopicOptions = Array.from(new Set(allRows.map(r => r.topic).filter((t): t is string => t !== null))).sort()
   const ratingOptions = ['5', '4', '3', '2', '1', 'No rating']
-  const divergeCount = allRows.filter(r => rowDiverges(r, details)).length
-  const matchCount = allRows.filter(r => rowComparable(r, details) && !rowDiverges(r, details)).length
   const multiLabel = (v: string[], all: string, noun: string) => (v.length === 0 ? all : v.length === 1 ? v[0] : `${v.length} ${noun}`)
   const matchesRating = (val: number | null, selected: string[]) =>
     selected.length === 0 || (val === null ? selected.includes('No rating') : selected.includes(String(val)))
@@ -3286,8 +3386,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
       (rowTopicFilter.length === 0 || (r.topic !== null && rowTopicFilter.includes(r.topic))) &&
       matchesRating(r.csat, rowCsatFilter) &&
       matchesRating(r.asat, rowAsatFilter) &&
-      (rowAlertFilter === 'All' || (rowAlertFilter === 'Alert' ? rowHasAlert(r, details, program.n) : !rowHasAlert(r, details, program.n))) &&
-      (rowDivergeFilter === 'All' || (rowDivergeFilter === 'Diverges' ? rowDiverges(r, details) : (rowComparable(r, details) && !rowDiverges(r, details))))
+      (rowAlertFilter === 'All' || (rowAlertFilter === 'Alert' ? rowHasAlert(r, details, program.n) : !rowHasAlert(r, details, program.n)))
     )
     // Latest responses first by default: rows with an actual customer response lead, newest first;
     // rows still awaiting one (or never sent) follow, newest activity first within that group.
@@ -3298,12 +3397,12 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
     })
   const PAGE_SIZE = 50
   const pageRows = rows.slice(0, PAGE_SIZE)
-  const rowFiltersActive = rowStatusFilter.length + rowAgentFilter.length + rowTopicFilter.length + rowCsatFilter.length + rowAsatFilter.length > 0 || rowAlertFilter !== 'All' || rowDivergeFilter !== 'All'
+  const rowFiltersActive = rowStatusFilter.length + rowAgentFilter.length + rowTopicFilter.length + rowCsatFilter.length + rowAsatFilter.length > 0 || rowAlertFilter !== 'All'
   // Once search or a row filter narrows things down, show the exact match count instead of the
   // extrapolated population total — "3 of 2,572" would read as broken, not as a reviewable sample.
   const narrowedExactly = q !== '' || rowFiltersActive
   const footerTotal = narrowedExactly ? rows.length : tabTotal
-  const clearRowFilters = () => { setRowStatusFilter([]); setRowAgentFilter([]); setRowTopicFilter([]); setRowCsatFilter([]); setRowAsatFilter([]); setRowAlertFilter('All'); setRowDivergeFilter('All') }
+  const clearRowFilters = () => { setRowStatusFilter([]); setRowAgentFilter([]); setRowTopicFilter([]); setRowCsatFilter([]); setRowAsatFilter([]); setRowAlertFilter('All') }
 
   const cell = (muted = false): React.CSSProperties => ({
     padding: 'var(--space-3) var(--space-2)',
@@ -3351,7 +3450,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
-          <InsightBanner program={program} onOpen={() => setShowInsight(true)} onViewAlerts={viewAlertedInteractions} onViewLowCsat={viewLowCsatInteractions} onViewDivergence={viewDivergentInteractions} />
+          <InsightBanner program={program} onOpen={() => setShowInsight(true)} onViewAlerts={viewAlertedInteractions} onViewLowCsat={viewLowCsatInteractions} />
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
@@ -3388,7 +3487,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
               search box above (free-text beats a dropdown once there are dozens of names). */}
           <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
             <div style={{ width: 170 }}>
-              <MultiSelectField options={rowStatusOptions} value={rowStatusFilter} onChange={setRowStatusFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowStatusFilter, 'All statuses', 'statuses')} radius="var(--radius-md)" />
+              <MultiSelectField options={rowStatusOptions} groups={rowStatusGroups} value={rowStatusFilter} onChange={setRowStatusFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowStatusFilter, 'All statuses', 'statuses')} radius="var(--radius-md)" />
             </div>
             <SegmentedFilter
               value={rowAlertFilter}
@@ -3397,15 +3496,6 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                 ['All', 'All'],
                 ['Alert', `Alert ${fmt(program.alerts)}`],
                 ['No alert', `No alert ${fmt(Math.max(0, Math.round(perf.rec) - program.alerts))}`],
-              ]}
-            />
-            <SegmentedFilter
-              value={rowDivergeFilter}
-              onChange={v => setRowDivergeFilter(v as 'All' | 'Diverges' | 'Matches')}
-              options={[
-                ['All', 'All'],
-                ['Diverges', `Diverges ${fmt(divergeCount)}`],
-                ['Matches', `Matches ${fmt(matchCount)}`],
               ]}
             />
             <div style={{ width: 140 }}>
@@ -3441,8 +3531,8 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                     key={col}
                     scope="col"
                     style={{
-                      padding: `var(--space-3) ${col === 'Status' ? 'var(--space-4)' : 'var(--space-2)'} var(--space-3) ${col === 'Customer' ? 'var(--space-4)' : 'var(--space-2)'}`,
-                      textAlign: col === 'Status' ? 'right' : 'left',
+                      padding: `var(--space-3) ${col === 'Survey Status' ? 'var(--space-4)' : 'var(--space-2)'} var(--space-3) ${col === 'Customer' ? 'var(--space-4)' : 'var(--space-2)'}`,
+                      textAlign: col === 'Survey Status' ? 'right' : 'left',
                       font: `400 14px/20px ${FONT}`,
                       color: 'var(--lyra-color-fg-secondary)',
                       whiteSpace: 'nowrap',
@@ -3461,16 +3551,15 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                   </td>
                 </tr>
               ) : pageRows.map(r => {
-                const diverges = rowDiverges(r, details)
                 return (
                 <tr
                   key={r.id}
                   onClick={() => setOpenRow(r)}
-                  style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer', transition: 'background-color 0.15s', background: diverges ? 'var(--lyra-color-bg-ai)' : undefined }}
+                  style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)', cursor: 'pointer', transition: 'background-color 0.15s' }}
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--lyra-color-state-bg-hover-opacity)' }}
-                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = diverges ? 'var(--lyra-color-bg-ai)' : '' }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
                 >
-                  <td style={{ ...cell(), padding: 'var(--space-3) var(--space-2) var(--space-3) 13px', fontWeight: 500, borderLeft: diverges ? '3px solid var(--lyra-purple-700)' : '3px solid transparent' }}>{r.customer}</td>
+                  <td style={{ ...cell(), padding: 'var(--space-3) var(--space-2) var(--space-3) 13px', fontWeight: 500, borderLeft: '3px solid transparent' }}>{r.customer}</td>
                   <td style={cell(true)}>{r.id}</td>
                   <td style={cell(true)}>{r.agent}</td>
                   <td style={cell()}>{r.topic ?? <Muted>No topic detected</Muted>}</td>
@@ -3493,7 +3582,6 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                       </span>
                     )}
                   </td>
-                  <td style={cell()}><DivergenceCell diverges={diverges} /></td>
                   <td style={cell()}><AlertCell hasAlert={rowHasAlert(r, details, program.n)} /></td>
                   <td style={{ ...cell(), textAlign: 'right', padding: 'var(--space-3) var(--space-4) var(--space-3) var(--space-2)' }}><ResponseStatus status={r.status} /></td>
                 </tr>
