@@ -258,13 +258,13 @@ const NE_COLOR = 'var(--lyra-orange-500)'
 
 function MetricRow({ label, value, delta, icon, tone }: { label: string; value: string; delta: string; icon: React.ReactNode; tone: 'brand' | 'critical' }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gridTemplateAreas: '"icon label label" "icon val delta"', columnGap: 10, alignItems: 'center', padding: '6px 14px' }}>
-      <span style={{ gridArea: 'icon', width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', background: tone === 'brand' ? 'var(--lyra-brand-50)' : 'var(--lyra-color-status-critical-subtle)', color: tone === 'brand' ? 'var(--lyra-brand-600)' : 'var(--lyra-color-status-critical-strong)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px' }}>
+      <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', flexShrink: 0, background: tone === 'brand' ? 'var(--lyra-brand-50)' : 'var(--lyra-color-status-critical-subtle)', color: tone === 'brand' ? 'var(--lyra-brand-600)' : 'var(--lyra-color-status-critical-strong)' }}>
         {icon}
       </span>
-      <span style={{ gridArea: 'label', alignSelf: 'end', font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)' }}>{label}</span>
-      <b style={{ gridArea: 'val', alignSelf: 'baseline', font: `600 20px/1.2 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>{value}</b>
-      <span style={{ gridArea: 'delta', alignSelf: 'baseline', justifySelf: 'start' }}><Delta value={delta} size={12} /></span>
+      <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginRight: 8 }}>{label}</span>
+      <b style={{ font: `600 20px/1.2 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)', marginRight: 24 }}>{value}</b>
+      <Delta value={delta} size={12} />
     </div>
   )
 }
