@@ -3111,10 +3111,11 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
         {/* ── Scores strip ── */}
         <div style={{ padding: '0 24px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
           {[
-            { label: 'CSAT', val: csatGot, color: csatGot !== null && csatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : csatGot !== null && csatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
-            { label: 'ASAT', val: asatGot, color: asatGot !== null && asatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : asatGot !== null && asatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
+            { label: 'CSAT', icon: <Smile size={16} />, val: csatGot, color: csatGot !== null && csatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : csatGot !== null && csatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
+            { label: 'ASAT', icon: <Headphones size={16} />, val: asatGot, color: asatGot !== null && asatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : asatGot !== null && asatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
           ].map(m => (
             <div key={m.label} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-surface-canvas)', border: '1px solid var(--lyra-color-border-subtle)', textAlign: 'center' }}>
+              <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', margin: '0 auto 6px', background: 'var(--lyra-brand-50)', color: 'var(--lyra-brand-600)' }}>{m.icon}</span>
               <div style={{ ...SH, marginBottom: 4 }}>{m.label}</div>
               {m.val !== null
                 ? <div style={{ font: `600 24px/28px ${FONT}`, color: m.color }}>{m.val}<span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span></div>
