@@ -3113,19 +3113,19 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
         </div>
 
         {/* ── Interaction + contact details — the same fields as the table row, plus who to reach out to ── */}
-        <dl style={{ margin: '0 24px 16px', padding: '10px 14px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', rowGap: 10, columnGap: 16, borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)' }}>
+        <dl style={{ margin: '0 24px 16px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '0.9fr 0.9fr 1.3fr', rowGap: 10, columnGap: 16, borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)' }}>
           {([
-            ['Customer', row.customer, 1],
-            ['Channel', 'Chat', 1],
-            ['Interaction ID', pseudoUuid(row.id), 1],
-            ['Survey sent', row.sent ?? 'Not sent', 1],
-            ['Company', companyFor(row.customer), 1],
-            ['Phone', d.phone, 1],
-            ['Email', emailFor(row.customer, d.email), 2],
-          ] as [string, string, number][]).map(([label, value, span]) => (
+            ['Customer', row.customer, 1, false],
+            ['Company', companyFor(row.customer), 1, false],
+            ['Phone', d.phone, 1, false],
+            ['Survey sent', row.sent ?? 'Not sent', 1, false],
+            ['Channel', 'Chat', 1, false],
+            ['Interaction ID', pseudoUuid(row.id), 1, true],
+            ['Email', emailFor(row.customer, d.email), 3, false],
+          ] as [string, string, number, boolean][]).map(([label, value, span, mono]) => (
             <div key={label} style={{ minWidth: 0, gridColumn: `span ${span}` }}>
               <dt style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{label}</dt>
-              <dd title={value} style={{ margin: '2px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{value}</dd>
+              <dd title={value} style={{ margin: '2px 0 0', font: `400 14px/20px ${mono ? 'var(--font-mono, monospace)' : FONT}`, color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{value}</dd>
             </div>
           ))}
         </dl>
