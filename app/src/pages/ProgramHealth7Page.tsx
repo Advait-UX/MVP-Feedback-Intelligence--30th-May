@@ -336,7 +336,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
     <section style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
       <div style={{ padding: '18px 22px 10px', background: 'var(--lyra-color-bg-surface-base)' }}>
         <h3 style={{ font: `600 20px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Program Performance</h3>
-        <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+        <p style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 2, margin: '6px 0 0', font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
           {programNames.length === 0 ? 'No programs match the selected filters' : programNames.map(({ n, active }, i) => (
             <span key={n} title={active ? 'Active program' : 'Inactive program'} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: active ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-status-warning-strong)' }} />
