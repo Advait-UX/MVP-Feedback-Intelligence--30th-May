@@ -17,8 +17,8 @@ const PROGRAMS = [
 /* "Program not found" was folded out — every interaction now routes to a program, so those 2,134
    interactions were redistributed proportionally across the remaining reasons, keeping the same total. */
 const REASONS: [string, number, string][] = [
-  ['No matching skill/team', 5305, 't'], ['Recency window', 4045, 't'],
-  ['Interaction too short', 2364, 't'], ['Outside send window', 970, 't'], ['Survey refused', 1232, 'c'], ['Internal interaction', 779, 'c'],
+  ['No matching skill/team', 6322, 't'], ['Recency window', 4821, 't'],
+  ['Outside send window', 1156, 't'], ['Survey refused', 1468, 'c'], ['Internal interaction', 928, 'c'],
 ]
 const SKIP_ALL = 14695
 
