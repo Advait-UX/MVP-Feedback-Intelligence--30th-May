@@ -3065,9 +3065,9 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
         {/* ── Header ── */}
         <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-full)', background: 'linear-gradient(135deg, var(--lyra-brand-50), var(--lyra-brand-100))', color: 'var(--lyra-brand-700)', display: 'grid', placeItems: 'center', font: `600 15px/1 ${FONT}`, flexShrink: 0, border: '2px solid var(--lyra-brand-200)' }}>{initials}</div>
+            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-full)', background: 'linear-gradient(135deg, var(--lyra-brand-50), var(--lyra-brand-100))', color: 'var(--lyra-brand-700)', display: 'grid', placeItems: 'center', font: `600 16px/1 ${FONT}`, flexShrink: 0, border: '2px solid var(--lyra-brand-200)' }}>{initials}</div>
             <div>
-              <div style={{ font: `600 17px/22px ${FONT}`, letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>{row.customer}</div>
+              <div style={{ font: `500 16px/20px ${FONT}`, letterSpacing: '-0.01em', color: 'var(--lyra-color-fg-default)' }}>{row.customer}</div>
               <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>{row.id}</span>
                 <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--lyra-color-fg-disabled)' }} />
@@ -3117,8 +3117,8 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             <div key={m.label} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-surface-canvas)', border: '1px solid var(--lyra-color-border-subtle)', textAlign: 'center' }}>
               <div style={{ ...SH, marginBottom: 4 }}>{m.label}</div>
               {m.val !== null
-                ? <div style={{ font: `600 22px/26px ${FONT}`, color: m.color }}>{m.val}<span style={{ font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span></div>
-                : <div style={{ font: `400 15px/20px ${FONT}`, color: 'var(--lyra-color-fg-disabled)' }}>--</div>}
+                ? <div style={{ font: `600 24px/28px ${FONT}`, color: m.color }}>{m.val}<span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span></div>
+                : <div style={{ font: `400 14px/28px ${FONT}`, color: 'var(--lyra-color-fg-disabled)' }}>--</div>}
             </div>
           ))}
           <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-surface-canvas)', border: '1px solid var(--lyra-color-border-subtle)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
