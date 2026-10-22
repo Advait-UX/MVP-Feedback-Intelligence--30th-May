@@ -3559,7 +3559,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                 >
                   <td style={{ ...cell(), padding: 'var(--space-3) var(--space-2) var(--space-3) 13px', fontWeight: 500, borderLeft: '3px solid transparent' }}>{r.customer}</td>
                   <td style={cell(true)}>{r.id}</td>
-                  <td style={cell(true)}>{r.agent}</td>
+                  <td style={{ ...cell(false, true), color: 'var(--lyra-color-fg-link)' }}>{r.agent}</td>
                   <td style={cell()}>{r.topic ?? <Muted>No topic detected</Muted>}</td>
                   <td style={cell()}>{r.sent ?? <Muted>n/a</Muted>}</td>
                   <td style={cell()}>{r.response ?? <Muted>n/a</Muted>}</td>

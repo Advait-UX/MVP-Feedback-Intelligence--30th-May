@@ -3567,7 +3567,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--lyra-color-state-bg-hover-opacity)' }}
                   onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
                 >
-                  <td style={{ ...cell(false, true), padding: 'var(--space-3) var(--space-2) var(--space-3) 13px', borderLeft: '3px solid transparent' }}>{agentName(r.agent)}</td>
+                  <td style={{ ...cell(false, true), padding: 'var(--space-3) var(--space-2) var(--space-3) 13px', borderLeft: '3px solid transparent', color: 'var(--lyra-color-fg-link)' }}>{agentName(r.agent)}</td>
                   <td style={cell()}>{r.customer}</td>
                   <td style={cell(true)} title={pseudoUuid(r.id)}>
                     {(() => {
