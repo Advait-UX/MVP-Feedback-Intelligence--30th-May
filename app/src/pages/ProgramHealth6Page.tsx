@@ -688,10 +688,6 @@ function TodaysHighlights(_props: HighlightsProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
       <h2 style={{ font: `600 20px/24px ${FONT}`, margin: 0, color: 'var(--lyra-color-fg-default)' }}>{greet}, James.</h2>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, font: `400 13px/18px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
-        <i style={{ width: 8, height: 8, borderRadius: 'var(--radius-full)', background: 'var(--lyra-color-status-success-strong)', boxShadow: '0 0 0 3px var(--lyra-color-status-success-subtle)' }} />
-        Live · updated just now
-      </span>
     </div>
   )
 }
