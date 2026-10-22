@@ -3091,15 +3091,15 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
         </div>
 
         {/* ── Interaction + contact details ── */}
-        <dl style={{ margin: '0 24px 16px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '0.9fr 0.9fr 1.3fr', rowGap: 10, columnGap: 16, borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)' }}>
+        <dl style={{ margin: '0 24px 16px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', rowGap: 10, columnGap: 16, borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)' }}>
           {([
             ['Customer', row.customer, 1, false],
             ['Company', companyFor(row.customer), 1, false],
             ['Phone', d.phone, 1, false],
             ['Survey Sent', row.sent ?? 'Not Sent', 1, false],
             ['Channel', 'Chat', 1, false],
-            ['Interaction ID', row.id, 1, true],
-            ['Email', emailFor(row.customer, d.email), 3, false],
+            ['Email', emailFor(row.customer, d.email), 1, false],
+            ['Interaction ID', row.id, 3, true],
           ] as [string, string, number, boolean][]).map(([label, value, span, mono]) => (
             <div key={label} style={{ minWidth: 0, gridColumn: `span ${span}` }}>
               <dt style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>{label}</dt>
