@@ -1430,7 +1430,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
                 key={g}
                 onClick={() => { setGroupBy(g); setSort(null); setExpandedChannel(null); setExpandedTopic(null) }}
                 style={{
-                  padding: '6px 16px', font: `500 12px/16px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
+                  padding: '6px 16px', font: `500 14px/20px ${FONT}`, borderTop: 'none', borderBottom: 'none', borderLeft: 'none', cursor: 'pointer',
                   background: groupBy === g ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
                   color: groupBy === g ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)',
                   borderRight: i < 2 ? '1px solid var(--lyra-color-border-subtle)' : 'none',
