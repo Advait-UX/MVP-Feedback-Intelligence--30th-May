@@ -1411,7 +1411,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
       <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>
-            Programs{groupBy !== 'Program' ? ` — grouped by ${groupBy.toLowerCase()}` : ''}
+            Programs{groupBy !== 'Program' ? `: grouped by ${groupBy.toLowerCase()}` : ''}
           </h3>
           {groupBy === 'Program' && (
             <span style={{
