@@ -39,6 +39,15 @@ function reasonCount(p: { n: string; inter: number; elig: number }, reason: stri
   const v = PROGRAM_REASONS[p.n]?.[reason] ?? 0
   return baseSkipped ? v * ((p.inter - p.elig) / baseSkipped) : 0
 }
+/* Each chart reason is the rolled-up name for exactly one interaction-level skip status. */
+const REASON_STATUS: Record<string, string> = {
+  'No Matching Skill/Team': 'No Matching Skill or Team',
+  'Recency Window': 'Recency Window',
+  'Interaction Too Short': 'Interaction Too Short',
+  'Outside Send Window': 'No Matching Survey Window',
+  'Survey Refused': 'Opted Out',
+  'Internal Interaction': 'Internal Interaction',
+}
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US')
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0)
@@ -289,7 +298,7 @@ function MetricRow({ label, value, delta, icon, tone }: { label: string; value: 
 
 type PerfTab = 'el' | 'ne' | null
 
-function ProgramPerformance({ programNames, data, deltas, periodNote, open: openProp, onOpenChange, reasons, selectedReason = null, onSelectReason, matchingPrograms }: { programNames: { n: string; active: boolean }[]; data: PerfData; deltas: PerfDeltas; periodNote: string; open?: PerfTab; onOpenChange?: (t: PerfTab) => void; reasons?: [string, number, string][]; selectedReason?: string | null; onSelectReason?: (r: string | null) => void; matchingPrograms?: number }) {
+function ProgramPerformance({ programNames, data, deltas, periodNote, open: openProp, onOpenChange, reasons, selectedReason = null, onSelectReason, filterTarget = 'Programs', matchingLabel }: { programNames: { n: string; active: boolean }[]; data: PerfData; deltas: PerfDeltas; periodNote: string; open?: PerfTab; onOpenChange?: (t: PerfTab) => void; reasons?: [string, number, string][]; selectedReason?: string | null; onSelectReason?: (r: string | null) => void; filterTarget?: string; matchingLabel?: string }) {
   const [openLocal, setOpenLocal] = useState<PerfTab>('el')
   const open = openProp !== undefined ? openProp : openLocal
   const setOpen = (t: PerfTab) => { setOpenLocal(t); onOpenChange?.(t) }
@@ -469,8 +478,8 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
               {selectedReason ? (
                 <>
                   <span>
-                    Programs below are filtered to <b style={{ fontWeight: 500, color: 'var(--lyra-color-fg-default)' }}>{selectedReason}</b>
-                    {matchingPrograms !== undefined && ` (${matchingPrograms} ${matchingPrograms === 1 ? 'program' : 'programs'})`}
+                    {filterTarget} below {filterTarget === 'Programs' ? 'are' : 'is'} filtered to <b style={{ fontWeight: 500, color: 'var(--lyra-color-fg-default)' }}>{selectedReason}</b>
+                    {matchingLabel && ` (${matchingLabel})`}
                   </span>
                   <button
                     type="button" onClick={() => onSelectReason(null)}
@@ -480,7 +489,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
                   </button>
                 </>
               ) : (
-                <span>Select a reason to filter the Programs table below.</span>
+                <span>Select a reason to filter the {filterTarget} table below.</span>
               )}
             </div>
           )}
@@ -506,10 +515,10 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
               }
               return (
                 <button
-                  key={n} type="button" aria-pressed={isSel}
-                  title={isSel ? 'Click to clear this filter' : `Filter programs to ${n}`}
+                  key={n} type="button" aria-pressed={isSel} disabled={Math.round(v) === 0 && !isSel}
+                  title={Math.round(v) === 0 && !isSel ? `No interactions skipped for ${n}` : isSel ? 'Click to clear this filter' : `Filter programs to ${n}`}
                   onClick={() => onSelectReason(isSel ? null : n)}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 4px 6px', border: 'none', borderRadius: 'var(--radius-md)', background: isSel ? 'var(--lyra-color-state-bg-hover-opacity)' : 'transparent', cursor: 'pointer', opacity: dimmed ? 0.45 : 1, transition: 'opacity .15s, background .15s' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 4px 6px', border: 'none', borderRadius: 'var(--radius-md)', background: isSel ? 'var(--lyra-color-state-bg-hover-opacity)' : 'transparent', cursor: Math.round(v) === 0 && !isSel ? 'default' : 'pointer', opacity: dimmed ? 0.45 : 1, transition: 'opacity .15s, background .15s' }}
                   onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)'; e.currentTarget.style.opacity = '1' }}
                   onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; e.currentTarget.style.opacity = dimmed ? '0.45' : '1' }}
                 >
@@ -3549,6 +3558,17 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const footerTotal = narrowedExactly ? rows.length : tabTotal
   const clearRowFilters = () => { setRowStatusFilter([]); setRowAgentFilter([]); setRowTopicFilter([]); setRowCsatFilter([]); setRowAsatFilter([]); setRowAlertFilter('All') }
 
+  // The chart's reason selection *is* the Survey Status filter narrowed to one skip status, so the two
+  // can never disagree: picking a status in the dropdown highlights its bar, and vice versa.
+  const programReasons = REASONS.map(([n, , k]) => [n, reasonCount({ n: program.n, inter: perf.inter, elig: perf.elig }, n), k] as [string, number, string])
+  const selectedReason = rowStatusFilter.length === 1
+    ? Object.keys(REASON_STATUS).find(r => REASON_STATUS[r] === rowStatusFilter[0]) ?? null
+    : null
+  const selectReason = (r: string | null) => {
+    setRowStatusFilter(r ? [REASON_STATUS[r]] : [])
+    setTab(r ? 'Not Sent' : 'All')
+  }
+
   const cell = (muted = false, bold = false): React.CSSProperties => ({
     padding: 'var(--space-3) var(--space-2)',
     font: `${bold ? 500 : 400} 14px/18px ${FONT}`,
@@ -3597,7 +3617,11 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
-          <ProgramPerformance programNames={[{ n: program.n, active: program.tags.includes('Active') }]} data={perf} deltas={PROGRAM_DELTAS[program.n] ?? OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} />
+          <ProgramPerformance
+            programNames={[{ n: program.n, active: program.tags.includes('Active') }]} data={perf} deltas={PROGRAM_DELTAS[program.n] ?? OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)}
+            reasons={programReasons} selectedReason={selectedReason} onSelectReason={selectReason}
+            filterTarget="Customer Responses" matchingLabel={selectedReason ? `${rows.length} sample ${rows.length === 1 ? 'interaction' : 'interactions'}` : undefined}
+          />
         </div>
 
         {/* Customer responses */}
@@ -3877,7 +3901,7 @@ export function ProgramHealth6Page() {
         )}
 
         <div ref={perfRef} style={{ marginTop: 'var(--space-6)', scrollMarginTop: 'var(--space-4)' }}>
-          <ProgramPerformance programNames={data.programs.map(p => ({ n: p.n, active: p.tags.includes('Active') }))} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} open={perfTab} onOpenChange={setPerfTab} reasons={reasonTotals} selectedReason={reason} onSelectReason={setReason} matchingPrograms={reasonMatches} />
+          <ProgramPerformance programNames={data.programs.map(p => ({ n: p.n, active: p.tags.includes('Active') }))} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} open={perfTab} onOpenChange={setPerfTab} reasons={reasonTotals} selectedReason={reason} onSelectReason={setReason} matchingLabel={reasonMatches === undefined ? undefined : `${reasonMatches} ${reasonMatches === 1 ? 'program' : 'programs'}`} />
         </div>
 
         <div ref={tableRef} style={{ marginTop: 'var(--space-6)', scrollMarginTop: 'var(--space-4)' }}>
