@@ -3047,6 +3047,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
   const initials = row.customer.split(' ').map(w => w[0]).join('').slice(0, 2)
   const outcomeType = deriveOutcomeType(row)
   const outcomeMeta = OUTCOME_META[outcomeType]
+  const outcomeIcon = outcomeType === 'completed' ? <CheckCircle2 size={16} /> : outcomeType === 'partial' ? <CircleDashed size={16} /> : outcomeType === 'abandoned' ? <XCircle size={16} /> : <MinusCircle size={16} />
 
   const csatGot = row.csat
   const asatGot = row.asat
@@ -3114,17 +3115,18 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             { label: 'CSAT', icon: <Smile size={16} />, val: csatGot, color: csatGot !== null && csatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : csatGot !== null && csatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
             { label: 'ASAT', icon: <Headphones size={16} />, val: asatGot, color: asatGot !== null && asatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : asatGot !== null && asatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
           ].map(m => (
-            <div key={m.label} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-surface-canvas)', border: '1px solid var(--lyra-color-border-subtle)', textAlign: 'center' }}>
-              <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', margin: '0 auto 6px', background: 'var(--lyra-brand-50)', color: 'var(--lyra-brand-600)' }}>{m.icon}</span>
+            <div key={m.label} style={{ padding: '12px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-active-subtle)', textAlign: 'center' }}>
+              <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', margin: '0 auto 6px', background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-brand-600)' }}>{m.icon}</span>
               <div style={{ ...SH, marginBottom: 4 }}>{m.label}</div>
               {m.val !== null
                 ? <div style={{ font: `600 24px/28px ${FONT}`, color: m.color }}>{m.val}<span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span></div>
                 : <div style={{ font: `400 14px/28px ${FONT}`, color: 'var(--lyra-color-fg-disabled)' }}>--</div>}
             </div>
           ))}
-          <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-surface-canvas)', border: '1px solid var(--lyra-color-border-subtle)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-            <div style={{ ...SH }}>Outcome</div>
-            <ResponseStatus status={row.status} align="center" />
+          <div style={{ padding: '12px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-active-subtle)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', marginBottom: 6, background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-brand-600)' }}>{outcomeIcon}</span>
+            <div style={{ ...SH, marginBottom: 4 }}>Outcome</div>
+            <ResponseStatus status={row.status} secondarySide="left" />
           </div>
         </div>
 
