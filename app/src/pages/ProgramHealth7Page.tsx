@@ -258,7 +258,7 @@ const NE_COLOR = 'var(--lyra-orange-500)'
 
 function MetricRow({ label, value, delta, icon, tone }: { label: string; value: string; delta: string; icon: React.ReactNode; tone: 'brand' | 'critical' }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px' }}>
       <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', flexShrink: 0, background: tone === 'brand' ? 'var(--lyra-brand-50)' : 'var(--lyra-color-status-critical-subtle)', color: tone === 'brand' ? 'var(--lyra-brand-600)' : 'var(--lyra-color-status-critical-strong)' }}>
         {icon}
       </span>
