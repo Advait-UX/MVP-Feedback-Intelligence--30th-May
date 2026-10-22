@@ -263,7 +263,7 @@ function MetricRow({ label, value, delta, icon, tone }: { label: string; value: 
         {icon}
       </span>
       <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lyra-color-fg-secondary)', marginRight: 8 }}>{label}</span>
-      <b style={{ font: `600 20px/1.2 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)', marginRight: 24 }}>{value}</b>
+      <b style={{ font: `600 20px/1.2 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)', marginRight: 18 }}>{value}</b>
       <Delta value={delta} size={12} />
     </div>
   )
