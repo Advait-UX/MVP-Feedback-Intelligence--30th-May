@@ -347,7 +347,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
         </p>
       </div>
       <div style={{ padding: '20px 22px 22px' }}>
-      <div style={{ margin: '-4px -6px 24px', padding: '20px 22px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-shell)' }}>
+      <div style={{ margin: '-4px -6px 24px', padding: '20px 22px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-active-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10, whiteSpace: 'nowrap' }}>
           <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>Total interactions</span>
           <b style={{ font: `600 26px/1.1 ${FONT}`, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: 'var(--lyra-color-fg-default)' }}>
