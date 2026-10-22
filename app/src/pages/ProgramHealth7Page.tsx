@@ -3326,7 +3326,7 @@ function SegmentedFilter({ value, onChange, options }: { value: string; onChange
 
 function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; onBack: () => void }) {
   const [search, setSearch] = useState('')
-  const [intent, setIntent] = useState('All Intents')
+  const [topicFilterBar, setTopicFilterBar] = useState<string[]>([])
   const [custType, setCustType] = useState('All Customer Types')
   const [channel, setChannel] = useState('All Channels')
   const [tab, setTab] = useState('All')
@@ -3437,7 +3437,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <SearchInput value={search} onChange={setSearch} placeholder="Search" />
           <DateRangePicker value={range} onChange={setRange} />
-          <FilterDropdown value={intent} options={['All Intents', 'Refund Processing', 'Technical Troubleshooting', 'Account Access', 'Service Outage']} onChange={setIntent} />
+          <MultiSelectField options={rowTopicOptions} value={topicFilterBar} onChange={setTopicFilterBar} mutedPlaceholder={false} labelOverride={multiLabel(topicFilterBar, 'All Topics', 'topics')} radius="var(--radius-md)" />
           <FilterDropdown value={custType} options={['All Customer Types', 'New', 'Returning', 'VIP']} onChange={setCustType} />
           <FilterDropdown value={channel} options={['All Channels', 'SMS', 'WhatsApp', 'Email']} onChange={setChannel} />
           <div style={{ marginLeft: 'auto', borderLeft: '1px solid var(--lyra-color-border-subtle)', paddingLeft: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
