@@ -2122,7 +2122,7 @@ const STATUS_GROUP: Record<string, string> = {
    right-aligned stack (secondary text's right edge lines up with the pill's own text), 'left' puts it
    inline before the pill — used in the drawer, where it reads as a sentence next to a field label rather
    than a stacked table cell. `align` only matters for 'below' (the drawer's centered OUTCOME box). */
-function ResponseStatus({ status, secondarySide = 'below', align = 'end' }: { status: string; secondarySide?: 'below' | 'left'; align?: 'start' | 'center' | 'end' }) {
+function ResponseStatus({ status, secondarySide = 'below', align = 'end', gap = 2 }: { status: string; secondarySide?: 'below' | 'left'; align?: 'start' | 'center' | 'end'; gap?: number }) {
   const tone = status === 'Survey Completed'
     ? { bg: 'var(--lyra-color-status-success-subtle)', fg: 'var(--lyra-color-status-success-strong)', border: undefined }
     : status === 'Partially Responded'
@@ -2146,7 +2146,7 @@ function ResponseStatus({ status, secondarySide = 'below', align = 'end' }: { st
     )
   }
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: align === 'center' ? 'center' : align === 'start' ? 'flex-start' : 'flex-end', gap: 2 }}>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: align === 'center' ? 'center' : align === 'start' ? 'flex-start' : 'flex-end', gap }}>
       {badge}
       <span style={{ font: `400 11px/14px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap', ...(align === 'end' ? { marginRight: 10 } : align === 'start' ? { marginLeft: 10 } : {}) }}>
         {group}
@@ -3116,17 +3116,21 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             { label: 'ASAT', icon: <Headphones size={16} />, val: asatGot, color: asatGot !== null && asatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : asatGot !== null && asatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
           ].map(m => (
             <div key={m.label} style={{ padding: '12px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-active-subtle)', textAlign: 'center' }}>
-              <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', margin: '0 auto 6px', background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-brand-600)' }}>{m.icon}</span>
-              <div style={{ ...SH, marginBottom: 4 }}>{m.label}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ width: 24, height: 24, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', flexShrink: 0, background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-brand-600)' }}>{m.icon}</span>
+                <span style={SH}>{m.label}</span>
+              </div>
               {m.val !== null
                 ? <div style={{ font: `600 24px/28px ${FONT}`, color: m.color }}>{m.val}<span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>/5</span></div>
                 : <div style={{ font: `400 14px/28px ${FONT}`, color: 'var(--lyra-color-fg-disabled)' }}>--</div>}
             </div>
           ))}
           <div style={{ padding: '12px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-active-subtle)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ width: 28, height: 28, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', marginBottom: 6, background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-brand-600)' }}>{outcomeIcon}</span>
-            <div style={{ ...SH, marginBottom: 4 }}>Outcome</div>
-            <ResponseStatus status={row.status} secondarySide="left" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ width: 24, height: 24, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', flexShrink: 0, background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-brand-600)' }}>{outcomeIcon}</span>
+              <span style={SH}>Outcome</span>
+            </div>
+            <ResponseStatus status={row.status} align="center" gap={8} />
           </div>
         </div>
 
