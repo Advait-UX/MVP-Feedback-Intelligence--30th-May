@@ -782,9 +782,9 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
       { title: 'WhatsApp surveys land in the boarding window', detail: '31% of WhatsApp sends go out within 45 minutes of the rebooked departure. Those get a 22% response rate versus 64% for sends after landing.' },
     ],
     actions: [
-      { title: 'Hold the compensation follow-up until the claim is decided', detail: 'Expected to cut partial completions by roughly 10pp.', cta: 'Adjust question timing', primary: true },
-      { title: 'Pause sends from 60 minutes before departure to landing', detail: 'Moves about 600 WhatsApp sends a week into a window that responds.', cta: 'Adjust send window' },
-      { title: 'Share rebooking verbatims with Airport Operations', detail: '42 responses mention gate changes that were not announced.', cta: 'Share verbatims' },
+      { title: 'Hold the compensation follow-up until the claim is decided', detail: 'Expected to cut partial completions by roughly 10pp.', cta: 'Adjust Question Timing', primary: true },
+      { title: 'Pause sends from 60 minutes before departure to landing', detail: 'Moves about 600 WhatsApp sends a week into a window that responds.', cta: 'Adjust Send Window' },
+      { title: 'Share rebooking verbatims with Airport Operations', detail: '42 responses mention gate changes that were not announced.', cta: 'Share Verbatims' },
     ],
   },
   'Billing and Refund Recovery · All Digital': {
@@ -801,9 +801,9 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
       { title: 'Partial refunds drive 3 of the 4 alerts', detail: 'Refunds with a fee deducted average 1.8 stars; full refunds average 4.3. In every alert the customer did not know a fee would be taken.' },
     ],
     actions: [
-      { title: 'Send the survey 24 hours after the refund receipt', detail: 'Expected to lift response rate to about 55% based on the delayed-send cohort.', cta: 'Adjust send window', primary: true },
+      { title: 'Send the survey 24 hours after the refund receipt', detail: 'Expected to lift response rate to about 55% based on the delayed-send cohort.', cta: 'Adjust Send Window', primary: true },
       { title: 'Add the fee breakdown to partial-refund confirmations', detail: 'Removes the surprise behind 3 of the 4 alerts.', cta: 'Notify Billing' },
-      { title: 'Review the 4 open alerts', detail: 'Two are from customers with a second refund still pending.', cta: 'Open alerts' },
+      { title: 'Review the 4 open alerts', detail: 'Two are from customers with a second refund still pending.', cta: 'Open Alerts' },
     ],
   },
   'Omnichannel Escalation Recovery': {
@@ -819,9 +819,9 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
       { title: 'Promised callbacks arrive late', detail: '38% of callbacks land more than 2 hours after the promised slot. 4 of the 5 alerts this period come from that group.' },
     ],
     actions: [
-      { title: 'Attach the chat transcript to every voice escalation', detail: 'Expected to lift CSAT on transferred cases by roughly 1.5 stars.', cta: 'Notify supervisor', primary: true },
-      { title: 'Tighten the callback window to 60 minutes', detail: 'Covers the group behind 4 of 5 alerts.', cta: 'Adjust callback SLA' },
-      { title: 'Review the 5 open alerts', detail: 'Three customers have contacted us three or more times this month.', cta: 'Open alerts' },
+      { title: 'Attach the chat transcript to every voice escalation', detail: 'Expected to lift CSAT on transferred cases by roughly 1.5 stars.', cta: 'Notify Supervisor', primary: true },
+      { title: 'Tighten the callback window to 60 minutes', detail: 'Covers the group behind 4 of 5 alerts.', cta: 'Adjust Callback SLA' },
+      { title: 'Review the 5 open alerts', detail: 'Three customers have contacted us three or more times this month.', cta: 'Open Alerts' },
     ],
   },
   'Product Feedback - Beta Testers': {
@@ -837,9 +837,9 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
       { title: 'Mobile sync is still the top complaint', detail: '41% of 1–3 star responses say changes made on desktop do not appear on mobile. Those testers average 2.4 stars; everyone else averages 4.1.' },
     ],
     actions: [
-      { title: 'Extend the program end date', detail: 'Resumes surveys for the testers still in the beta and brings coverage back to roughly 83%.', cta: 'Edit program', primary: true },
-      { title: 'Review the 5 open alerts', detail: 'All five testers are still active in the beta.', cta: 'Open alerts' },
-      { title: 'Share the mobile sync verbatims with Product', detail: '17 responses describe the same reproduction steps.', cta: 'Share verbatims' },
+      { title: 'Extend the program end date', detail: 'Resumes surveys for the testers still in the beta and brings coverage back to roughly 83%.', cta: 'Edit Program', primary: true },
+      { title: 'Review the 5 open alerts', detail: 'All five testers are still active in the beta.', cta: 'Open Alerts' },
+      { title: 'Share the mobile sync verbatims with Product', detail: '17 responses describe the same reproduction steps.', cta: 'Share Verbatims' },
     ],
   },
   'Complaint Resolution Follow-Up': {
@@ -855,9 +855,9 @@ const PROGRAM_INSIGHTS: Record<string, ProgramInsight> = {
       { title: 'Refund Processing drives the low ratings', detail: '44% of 1–2 star responses are about refunds. In 7 of 10 verbatims the customer was not told when the money would arrive.' },
     ],
     actions: [
-      { title: 'Move the SMS send window to 9 am – 6 pm', detail: 'Expected to lift response rate by roughly 10pp based on daytime sends.', cta: 'Adjust send window', primary: true },
-      { title: 'Share refund verbatims with the Billing supervisor', detail: 'Ask agents to confirm a refund date before closing.', cta: 'Notify supervisor' },
-      { title: 'Review the 10 detractor alerts', detail: 'All 10 are open. Three are from repeat customers.', cta: 'Open alerts' },
+      { title: 'Move the SMS send window to 9 am – 6 pm', detail: 'Expected to lift response rate by roughly 10pp based on daytime sends.', cta: 'Adjust Send Window', primary: true },
+      { title: 'Share refund verbatims with the Billing supervisor', detail: 'Ask agents to confirm a refund date before closing.', cta: 'Notify Supervisor' },
+      { title: 'Review the 10 detractor alerts', detail: 'All 10 are open. Three are from repeat customers.', cta: 'Open Alerts' },
     ],
     watch: [
       { label: 'ASAT', value: '72%', delta: '-3%', stat: '19 interactions rated 1–2 this period, up from 13 last period.' },
@@ -878,7 +878,7 @@ const GENERIC_INSIGHT = (p: typeof PROGRAMS[0]): ProgramInsight => ({
     { label: 'Alerts', value: fmt(p.alerts), delta: '0%' },
   ],
   causes: [],
-  actions: [{ title: 'Open the program to review recent responses', detail: 'Check the latest verbatims and alerts while data builds up.', cta: 'Open program', primary: true }],
+  actions: [{ title: 'Open the program to review recent responses', detail: 'Check the latest verbatims and alerts while data builds up.', cta: 'Open Program', primary: true }],
   dataProgress: { collected: 3, needed: 7 },
 })
 
@@ -900,7 +900,7 @@ function InsightStep({ n, icon, title, children }: { n: number; icon: React.Reac
 function WatchChip() {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--lyra-color-status-info-medium)', background: 'var(--lyra-color-status-info-subtle)', font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-status-info-strong)', whiteSpace: 'nowrap' }}>
-      Healthy · watching
+      Healthy · Watching
     </span>
   )
 }
@@ -908,7 +908,7 @@ function WatchChip() {
 function PendingChip() {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-slate-100)', font: `500 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>
-      Gathering data
+      Gathering Data
     </span>
   )
 }
@@ -969,7 +969,7 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
             </div>
           </div>
 
-          <InsightStep n={1} icon={<Activity size={16} />} title={attention ? 'Problem' : pending ? 'What we know so far' : 'What to watch'}>
+          <InsightStep n={1} icon={<Activity size={16} />} title={attention ? 'Problem' : pending ? 'What We Know So Far' : 'What to Watch'}>
             <div style={{ ...box, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
               {ins.problem.map((m, i) => (
                 <div key={m.label} style={{ padding: 'var(--space-3) var(--space-4)', borderLeft: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined }}>
@@ -984,7 +984,7 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
           </InsightStep>
 
           {!pending && (
-            <InsightStep n={2} icon={<Search size={16} />} title="Likely root cause">
+            <InsightStep n={2} icon={<Search size={16} />} title="Likely Root Cause">
               <div style={box}>
                 {ins.causes.map((c, i) => (
                   <div key={c.title} style={{ padding: 'var(--space-3) var(--space-4)', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined }}>
@@ -999,7 +999,7 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
             </InsightStep>
           )}
 
-          <InsightStep n={pending ? 2 : 3} icon={<Wrench size={16} />} title="Call to action">
+          <InsightStep n={pending ? 2 : 3} icon={<Wrench size={16} />} title="Call to Action">
             <div style={box}>
               {ins.actions.map((a, i) => (
                 <div key={a.title} style={{ padding: 'var(--space-3) var(--space-4)', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : undefined, display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
@@ -1023,7 +1023,7 @@ function InsightDrawer({ program, onClose, onOpenProgram }: { program: typeof PR
             Root causes are generated from survey responses and send logs. Illustrative for the private preview.
           </span>
           <button type="button" onClick={onOpenProgram} style={{ flexShrink: 0, height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-color-bg-surface-base)', font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            Open program
+            Open Program
           </button>
         </div>
       </aside>
@@ -1143,11 +1143,11 @@ function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat }: { progr
       <div style={{ background: 'rgba(143,115,227,0.10)', borderRadius: 'var(--radius-lg)', padding: '14px 16px 12px' }}>
         <div style={{ display: 'flex', width: 'fit-content', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
           <button type="button" onClick={() => setTier('attention')} style={{ padding: '4px 16px', font: `500 14px/20px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'attention' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'attention' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)', borderRight: '1px solid var(--lyra-color-border-subtle)' }}>
-            Need attention <span style={{ fontWeight: 400, opacity: 0.7 }}>{ins.problem.length}</span>
+            Need Attention <span style={{ fontWeight: 400, opacity: 0.7 }}>{ins.problem.length}</span>
           </button>
           {watch.length > 0 && (
             <button type="button" onClick={() => setTier('watch')} style={{ padding: '4px 16px', font: `500 14px/20px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'watch' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'watch' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)' }}>
-              To watch <span style={{ fontWeight: 400, opacity: 0.7 }}>{watch.length}</span>
+              To Watch <span style={{ fontWeight: 400, opacity: 0.7 }}>{watch.length}</span>
             </button>
           )}
         </div>
@@ -1160,13 +1160,13 @@ function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat }: { progr
 
   const cols: [React.ReactNode, string, string][] = pending
     ? [
-        [<Hourglass size={14} />, 'What we know so far', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
-        [<Search size={14} />, 'Likely root cause', `Needs ${ins.dataProgress?.needed ?? 7} days — ${ins.dataProgress?.collected ?? 0} collected so far`],
+        [<Hourglass size={14} />, 'What We Know So Far', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
+        [<Search size={14} />, 'Likely Root Cause', `Needs ${ins.dataProgress?.needed ?? 7} days — ${ins.dataProgress?.collected ?? 0} collected so far`],
       ]
     : [
-        [<Activity size={14} />, 'What to watch', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
-        [<Search size={14} />, 'Likely root cause', ins.causes[0].title],
-        [<Wrench size={14} />, 'Call to action', ins.actions[0].title],
+        [<Activity size={14} />, 'What to Watch', ins.problem.map(m => `${m.label} ${m.value} (${m.delta})`).join(' · ')],
+        [<Search size={14} />, 'Likely Root Cause', ins.causes[0].title],
+        [<Wrench size={14} />, 'Call to Action', ins.actions[0].title],
       ]
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)', background: pending ? 'var(--lyra-slate-100)' : 'var(--lyra-color-status-info-subtle)', border: `1px solid ${pending ? 'var(--lyra-color-border-soft)' : 'var(--lyra-color-status-info-medium)'}` }}>
@@ -1180,7 +1180,7 @@ function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat }: { progr
         ))}
       </div>
       <button type="button" onClick={onOpen} style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--lyra-color-bg-primary)', font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-on-primary)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-        See full analysis
+        See Full Analysis
       </button>
     </div>
   )
@@ -1337,7 +1337,7 @@ function NeedsAttentionChip() {
       color: 'var(--lyra-color-status-critical-strong)',
       whiteSpace: 'nowrap',
     }}>
-      Needs attention
+      Needs Attention
     </span>
   )
 }
@@ -3096,7 +3096,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             ['Customer', row.customer, 1, false],
             ['Company', companyFor(row.customer), 1, false],
             ['Phone', d.phone, 1, false],
-            ['Survey sent', row.sent ?? 'Not sent', 1, false],
+            ['Survey Sent', row.sent ?? 'Not Sent', 1, false],
             ['Channel', 'Chat', 1, false],
             ['Interaction ID', row.id, 1, true],
             ['Email', emailFor(row.customer, d.email), 3, false],
@@ -3135,7 +3135,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             <div style={{ borderRadius: '0 12px 12px 0', border: '1px solid var(--lyra-color-border-soft)', borderLeft: '4px solid var(--lyra-color-status-critical-strong)', background: 'var(--lyra-color-bg-surface-base)', padding: '14px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <Bell size={15} style={{ color: 'var(--lyra-color-status-critical-strong)', flexShrink: 0 }} />
-                <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>Alert triggered</span>
+                <span style={{ font: `600 14px/20px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)' }}>Alert Triggered</span>
               </div>
               <div style={{ font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)', marginBottom: 10 }}>
                 {d.alert.rule}
@@ -3145,7 +3145,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
               </div>
               {lowRatingReason && (
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--lyra-color-border-subtle)' }}>
-                  <div style={{ ...SH, marginBottom: 6 }}>Why the low rating</div>
+                  <div style={{ ...SH, marginBottom: 6 }}>Why the Low Rating</div>
                   <p style={{ margin: 0, font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)', fontStyle: 'italic' }}>{lowRatingReason}</p>
                 </div>
               )}
@@ -3162,7 +3162,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
           {/* 2. Primary topic */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ ...SH }}>Primary topic detected</div>
+              <div style={{ ...SH }}>Primary Topic Detected</div>
               {row.topic && <AiChip />}
             </div>
             <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-soft)', padding: '12px 14px' }}>
@@ -3185,7 +3185,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
           <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-subtle)', background: 'var(--lyra-color-bg-ai)', padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <Sparkles size={14} style={{ color: 'var(--lyra-purple-700)', flexShrink: 0, marginTop: 3 }} />
             <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ font: `600 12px/16px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lyra-purple-700)' }}>System read</div>
+              <div style={{ font: `600 12px/16px ${FONT}`, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lyra-purple-700)' }}>System Read</div>
               {narrative.story && (
                 <p style={{ margin: 0, font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-default)' }}>
                   <span style={{ font: `600 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>What happened — </span>{narrative.story}
@@ -3201,7 +3201,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
 
           {/* 4. Survey conversation */}
           <div>
-            <div style={{ ...SH, marginBottom: 8 }}>Survey conversation</div>
+            <div style={{ ...SH, marginBottom: 8 }}>Survey Conversation</div>
             {d.questions.length > 0 ? (
               <div style={{ borderRadius: 12, border: '1px solid var(--lyra-color-border-soft)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {d.questions.map((item, i) => (
@@ -3223,7 +3223,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
                 ))}
                 <TimelineNode color={outcomeMeta.dot} last>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', color: 'var(--lyra-color-fg-secondary)' }}>Survey status</span>
+                    <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', color: 'var(--lyra-color-fg-secondary)' }}>Survey Status</span>
                     <ResponseStatus status={row.status} secondarySide="left" />
                   </div>
                   <div style={{ font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 4 }}>{d.outcome}</div>
@@ -3233,7 +3233,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
               <div style={{ borderRadius: 10, border: '1px solid var(--lyra-color-border-soft)', padding: '12px 14px' }}>
                 <div style={{ font: `400 14px/22px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginBottom: 10 }}>{d.outcome}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', color: 'var(--lyra-color-fg-secondary)' }}>Survey status</span>
+                  <span style={{ font: `500 12px/16px ${FONT}`, letterSpacing: '0.03em', color: 'var(--lyra-color-fg-secondary)' }}>Survey Status</span>
                   <ResponseStatus status={row.status} secondarySide="left" />
                 </div>
               </div>
@@ -3390,10 +3390,10 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const totalInter = Math.round(perf.inter), totalSent = Math.round(perf.sent), totalNotSent = totalInter - totalSent
   const responseTabs: [string, number][] = [
     ['All', totalInter],
-    ['Survey sent', totalSent],
-    ['Not sent', totalNotSent],
+    ['Survey Sent', totalSent],
+    ['Not Sent', totalNotSent],
   ]
-  const tabTotal = tab === 'Survey sent' ? totalSent : tab === 'Not sent' ? totalNotSent : totalInter
+  const tabTotal = tab === 'Survey Sent' ? totalSent : tab === 'Not Sent' ? totalNotSent : totalInter
 
   const rowStatusOptions = Array.from(new Set(allRows.map(r => r.status))).sort()
   const rowStatusGroups = (['Invitation Delivered', 'Skipped'] as const)
@@ -3408,7 +3408,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
 
   const rows = allRows
     .filter(r =>
-      (tab === 'All' || (tab === 'Survey sent' ? r.sent !== null : r.sent === null)) &&
+      (tab === 'All' || (tab === 'Survey Sent' ? r.sent !== null : r.sent === null)) &&
       (!q || r.customer.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
       (rowStatusFilter.length === 0 || rowStatusFilter.includes(r.status)) &&
       (rowAgentFilter.length === 0 || rowAgentFilter.includes(r.agent)) &&
