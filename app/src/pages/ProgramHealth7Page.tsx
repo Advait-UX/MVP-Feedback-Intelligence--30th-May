@@ -1402,7 +1402,7 @@ function sortRows<T extends Record<string, unknown>>(rows: T[], sort: SortState)
   return [...rows].sort((a, b) => compareValues(a[sort.key], b[sort.key], sort.dir))
 }
 
-function SortableTh({ label, sortKey, sort, onSort, padding }: { label: string; sortKey: string; sort: SortState; onSort: (key: string) => void; padding: string }) {
+function SortableTh({ label, sortKey, sort, onSort, padding, align = 'left' }: { label: string; sortKey: string; sort: SortState; onSort: (key: string) => void; padding: string; align?: 'left' | 'right' }) {
   const active = sort?.key === sortKey
   return (
     <th
@@ -1410,7 +1410,7 @@ function SortableTh({ label, sortKey, sort, onSort, padding }: { label: string; 
       onClick={() => onSort(sortKey)}
       style={{
         padding,
-        textAlign: 'left',
+        textAlign: align,
         font: `400 14px/20px ${FONT}`,
         color: active ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-secondary)',
         whiteSpace: 'nowrap',
@@ -1418,7 +1418,7 @@ function SortableTh({ label, sortKey, sort, onSort, padding }: { label: string; 
         userSelect: 'none',
       }}
     >
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: align === 'right' ? 'flex-end' : 'flex-start', width: '100%' }}>
         {label}
         <ChevronDown
           size={14}
@@ -2015,7 +2015,19 @@ const CRF_RESPONSES: ResponseRow[] = [
   { customer: 'Priya Kapoor', id: 'INT-4072212', agent: 'Liu Yang', topic: 'Refund Processing', sent: 'Jul 16, 15:00', response: 'Jul 16, 15:18', completed: 'Jul 16, 15:30', csat: 5, asat: 5, status: 'Survey Completed' },
 ]
 
-const RESPONSE_COLUMNS = ['Customer', 'Interaction ID', 'Agent', 'Primary Topic', 'Sent', 'Response', 'Completed', 'CSAT', 'ASAT', 'Alert', 'Survey Status']
+const RESPONSE_COLUMNS: { label: string; key: string }[] = [
+  { label: 'Customer', key: 'customer' },
+  { label: 'Interaction ID', key: 'id' },
+  { label: 'Agent', key: 'agent' },
+  { label: 'Primary Topic', key: 'topic' },
+  { label: 'Sent', key: 'sent' },
+  { label: 'Response', key: 'response' },
+  { label: 'Completed', key: 'completed' },
+  { label: 'CSAT', key: 'csat' },
+  { label: 'ASAT', key: 'asat' },
+  { label: 'Alert', key: 'alert' },
+  { label: 'Survey Status', key: 'status' },
+]
 /* One interaction set per program; each has its own reporting window, topics and ID range. */
 const DETAIL_RESPONSES: Record<string, ResponseRow[]> = {
   'Complaint Resolution Follow-Up': [
@@ -3285,6 +3297,25 @@ function rowHasAlert(row: ResponseRow, details: Record<string, CustomerDetail>, 
   return !!deriveAlert(row, details[row.id]?.alert ?? null, programName)
 }
 
+/* Comparator for each sortable Customer responses column. Dates sort by actual time (parseRowDate),
+   ratings/alert by number/boolean, everything else alphabetically — nulls always sort last. */
+function rowSortCompare(a: ResponseRow, b: ResponseRow, key: string, details: Record<string, CustomerDetail>, programName: string): number {
+  switch (key) {
+    case 'agent': return a.agent.localeCompare(b.agent)
+    case 'customer': return a.customer.localeCompare(b.customer)
+    case 'id': return a.id.localeCompare(b.id)
+    case 'topic': return (a.topic ?? '').localeCompare(b.topic ?? '')
+    case 'sent': return parseRowDate(a.sent) - parseRowDate(b.sent)
+    case 'response': return parseRowDate(a.response) - parseRowDate(b.response)
+    case 'completed': return parseRowDate(a.completed) - parseRowDate(b.completed)
+    case 'csat': return (a.csat ?? -1) - (b.csat ?? -1)
+    case 'asat': return (a.asat ?? -1) - (b.asat ?? -1)
+    case 'alert': return Number(rowHasAlert(a, details, programName)) - Number(rowHasAlert(b, details, programName))
+    case 'status': return a.status.localeCompare(b.status)
+    default: return 0
+  }
+}
+
 function AlertCell({ hasAlert }: { hasAlert: boolean }) {
   return hasAlert ? (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, font: `500 13px/18px ${FONT}`, color: 'var(--lyra-color-status-critical-strong)', whiteSpace: 'nowrap' }}>
@@ -3335,6 +3366,8 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
   const [rowCsatFilter, setRowCsatFilter] = useState<string[]>([])
   const [rowAsatFilter, setRowAsatFilter] = useState<string[]>([])
   const [rowAlertFilter, setRowAlertFilter] = useState<'All' | 'Alert' | 'No alert'>('All')
+  const [rowSort, setRowSort] = useState<SortState>(null)
+  const handleRowSort = (key: string) => setRowSort(s => s?.key === key ? (s.dir === 'desc' ? { key, dir: 'asc' } : null) : { key, dir: 'desc' })
   const responsesRef = useRef<HTMLDivElement>(null)
 
   const jumpToResponses = () => { setTab('All'); responsesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
@@ -3386,7 +3419,12 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
     )
     // Latest responses first by default: rows with an actual customer response lead, newest first;
     // rows still awaiting one (or never sent) follow, newest activity first within that group.
+    // A clicked column header overrides that default until cleared.
     .sort((a, b) => {
+      if (rowSort) {
+        const cmp = rowSortCompare(a, b, rowSort.key, details, program.n)
+        return rowSort.dir === 'asc' ? cmp : -cmp
+      }
       const aResponded = a.response !== null ? 1 : 0
       const bResponded = b.response !== null ? 1 : 0
       return aResponded !== bResponded ? bResponded - aResponded : latestActivity(b) - latestActivity(a)
@@ -3525,19 +3563,15 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
                 {RESPONSE_COLUMNS.map(col => (
-                  <th
-                    key={col}
-                    scope="col"
-                    style={{
-                      padding: `var(--space-3) ${col === 'Survey Status' ? 'var(--space-4)' : 'var(--space-2)'} var(--space-3) ${col === 'Customer' ? 'var(--space-4)' : 'var(--space-2)'}`,
-                      textAlign: col === 'Survey Status' ? 'right' : 'left',
-                      font: `400 14px/20px ${FONT}`,
-                      color: 'var(--lyra-color-fg-secondary)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {col}
-                  </th>
+                  <SortableTh
+                    key={col.label}
+                    label={col.label}
+                    sortKey={col.key}
+                    sort={rowSort}
+                    onSort={handleRowSort}
+                    align={col.label === 'Survey Status' ? 'right' : 'left'}
+                    padding={`var(--space-3) ${col.label === 'Survey Status' ? 'var(--space-4)' : 'var(--space-2)'} var(--space-3) ${col.label === 'Customer' ? 'var(--space-4)' : 'var(--space-2)'}`}
+                  />
                 ))}
               </tr>
             </thead>
