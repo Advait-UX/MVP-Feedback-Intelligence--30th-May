@@ -1424,7 +1424,7 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Group by</span>
-          <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
             {(['Program', 'Channel', 'Topic'] as const).map((g, i) => (
               <button
                 key={g}
