@@ -1087,7 +1087,7 @@ function InsightBanner({ program, onOpen, onViewAlerts, onViewLowCsat }: { progr
     return (
       /* Same soft band the dashboard's "Today's highlights" sits on, so the white cards read as one family. */
       <div style={{ background: 'rgba(143,115,227,0.10)', borderRadius: 'var(--radius-lg)', padding: '14px 16px 12px' }}>
-        <div style={{ display: 'flex', width: 'fit-content', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
+        <div style={{ display: 'flex', width: 'fit-content', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--lyra-color-bg-surface-base)' }}>
           <button type="button" onClick={() => setTier('attention')} style={{ padding: '4px 16px', font: `500 12px/16px ${FONT}`, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: tier === 'attention' ? 'var(--lyra-color-bg-active-subtle)' : 'transparent', color: tier === 'attention' ? 'var(--lyra-color-fg-active-strong)' : 'var(--lyra-color-fg-secondary)', borderRight: '1px solid var(--lyra-color-border-subtle)' }}>
             Need attention <span style={{ fontWeight: 400, opacity: 0.7 }}>{ins.problem.length}</span>
           </button>
@@ -3472,7 +3472,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
               <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>Customer Responses</h3>
               <div style={{ font: `400 14px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>A reviewable sample of every interaction in the period, whether or not a survey was sent.</div>
             </div>
-            <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
               {responseTabs.map(([t, count], i) => (
                 <button
                   key={t}
