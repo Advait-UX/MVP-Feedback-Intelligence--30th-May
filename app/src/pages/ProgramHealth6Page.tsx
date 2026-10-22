@@ -22,6 +22,24 @@ const REASONS: [string, number, string][] = [
 ]
 const SKIP_ALL = 14695
 
+/* Per-program split of the not-sent reasons. Each row sums to that program's skipped volume
+   (interactions − eligible) and each column sums to the REASONS total, so the chart and the
+   reason-filtered Programs table always agree. Zeros are real: e.g. beta testers aren't routed by skill. */
+const PROGRAM_REASONS: Record<string, Record<string, number>> = {
+  'Complaint Resolution Follow-Up': { 'No Matching Skill/Team': 820, 'Recency Window': 610, 'Interaction Too Short': 420, 'Outside Send Window': 0, 'Survey Refused': 284, 'Internal Interaction': 110 },
+  'Flight Disruption Recovery': { 'No Matching Skill/Team': 1900, 'Recency Window': 1350, 'Interaction Too Short': 640, 'Outside Send Window': 410, 'Survey Refused': 382, 'Internal Interaction': 0 },
+  'Billing and Refund Recovery · All Digital': { 'No Matching Skill/Team': 1105, 'Recency Window': 905, 'Interaction Too Short': 520, 'Outside Send Window': 280, 'Survey Refused': 213, 'Internal Interaction': 110 },
+  'Omnichannel Escalation Recovery': { 'No Matching Skill/Team': 1480, 'Recency Window': 640, 'Interaction Too Short': 0, 'Outside Send Window': 280, 'Survey Refused': 156, 'Internal Interaction': 359 },
+  'Product Feedback - Beta Testers': { 'No Matching Skill/Team': 0, 'Recency Window': 540, 'Interaction Too Short': 784, 'Outside Send Window': 0, 'Survey Refused': 197, 'Internal Interaction': 200 },
+}
+/* Scales the base split to a (possibly channel-sliced) program row, so the count tracks that row's own skipped volume. */
+function reasonCount(p: { n: string; inter: number; elig: number }, reason: string): number {
+  const base = PROGRAMS.find(x => x.n === p.n)
+  const baseSkipped = base ? base.inter - base.elig : 0
+  const v = PROGRAM_REASONS[p.n]?.[reason] ?? 0
+  return baseSkipped ? v * ((p.inter - p.elig) / baseSkipped) : 0
+}
+
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US')
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0)
 
@@ -271,7 +289,7 @@ function MetricRow({ label, value, delta, icon, tone }: { label: string; value: 
 
 type PerfTab = 'el' | 'ne' | null
 
-function ProgramPerformance({ programNames, data, deltas, periodNote, open: openProp, onOpenChange }: { programNames: { n: string; active: boolean }[]; data: PerfData; deltas: PerfDeltas; periodNote: string; open?: PerfTab; onOpenChange?: (t: PerfTab) => void }) {
+function ProgramPerformance({ programNames, data, deltas, periodNote, open: openProp, onOpenChange, reasons, selectedReason = null, onSelectReason, matchingPrograms }: { programNames: { n: string; active: boolean }[]; data: PerfData; deltas: PerfDeltas; periodNote: string; open?: PerfTab; onOpenChange?: (t: PerfTab) => void; reasons?: [string, number, string][]; selectedReason?: string | null; onSelectReason?: (r: string | null) => void; matchingPrograms?: number }) {
   const [openLocal, setOpenLocal] = useState<PerfTab>('el')
   const open = openProp !== undefined ? openProp : openLocal
   const setOpen = (t: PerfTab) => { setOpenLocal(t); onOpenChange?.(t) }
@@ -297,7 +315,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
 
   // Not-sent reasons, scaled to this slice's skipped volume.
   const share = skipped / SKIP_ALL
-  const rs = REASONS.map(([n, v, k]) => [n, v * share, k] as [string, number, string])
+  const rs = reasons ?? REASONS.map(([n, v, k]) => [n, v * share, k] as [string, number, string])
   const tun = rs.filter(r => r[2] === 't').reduce((a, r) => a + r[1], 0)
   const mxr = Math.max(...rs.map(r => r[1]), 1)
 
@@ -446,17 +464,59 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
               {fmt(skipped)} interactions ({pct(skipped, inter)}%) did not qualify for a survey, so none was sent. The reasons below explain the drop. {fmt(tun)} of them sit behind program settings you can change; the rest are fixed by compliance rules.
             </span>
           </div>
+          {onSelectReason && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', minHeight: 32, marginBottom: 'var(--space-3)', font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>
+              {selectedReason ? (
+                <>
+                  <span>
+                    Programs below are filtered to <b style={{ fontWeight: 500, color: 'var(--lyra-color-fg-default)' }}>{selectedReason}</b>
+                    {matchingPrograms !== undefined && ` (${matchingPrograms} ${matchingPrograms === 1 ? 'program' : 'programs'})`}
+                  </span>
+                  <button
+                    type="button" onClick={() => onSelectReason(null)}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 28, padding: '0 10px', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-surface-base)', font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', cursor: 'pointer' }}
+                  >
+                    <X size={14} />Clear
+                  </button>
+                </>
+              ) : (
+                <span>Select a reason to filter the Programs table below.</span>
+              )}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${rs.length}, 1fr)`, gap: 10, alignItems: 'end' }}>
-            {rs.map(([n, v, k]) => (
-              <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ width: '100%', height: 140, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
-                  <span style={{ font: `600 15px/20px ${FONT}`, fontVariantNumeric: 'tabular-nums', marginBottom: 6, color: 'var(--lyra-color-fg-default)' }}>{fmt(v)}</span>
-                  <i style={{ display: 'block', width: '100%', borderRadius: '4px 4px 0 0', height: `${Math.round(v / mxr * 100)}%`, background: k === 't' ? NE_COLOR : 'var(--lyra-slate-400)' }} />
-                </div>
-                <span style={{ font: `400 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', marginTop: 8, textAlign: 'center' }}>{n}</span>
-                <span style={{ font: `400 13px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{pct(v, skipped)}%</span>
-              </div>
-            ))}
+            {rs.map(([n, v, k]) => {
+              const isSel = selectedReason === n
+              const dimmed = !!selectedReason && !isSel
+              const barColor = k === 't'
+                ? (isSel ? 'var(--lyra-orange-700)' : NE_COLOR)
+                : (isSel ? 'var(--lyra-slate-600)' : 'var(--lyra-slate-400)')
+              const content = (
+                <>
+                  <div style={{ width: '100%', height: 140, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    <span style={{ font: `600 15px/20px ${FONT}`, fontVariantNumeric: 'tabular-nums', marginBottom: 6, color: 'var(--lyra-color-fg-default)' }}>{fmt(v)}</span>
+                    <i style={{ display: 'block', width: '100%', borderRadius: '4px 4px 0 0', height: `${Math.round(v / mxr * 100)}%`, background: barColor, transition: 'background .15s' }} />
+                  </div>
+                  <span style={{ font: `${isSel ? 500 : 400} 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', marginTop: 8, textAlign: 'center' }}>{n}</span>
+                  <span style={{ font: `400 13px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', marginTop: 2 }}>{pct(v, skipped)}%</span>
+                </>
+              )
+              if (!onSelectReason) {
+                return <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{content}</div>
+              }
+              return (
+                <button
+                  key={n} type="button" aria-pressed={isSel}
+                  title={isSel ? 'Click to clear this filter' : `Filter programs to ${n}`}
+                  onClick={() => onSelectReason(isSel ? null : n)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 4px 6px', border: 'none', borderRadius: 'var(--radius-md)', background: isSel ? 'var(--lyra-color-state-bg-hover-opacity)' : 'transparent', cursor: 'pointer', opacity: dimmed ? 0.45 : 1, transition: 'opacity .15s, background .15s' }}
+                  onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-opacity)'; e.currentTarget.style.opacity = '1' }}
+                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; e.currentTarget.style.opacity = dimmed ? '0.45' : '1' }}
+                >
+                  {content}
+                </button>
+              )
+            })}
           </div>
           <div style={{ display: 'flex', gap: 18, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', borderTop: '1px solid var(--lyra-color-border-subtle)', marginTop: 10, paddingTop: 10 }}>
             <span><i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, marginRight: 6, verticalAlign: 'middle', background: NE_COLOR }} />Tunable - you can change</span>
@@ -1381,8 +1441,10 @@ function SortableTh({ label, sortKey, sort, onSort, padding, align = 'left' }: {
 }
 
 /* ── Programs Table ── */
-function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }: { programs: typeof PROGRAMS; searchQuery: string; onSelectProgram: (p: typeof PROGRAMS[0]) => void; onOpenInsight: (p: typeof PROGRAMS[0]) => void }) {
+function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight, reason = null, onClearReason }: { programs: typeof PROGRAMS; searchQuery: string; onSelectProgram: (p: typeof PROGRAMS[0]) => void; onOpenInsight: (p: typeof PROGRAMS[0]) => void; reason?: string | null; onClearReason?: () => void }) {
   const [groupBy, setGroupBy] = useState<'Program' | 'Channel' | 'Topic'>('Program')
+  // A reason filter is a per-program breakdown, so it only makes sense in the Program view.
+  useEffect(() => { if (reason) { setGroupBy('Program'); setExpandedChannel(null); setExpandedTopic(null) } }, [reason])
   const [expandedChannel, setExpandedChannel] = useState<string | null>(null)
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null)
   const goToProgram = (name: string) => {
@@ -1390,9 +1452,14 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
     if (prog) onSelectProgram(prog)
   }
   const [sort, setSort] = useState<SortState>(null)
-  const handleSort = (key: string) => setSort(s => s?.key === key ? (s.dir === 'desc' ? { key, dir: 'asc' } : null) : { key, dir: 'desc' })
+  const handleSort = (key: string) => setSort(prev => {
+    const s = prev ?? (reason ? { key: 'reasonCount', dir: 'desc' as const } : null)
+    return s?.key === key ? (s.dir === 'desc' ? { key, dir: 'asc' } : null) : { key, dir: 'desc' }
+  })
+  useEffect(() => { setSort(s => (s?.key === 'reasonCount' ? null : s)) }, [reason])
   const q = searchQuery.trim().toLowerCase()
-  const filtered = programs.filter(p => p.n.toLowerCase().includes(q))
+  const filtered = programs.filter(p => p.n.toLowerCase().includes(q) && (!reason || Math.round(reasonCount(p, reason)) > 0))
+  const effectiveSort: SortState = sort ?? (reason ? { key: 'reasonCount', dir: 'desc' } : null)
   const programRows = sortRows(filtered.map(p => ({
     ...p,
     status: p.tags.find(t => t === 'Active' || t === 'Inactive') || '',
@@ -1400,11 +1467,15 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
     responseRate: pct(p.rec, p.sent),
     completionRate: pct(p.comp, p.rec),
     partial: p.rec - p.comp,
-  })), sort)
+    reasonCount: reason ? reasonCount(p, reason) : 0,
+  })), effectiveSort)
+  const columns = reason
+    ? [PROGRAM_COLUMNS[0], { label: `Not Sent: ${reason}`, key: 'reasonCount' }, ...PROGRAM_COLUMNS.slice(1)]
+    : PROGRAM_COLUMNS
 
   return (
     <div style={{ background: 'var(--lyra-color-bg-surface-base)', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
-      <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
+      <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)', borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <h3 style={{ font: `600 18px/24px ${FONT}`, letterSpacing: '-0.01em', margin: 0, color: 'var(--lyra-color-fg-default)' }}>
             Programs{groupBy !== 'Program' ? `: grouped by ${groupBy.toLowerCase()}` : ''}
@@ -1421,9 +1492,22 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
               {filtered.length}
             </span>
           )}
+          {reason && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 28, padding: '0 6px 0 10px', marginLeft: 'var(--space-2)', borderRadius: 'var(--radius-full)', background: 'var(--lyra-color-bg-active-subtle)', font: `500 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-active-strong)', whiteSpace: 'nowrap' }}>
+              Not Sent: {reason}
+              <button
+                type="button" onClick={onClearReason} aria-label={`Clear ${reason} filter`}
+                style={{ width: 20, height: 20, display: 'grid', placeItems: 'center', padding: 0, border: 'none', borderRadius: 'var(--radius-full)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lyra-color-state-bg-hover-active-subtle)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <X size={14} />
+              </button>
+            </span>
+          )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Group by</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginLeft: 'auto' }}>
+          <span style={{ font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-secondary)', whiteSpace: 'nowrap' }}>Group by</span>
           <div style={{ display: 'flex', border: '1px solid var(--lyra-color-border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
             {(['Program', 'Channel', 'Topic'] as const).map((g, i) => (
               <button
@@ -1685,12 +1769,12 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lyra-color-border-subtle)' }}>
-                {PROGRAM_COLUMNS.map(col => (
+                {columns.map(col => (
                   <SortableTh
                     key={col.label}
                     label={col.label}
                     sortKey={col.key}
-                    sort={sort}
+                    sort={effectiveSort}
                     onSort={handleSort}
                     padding={`var(--space-3) var(--space-3) var(--space-3) ${col.label === 'Program Name' ? 'var(--space-6)' : 'var(--space-3)'}`}
                   />
@@ -1700,8 +1784,8 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
             <tbody>
               {programRows.length === 0 ? (
                 <tr>
-                  <td colSpan={PROGRAM_COLUMNS.length} style={{ padding: '24px 16px', color: 'var(--lyra-color-fg-secondary)' }}>
-                    No programs match the selected filters.
+                  <td colSpan={columns.length} style={{ padding: '24px 16px', color: 'var(--lyra-color-fg-secondary)' }}>
+                    {reason ? `No programs in this view skipped surveys for ${reason}.` : 'No programs match the selected filters.'}
                   </td>
                 </tr>
               ) : (
@@ -1722,6 +1806,12 @@ function ProgramsTable({ programs, searchQuery, onSelectProgram, onOpenInsight }
                           {p.n}
                         </span>
                       </td>
+                      {reason && (
+                        <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap', font: `500 14px/18px ${FONT}`, color: 'var(--lyra-color-fg-default)', fontVariantNumeric: 'tabular-nums' }}>
+                          {fmt(p.reasonCount)}
+                          <span style={{ marginLeft: 6, fontWeight: 400, color: 'var(--lyra-color-fg-secondary)' }}>{pct(p.reasonCount, p.inter - p.elig)}% of not sent</span>
+                        </td>
+                      )}
                       <td style={{ padding: 'var(--space-3)', whiteSpace: 'nowrap' }}>
                         {status && <StatusPill status={status} />}
                       </td>
@@ -3710,10 +3800,14 @@ export function ProgramHealth6Page() {
   const [selected, setSelected] = useState<typeof PROGRAMS[0] | null>(null)
   const [insight, setInsight] = useState<typeof PROGRAMS[0] | null>(null)
   const [perfTab, setPerfTab] = useState<PerfTab>('el')
+  const [reason, setReason] = useState<string | null>(null)
   const perfRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
 
   const data = useSlicedData({ progs, chs, cats, days: range ? rangeDays(range) : 7 })
+  const reasonTotals = REASONS.map(([n, , k]) => [n, data.programs.reduce((a, p) => a + reasonCount(p, n), 0), k] as [string, number, string])
+  const sq = search.trim().toLowerCase()
+  const reasonMatches = reason ? data.programs.filter(p => p.n.toLowerCase().includes(sq) && Math.round(reasonCount(p, reason)) > 0).length : undefined
 
   if (selected) {
     return <ProgramDetailView program={selected} onBack={() => setSelected(null)} />
@@ -3727,9 +3821,9 @@ export function ProgramHealth6Page() {
 
   const multiLabel = (v: string[], all: string, noun: string) => (v.length === 0 ? all : v.length === 1 ? v[0] : `${v.length} ${noun}`)
   const defaultRange = isDefaultRange(range)
-  const hasFilters = !defaultRange || progs.length > 0 || chs.length > 0 || cats.length > 0
-  const chipCount = (defaultRange ? 0 : 1) + progs.length + chs.length + cats.length
-  const clearAll = () => { setProgs([]); setChs([]); setCats([]); setRange(DEFAULT_RANGE()) }
+  const hasFilters = !defaultRange || progs.length > 0 || chs.length > 0 || cats.length > 0 || !!reason
+  const chipCount = (defaultRange ? 0 : 1) + progs.length + chs.length + cats.length + (reason ? 1 : 0)
+  const clearAll = () => { setProgs([]); setChs([]); setCats([]); setRange(DEFAULT_RANGE()); setReason(null) }
   const groups: [string, string[], (v: string[]) => void][] = [['Program', progs, setProgs], ['Channel', chs, setChs], ['Topic', cats, setCats]]
 
   return (
@@ -3777,16 +3871,17 @@ export function ProgramHealth6Page() {
                   ? <AppliedChip key={g} group={g} value="All" />
                   : v.map(x => <AppliedChip key={`${g}-${x}`} group={g} value={x} onRemove={() => set(v.filter(y => y !== x))} />)
               ))}
+              {reason && <AppliedChip group="Not Sent Reason" value={reason} onRemove={() => setReason(null)} />}
             </div>
           </div>
         )}
 
         <div ref={perfRef} style={{ marginTop: 'var(--space-6)', scrollMarginTop: 'var(--space-4)' }}>
-          <ProgramPerformance programNames={data.programs.map(p => ({ n: p.n, active: p.tags.includes('Active') }))} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} open={perfTab} onOpenChange={setPerfTab} />
+          <ProgramPerformance programNames={data.programs.map(p => ({ n: p.n, active: p.tags.includes('Active') }))} data={data} deltas={OVERVIEW_DELTAS} periodNote={previousPeriodNote(range)} open={perfTab} onOpenChange={setPerfTab} reasons={reasonTotals} selectedReason={reason} onSelectReason={setReason} matchingPrograms={reasonMatches} />
         </div>
 
         <div ref={tableRef} style={{ marginTop: 'var(--space-6)', scrollMarginTop: 'var(--space-4)' }}>
-          <ProgramsTable programs={data.programs} searchQuery={search} onSelectProgram={setSelected} onOpenInsight={setInsight} />
+          <ProgramsTable programs={data.programs} searchQuery={search} onSelectProgram={setSelected} onOpenInsight={setInsight} reason={reason} onClearReason={() => setReason(null)} />
         </div>
       </div>
 
