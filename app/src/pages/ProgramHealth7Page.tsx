@@ -3115,7 +3115,7 @@ function CustomerDrawer({ row, detail: d, programAlertCount, onClose }: { row: R
             { label: 'CSAT', icon: <Smile size={16} />, val: csatGot, color: csatGot !== null && csatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : csatGot !== null && csatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
             { label: 'ASAT', icon: <Headphones size={16} />, val: asatGot, color: asatGot !== null && asatGot <= 2 ? 'var(--lyra-color-status-critical-strong)' : asatGot !== null && asatGot >= 4 ? 'var(--lyra-color-status-success-strong)' : 'var(--lyra-color-fg-default)' },
           ].map(m => (
-            <div key={m.label} style={{ padding: '12px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-active-subtle)', textAlign: 'center' }}>
+            <div key={m.label} style={{ padding: '12px 12px', borderRadius: 10, background: 'var(--lyra-color-bg-active-subtle)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
                 <span style={{ width: 24, height: 24, borderRadius: 'var(--radius-full)', display: 'grid', placeItems: 'center', flexShrink: 0, background: 'var(--lyra-color-bg-surface-base)', color: 'var(--lyra-brand-600)' }}>{m.icon}</span>
                 <span style={SH}>{m.label}</span>
