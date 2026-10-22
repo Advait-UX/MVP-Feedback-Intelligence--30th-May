@@ -356,7 +356,7 @@ function ProgramPerformance({ programNames, data, deltas, periodNote, open: open
         </div>
         <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 1060 }}>
           {selector('el', 'Eligible for survey', 'Track sent, responded, completed', elig, deltas.elig, er)}
-          {selector('ne', 'Skipped', 'See why no survey was sent', skipped, undefined, 100 - er, NE_COLOR)}
+          {selector('ne', 'Not eligible for survey', 'See why no survey was sent', skipped, undefined, 100 - er, NE_COLOR)}
         </div>
         {open === null && (
           <div style={{ marginTop: 10, font: `400 12px/16px ${FONT}`, color: 'var(--lyra-color-fg-secondary)' }}>Select a tab to see the detail</div>
