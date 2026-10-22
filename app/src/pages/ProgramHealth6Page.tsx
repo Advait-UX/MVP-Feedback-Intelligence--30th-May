@@ -28,7 +28,7 @@ const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0)
 /* ── Shared filter controls ── */
 function FilterDropdown({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
   return (
-    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 36, paddingLeft: 12, paddingRight: 12, width: 300, background: 'var(--lyra-color-bg-field)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)' }}>
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 36, paddingLeft: 12, paddingRight: 12, width: 250, background: 'var(--lyra-color-bg-field)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-md)' }}>
       <span style={{ flex: 1, font: `400 14px/20px ${FONT}`, color: 'var(--lyra-color-fg-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
       <ChevronDown size={16} style={{ color: 'var(--lyra-color-fg-secondary)', flexShrink: 0, pointerEvents: 'none' }} />
       <select value={value} onChange={e => onChange(e.target.value)} style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}>
@@ -3451,7 +3451,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <SearchInput value={search} onChange={setSearch} placeholder="Search" />
           <DateRangePicker value={range} onChange={setRange} />
-          <div style={{ width: 300 }}>
+          <div style={{ width: 250 }}>
             <MultiSelectField options={rowTopicOptions} value={topicFilterBar} onChange={setTopicFilterBar} mutedPlaceholder={false} labelOverride={multiLabel(topicFilterBar, 'All Topics', 'topics')} radius="var(--radius-md)" />
           </div>
           <FilterDropdown value={custType} options={['All Customer Types', 'New', 'Returning', 'VIP']} onChange={setCustType} />
@@ -3498,7 +3498,7 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
           {/* Row-level filters — status, alert, ratings, agent, topic. Customer is already covered by the
               search box above (free-text beats a dropdown once there are dozens of names). */}
           <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--lyra-color-border-subtle)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-            <div style={{ width: 300 }}>
+            <div style={{ width: 250 }}>
               <MultiSelectField options={rowStatusOptions} groups={rowStatusGroups} value={rowStatusFilter} onChange={setRowStatusFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowStatusFilter, 'All statuses', 'statuses')} radius="var(--radius-md)" />
             </div>
             <SegmentedFilter
@@ -3510,16 +3510,16 @@ function ProgramDetailView({ program, onBack }: { program: typeof PROGRAMS[0]; o
                 ['No alert', `No alert ${fmt(Math.max(0, Math.round(perf.rec) - program.alerts))}`],
               ]}
             />
-            <div style={{ width: 300 }}>
+            <div style={{ width: 250 }}>
               <MultiSelectField options={ratingOptions} value={rowCsatFilter} onChange={setRowCsatFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowCsatFilter, 'CSAT: Any', 'ratings')} radius="var(--radius-md)" />
             </div>
-            <div style={{ width: 300 }}>
+            <div style={{ width: 250 }}>
               <MultiSelectField options={ratingOptions} value={rowAsatFilter} onChange={setRowAsatFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowAsatFilter, 'ASAT: Any', 'ratings')} radius="var(--radius-md)" />
             </div>
-            <div style={{ width: 300 }}>
+            <div style={{ width: 250 }}>
               <MultiSelectField options={rowAgentOptions} value={rowAgentFilter} onChange={setRowAgentFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowAgentFilter, 'All agents', 'agents')} radius="var(--radius-md)" />
             </div>
-            <div style={{ width: 300 }}>
+            <div style={{ width: 250 }}>
               <MultiSelectField options={rowTopicOptions} value={rowTopicFilter} onChange={setRowTopicFilter} mutedPlaceholder={false} labelOverride={multiLabel(rowTopicFilter, 'All topics', 'topics')} radius="var(--radius-md)" />
             </div>
             {rowFiltersActive && (
@@ -3707,13 +3707,13 @@ export function ProgramHealth6Page() {
         <div style={{ marginTop: 'var(--space-6)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
           <SearchInput value={search} onChange={setSearch} placeholder="Search program name" />
           <DateRangePicker value={range} onChange={setRange} />
-          <div style={{ width: 300 }}>
+          <div style={{ width: 250 }}>
             <MultiSelectField options={PROGRAMS.map(p => p.n)} value={progs} onChange={setProgs} mutedPlaceholder={false} labelOverride={multiLabel(progs, 'All programs', 'programs')} radius="var(--radius-md)" optionStatus={opt => PROGRAMS.find(p => p.n === opt)?.tags.includes('Active')} />
           </div>
-          <div style={{ width: 300 }}>
+          <div style={{ width: 250 }}>
             <MultiSelectField options={CHANNELS} value={chs} onChange={setChs} mutedPlaceholder={false} labelOverride={multiLabel(chs, 'All channels', 'channels')} radius="var(--radius-md)" />
           </div>
-          <div style={{ width: 300 }}>
+          <div style={{ width: 250 }}>
             <MultiSelectField options={TOPICS} value={cats} onChange={setCats} mutedPlaceholder={false} labelOverride={multiLabel(cats, 'All Topics', 'topics')} radius="var(--radius-md)" />
           </div>
         </div>
