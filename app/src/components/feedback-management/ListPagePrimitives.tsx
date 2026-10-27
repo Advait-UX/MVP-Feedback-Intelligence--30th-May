@@ -493,6 +493,55 @@ export function Td({ children, align = 'left', style }: { children: React.ReactN
   )
 }
 
+/* ── Single-line truncated text that reveals the full value in a hover popover ── */
+export function TruncatedTextWithPopover({ text }: { text: string }) {
+  const [open, setOpen] = useState(false)
+  const [truncated, setTruncated] = useState(false)
+  const spanRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    const el = spanRef.current
+    if (!el) return
+    setTruncated(el.scrollWidth > el.clientWidth)
+  }, [text])
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <span
+        ref={spanRef}
+        onMouseEnter={() => truncated && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        style={{
+          display: 'block', width: '100%', overflow: 'hidden',
+          textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}
+      >
+        {text}
+      </span>
+      {open && (
+        <div
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+          style={{
+            position: 'absolute', zIndex: 100, top: '100%', left: 0, marginTop: 4,
+            width: 320, maxWidth: 'max(320px, 100%)',
+            background: 'var(--lyra-color-bg-surface-overlay)',
+            border: '1px solid var(--lyra-color-border-soft)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--sol-effect-shadowmd)',
+            padding: 'var(--space-3) var(--space-4)',
+            font: '400 14px/20px var(--font-sans)',
+            color: 'var(--lyra-color-fg-default)',
+            whiteSpace: 'normal',
+          }}
+        >
+          {text}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function EmptyRow({ colSpan, message }: { colSpan: number; message: string }) {
   return (
     <tr>

@@ -24,6 +24,8 @@ export interface Theme {
   sys: boolean
   def: boolean
   ds: string
+  // User-facing description shown in the Themes grid and on the theme page (max 200 chars, optional)
+  description: string
   ch: ThemeChannel
   q: Record<QType, QuestionConfig>
   msg: MessageConfig
@@ -76,6 +78,7 @@ export const db: { lf: Record<ThemeChannel, Theme[]> } = {
         sys: true,
         def: true,
         ds:  "Default digital theme. Applied to any program that hasn't set a custom theme.",
+        description: 'System default for digital programs. List picker for ratings, a text area for open answers, and an invitation with an opt-out button.',
         ch:  'digital',
         q:   makeQ('digital'),
         msg: makeMsg(),
@@ -87,6 +90,7 @@ export const db: { lf: Record<ThemeChannel, Theme[]> } = {
         sys: false,
         def: false,
         ds:  'Quick reply control with scale labels on. Used by the Billing Support program.',
+        description: 'Quick reply buttons with scale labels on OSAT and ASAT, and a short billing-specific invitation.',
         ch:  'digital',
         q: {
           osat:     { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
@@ -108,6 +112,7 @@ export const db: { lf: Record<ThemeChannel, Theme[]> } = {
         sys: false,
         def: false,
         ds:  'Quick reply control. Used by the Retail Feedback program.',
+        description: '',
         ch:  'digital',
         q:   makeQ('digital'),
         msg: {
@@ -116,6 +121,68 @@ export const db: { lf: Record<ThemeChannel, Theme[]> } = {
         },
         updatedOn: 'Aug 12, 2026 10:55:06 AM',
         updatedBy: 'Dave',
+        linkedPrograms: [],
+      },
+      {
+        id:  't5',
+        nm:  'Digital - Plain invitation, no opt-out',
+        sys: false,
+        def: false,
+        ds:  'Plain invitation message, list picker ratings.',
+        description: 'Plain invitation with no opt-out button, so customers go straight into the survey. List picker for all ratings.',
+        ch:  'digital',
+        q:   makeQ('digital'),
+        msg: { ...makeMsg(), mode: 'plain' },
+        updatedOn: 'Aug 14, 2026 09:12:40 AM',
+        updatedBy: 'Jaden Smith',
+        linkedPrograms: ['Tech support satisfaction survey'],
+      },
+      {
+        id:  't6',
+        nm:  'Digital - Labelled scale for CSAT',
+        sys: false,
+        def: false,
+        ds:  'Quick reply with labels on CSAT only.',
+        description: 'Quick reply buttons with the full 5-point label set shown on CSAT. OSAT and ASAT stay unlabelled to keep the chat short.',
+        ch:  'digital',
+        q: {
+          ...makeQ('digital'),
+          csat: { control: 'quickreply', scaleLabels: true, lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
+        },
+        msg: makeMsg(),
+        updatedOn: 'Aug 18, 2026 03:40:22 PM',
+        updatedBy: 'Maria',
+        linkedPrograms: [],
+      },
+      {
+        id:  't7',
+        nm:  'Digital - Theme for home services',
+        sys: false,
+        def: false,
+        ds:  'Warm invitation copy for post-visit surveys.',
+        description: '',
+        ch:  'digital',
+        q:   makeQ('digital'),
+        msg: {
+          ...makeMsg(),
+          intro: 'Hi {contact_firstName}, thanks for having us over today. How did our visit go?',
+        },
+        updatedOn: 'Aug 20, 2026 11:05:51 AM',
+        updatedBy: 'Dave',
+        linkedPrograms: ['Home service feedback survey'],
+      },
+      {
+        id:  't8',
+        nm:  'Digital - Silent close, no thank-you',
+        sys: false,
+        def: false,
+        ds:  'No invitation message, ends without a thank-you.',
+        description: 'Skips the invitation and opens on the first question. Ends without a thank-you message, for very short pulse checks.',
+        ch:  'digital',
+        q:   makeQ('digital'),
+        msg: { ...makeMsg(), mode: 'none', thanks: '' },
+        updatedOn: 'Aug 22, 2026 04:18:09 PM',
+        updatedBy: 'Jaden Smith',
         linkedPrograms: [],
       },
     ],
@@ -156,6 +223,7 @@ export function createTheme(nm: string, ch: ThemeChannel): Theme {
     sys: false,
     def: false,
     ds:  'Custom digital theme',
+    description: '',
     ch,
     q:   makeQ(ch),
     msg: makeMsg(),
@@ -173,6 +241,7 @@ export function makeDraftTheme(ch: ThemeChannel): Theme {
     sys: false,
     def: false,
     ds: 'Custom digital theme',
+    description: '',
     ch,
     q: makeQ(ch),
     msg: makeMsg(),
@@ -217,6 +286,8 @@ export function duplicateTheme(theme: Theme, name?: string): Theme {
     sys: false,
     def: false,
     ds:  'Custom digital theme',
+    // Keep a custom theme's description; the system default's text describes the default, so start blank
+    description: theme.sys ? '' : theme.description,
     updatedOn: nowStamp(),
     updatedBy: 'Jaden Smith',
   }

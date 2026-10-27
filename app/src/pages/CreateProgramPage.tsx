@@ -7,6 +7,7 @@ import { Toggle, SurveyPickerDrawer, ThemePickerDrawer, ThemeDetailDrawer, Actio
 import { ALERTS } from './AlertsListPage'
 import { SURVEY_DESIGNS, DIGITAL_THEMES } from '../lib/campaignWizard'
 import type { Campaign } from '../lib/campaigns'
+import { TestProgramModal } from '../components/test-program/TestProgramModal'
 
 const ALL_TEAMS_COUNT = 50
 const AGENTS_PER_TEAM = 10
@@ -746,6 +747,8 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
   const [daysFieldError, setDaysFieldError] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showDeactivateModal, setShowDeactivateModal] = useState(false)
+  const [showTestProgram, setShowTestProgram] = useState(false)
+  const [testToast, setTestToast] = useState<string | null>(null)
   const [originalForm] = useState<Form>(() => editCampaign ? campaignToForm(editCampaign) : DEFAULT_FORM)
 
   const audienceError = minsFieldError || daysFieldError
@@ -827,7 +830,18 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
     : !!form.name
   const canDuplicate = editCampaign?.status === 'active' || editCampaign?.status === 'inactive'
   const canActivate = surveyDone && deliveryDone && !!form.name && !nameCharError && !audienceError
-  const canTest = surveyDone
+  // Test program: new programs need every required step done first; existing
+  // programs are testable as long as the edits haven't broken the required fields.
+  const canTest = editCampaign
+    ? surveyDone && !!form.name && !nameCharError && !audienceError && !endDateBeforeStart && !endDateMissing
+    : canActivate
+  const testDisabledReason = !form.name ? 'Add a program name to test' : !surveyDone ? 'Pick a survey to test' : !deliveryDone ? 'Complete Delivery to test' : 'Fix the highlighted fields to test'
+
+  useEffect(() => {
+    if (!testToast) return
+    const t = setTimeout(() => setTestToast(null), 3500)
+    return () => clearTimeout(t)
+  }, [testToast])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--lyra-color-bg-surface-base)' }}>
@@ -929,12 +943,13 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
           {/* Test program — always first */}
           {canTest ? (
             <button
+              onClick={() => setShowTestProgram(true)}
               style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-color-bg-surface-base)', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', cursor: 'pointer', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
             ><FlaskConical size={16} style={{ color: 'var(--lyra-color-fg-secondary)' }} />Test program</button>
           ) : (
-            <div style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-disabled)', display: 'inline-flex', alignItems: 'center', gap: 6, font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-disabled)', cursor: 'not-allowed' }}>
+            <div title={testDisabledReason} aria-disabled="true" style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-disabled)', display: 'inline-flex', alignItems: 'center', gap: 6, font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-disabled)', cursor: 'not-allowed' }}>
               <FlaskConical size={16} />Test program
             </div>
           )}
@@ -1706,6 +1721,37 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
           theme={selectedTheme}
           onClose={() => setThemeDetailOpen(false)}
         />
+      )}
+
+      {/* Test program flow */}
+      {showTestProgram && (
+        <TestProgramModal
+          programName={form.name || 'Untitled program'}
+          channel={[form.digitalChannel && 'Digital', form.ivrChannel && 'IVR'].filter(Boolean).join(' · ') || 'Digital'}
+          themeName={selectedTheme?.name ?? 'Digital - system default'}
+          isProgramActive={!!isEditActive}
+          onClose={() => setShowTestProgram(false)}
+          onGoLive={() => {
+            setShowTestProgram(false)
+            setTestToast(isEditActive
+              ? `Contextual follow-ups are live for "${form.name}"`
+              : `Contextual follow-ups will go live when you activate "${form.name || 'this program'}"`)
+          }}
+        />
+      )}
+
+      {/* Test program toast */}
+      {testToast && (
+        <div role="status" aria-live="polite" style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 400, width: 361, padding: 20,
+          borderRadius: 'var(--radius-lg)', border: '1px solid var(--lyra-color-status-success-strong)',
+          background: 'var(--lyra-color-status-success-subtle)', boxShadow: 'var(--sol-effect-shadowlg)',
+          display: 'flex', alignItems: 'flex-start', gap: 8,
+        }}>
+          <CheckCircle2 size={20} style={{ color: 'var(--lyra-color-status-success-strong)', flexShrink: 0 }} />
+          <div style={{ flex: 1, font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>{testToast}</div>
+          <button aria-label="Dismiss" onClick={() => setTestToast(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--lyra-color-fg-action)', display: 'flex' }}><X size={16} /></button>
+        </div>
       )}
 
       {/* Deactivate confirmation modal */}

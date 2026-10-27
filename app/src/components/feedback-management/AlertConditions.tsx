@@ -577,35 +577,43 @@ export function SummaryModal({ title, onClose, children }: { title: string; onCl
 }
 
 /* ─── Description field (max 200 chars) ─── */
-export function DescriptionField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+// Shared by Alerts and Themes. readOnly renders the locked style used for system-default records.
+export function DescriptionField({ value, onChange, id = 'alert-description', placeholder = 'Describe what this alert is for', readOnly = false }: {
+  value: string; onChange: (v: string) => void; id?: string; placeholder?: string; readOnly?: boolean
+}) {
   const MAX = 200
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <label htmlFor="alert-description" style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT }}>Description</label>
-        <span style={{ font: '400 12px/16px var(--font-sans)', fontFamily: FONT, color: value.length >= MAX ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-fg-secondary)', letterSpacing: '0.01em' }}>
-          {value.length}/{MAX}
-        </span>
+        <label htmlFor={id} style={{ font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', fontFamily: FONT }}>Description</label>
+        {!readOnly && (
+          <span style={{ font: '400 12px/16px var(--font-sans)', fontFamily: FONT, color: value.length >= MAX ? 'var(--lyra-color-status-critical-strong)' : 'var(--lyra-color-fg-secondary)', letterSpacing: '0.01em' }}>
+            {value.length}/{MAX}
+          </span>
+        )}
       </div>
       <textarea
-        id="alert-description"
+        id={id}
         value={value}
         maxLength={MAX}
         rows={2}
-        onChange={e => onChange(e.target.value.slice(0, MAX))}
-        placeholder="Describe what this alert is for"
+        readOnly={readOnly}
+        aria-readonly={readOnly}
+        onChange={e => { if (!readOnly) onChange(e.target.value.slice(0, MAX)) }}
+        placeholder={readOnly ? '' : placeholder}
         style={{
-          width: '100%', minHeight: 48, resize: 'vertical',
+          width: '100%', minHeight: 48, resize: readOnly ? 'none' : 'vertical',
           padding: 'var(--space-2) var(--space-3)',
-          border: '1px solid var(--lyra-color-border-soft)',
+          border: readOnly ? '1px solid transparent' : '1px solid var(--lyra-color-border-soft)',
           borderRadius: 'var(--radius-md)',
           font: '400 14px/20px var(--font-sans)', fontFamily: FONT,
           color: 'var(--lyra-color-fg-default)',
-          background: 'var(--lyra-color-bg-field)',
+          background: readOnly ? 'var(--lyra-color-bg-disabled)' : 'var(--lyra-color-bg-field)',
+          cursor: readOnly ? 'default' : 'text',
           outline: 'none', boxSizing: 'border-box', boxShadow: 'none',
         }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--lyra-color-border-active)'; e.currentTarget.style.boxShadow = 'var(--sol-effect-activering)' }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'var(--lyra-color-border-soft)'; e.currentTarget.style.boxShadow = 'none' }}
+        onFocus={e => { if (readOnly) return; e.currentTarget.style.borderColor = 'var(--lyra-color-border-active)'; e.currentTarget.style.boxShadow = 'var(--sol-effect-activering)' }}
+        onBlur={e => { if (readOnly) return; e.currentTarget.style.borderColor = 'var(--lyra-color-border-soft)'; e.currentTarget.style.boxShadow = 'none' }}
       />
     </div>
   )

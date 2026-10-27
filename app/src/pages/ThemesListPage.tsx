@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, useEffect } from 'react'
 import { Lock, MoreVertical, X, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import {
   ListPageHeader, SearchInput, GridPanel, GridToolbar,
-  TableShell, Th, Td, EmptyRow,
+  TableShell, Th, Td, EmptyRow, TruncatedTextWithPopover,
 } from '@/components/feedback-management/ListPagePrimitives'
 import {
   type Theme, getAllThemes, duplicateTheme, deleteTheme,
@@ -289,16 +289,19 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
               <TableShell>
                   <thead>
                     <tr>
-                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Theme</Th>
-                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated On</Th>
-                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated By</Th>
-                      <Th style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Type</Th>
-                      <Th align="right" style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Actions</Th>
+                      {/* Widths mirror the Alerts table (name/updated-on/updated-by/description/actions) so the two grids read as one family; Type is Themes-only. */}
+                      {/* minWidth pins this column: it's the only one whose text wraps, so without it the browser's auto table layout shrinks it to make room for the fixed-width Description column */}
+                      <Th width={380} style={{ minWidth: 380, position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Theme</Th>
+                      <Th width={230} style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated On</Th>
+                      <Th width={160} style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Updated By</Th>
+                      <Th width={120} style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Type</Th>
+                      <Th width={581} style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Description</Th>
+                      <Th align="right" width={82} style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--lyra-color-bg-surface-base)' }}>Actions</Th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.length === 0 && (
-                      <EmptyRow colSpan={5} message="No themes match your search." />
+                      <EmptyRow colSpan={6} message="No themes match your search." />
                     )}
                     {rows.map(t => {
                       const isHighlighted = highlightedId === t.id
@@ -315,14 +318,19 @@ export function ThemesListPage({ onSelectTheme, onCreateTheme, newlyCreatedId, o
                         onMouseEnter={e => { if (!isHighlighted) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isHighlighted ? 'var(--lyra-color-bg-active-subtle)' : restBg }}
                       >
-                        <Td>
+                        <Td style={{ width: 380, minWidth: 380 }}>
                           <span style={{ fontWeight: 500, color: 'var(--lyra-color-fg-link)', fontFamily: F }}>
                             {t.nm}
                           </span>
                         </Td>
-                        <Td>{t.updatedOn ?? '-'}</Td>
-                        <Td>{t.updatedBy ?? '-'}</Td>
-                        <Td><TypeChip sys={t.sys} /></Td>
+                        <Td style={{ width: 230, whiteSpace: 'nowrap' }}>{t.updatedOn ?? '-'}</Td>
+                        <Td style={{ width: 160, whiteSpace: 'nowrap' }}>{t.updatedBy ?? '-'}</Td>
+                        <Td style={{ width: 120 }}><TypeChip sys={t.sys} /></Td>
+                        <Td style={{ width: 581, maxWidth: 581 }}>
+                          {t.description
+                            ? <TruncatedTextWithPopover text={t.description} />
+                            : <span style={{ color: 'var(--lyra-color-fg-secondary)' }}>—</span>}
+                        </Td>
                         <Td align="right">
                           <ThemeRowMenu
                             theme={t}

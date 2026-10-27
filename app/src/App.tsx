@@ -529,6 +529,7 @@ export default function App() {
         { id: 'programhealth3', label: 'Program Health 2 (21st Oct)' },
         { id: 'programhealth5', label: 'Program Health 4 (21st Oct)' },
         { id: 'programhealth7', label: 'Program Health 3 - 21st Oct' },
+        { id: 'alert2', label: 'Alert 2' },
       ],
     },
     { id: 'programs',  label: 'Programs',        icon: Megaphone },
@@ -541,7 +542,6 @@ export default function App() {
         { id: 'surveys', label: 'Surveys' },
         { id: 'themes',  label: 'Themes' },
         { id: 'alerts',  label: 'Alert 1' },
-        { id: 'alert2',  label: 'Alert 2' },
       ],
     },
   ]

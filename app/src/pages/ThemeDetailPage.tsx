@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Info, Lock, ChevronDown, User, X } from 'lucide-react'
+import { DescriptionField } from '@/components/feedback-management/AlertConditions'
 import {
   type Theme, type QType, type QuestionConfig, type MessageConfig,
   type ThemeValidationErrors,
@@ -627,6 +628,16 @@ export function ThemeDetailPage({
                     valid={!!theme.nm.trim() && !nameDuplicate}
                   />
                 )}
+              </div>
+              {/* Description — editable on custom themes (even when the name is locked by linked programs), read-only on the system default */}
+              <div style={{ marginTop: 'var(--space-4)' }}>
+                <DescriptionField
+                  id="theme-description"
+                  value={theme.description ?? ''}
+                  onChange={v => updateTheme({ description: v })}
+                  placeholder="Describe how this theme looks, e.g. control style, labels and messages"
+                  readOnly={locked}
+                />
               </div>
             </div>
 
