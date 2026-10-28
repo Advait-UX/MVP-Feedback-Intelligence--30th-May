@@ -1,4 +1,6 @@
-export type QType = 'osat' | 'asat' | 'csat' | 'verbatim'
+// Keyed by scale shape, not by metric — any metric using a given scale (ASAT, CSAT, future
+// metrics) shares the one config for that scale instead of each metric having its own.
+export type QuestionTypeKey = 'scale5' | 'scale10' | 'verbatim'
 export type ThemeChannel = 'digital'
 
 export interface QuestionConfig {
@@ -6,8 +8,14 @@ export interface QuestionConfig {
   scaleLabels: boolean
   lowLabel: string
   highLabel: string
-  midLabels: [string, string, string]
+  midLabels: string[]
   listPickerLabel: string
+}
+
+export function scalePoints(qType: QuestionTypeKey): number {
+  if (qType === 'scale5') return 5
+  if (qType === 'scale10') return 10
+  return 0
 }
 
 export interface MessageConfig {
@@ -27,7 +35,7 @@ export interface Theme {
   // User-facing description shown in the Themes grid and on the theme page (max 200 chars, optional)
   description: string
   ch: ThemeChannel
-  q: Record<QType, QuestionConfig>
+  q: Record<QuestionTypeKey, QuestionConfig>
   msg: MessageConfig
   updatedOn?: string
   updatedBy?: string
@@ -42,20 +50,33 @@ const DEFAULT_CONTROLS: Record<ThemeChannel, { scale: string; verbatim: string }
   digital: { scale: 'listpicker', verbatim: 'textarea' },
 }
 
-function makeQ(ch: ThemeChannel): Record<QType, QuestionConfig> {
+function makeQ(ch: ThemeChannel): Record<QuestionTypeKey, QuestionConfig> {
   const s = DEFAULT_CONTROLS[ch]
-  const base: Omit<QuestionConfig, 'control'> = {
-    scaleLabels: false,
-    lowLabel: 'Very dissatisfied',
-    highLabel: 'Very satisfied',
-    midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'],
-    listPickerLabel: 'Rate your experience',
-  }
   return {
-    osat:     { ...base, control: s.scale },
-    asat:     { ...base, control: s.scale },
-    csat:     { ...base, control: s.scale },
-    verbatim: { ...base, control: s.verbatim },
+    scale5: {
+      control: s.scale,
+      scaleLabels: false,
+      lowLabel: 'Very dissatisfied',
+      highLabel: 'Very satisfied',
+      midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'],
+      listPickerLabel: 'Rate your experience',
+    },
+    scale10: {
+      control: s.scale,
+      scaleLabels: false,
+      lowLabel: 'Not at all likely',
+      highLabel: 'Extremely likely',
+      midLabels: ['', '', '', '', '', '', '', ''],
+      listPickerLabel: 'Rate your experience',
+    },
+    verbatim: {
+      control: s.verbatim,
+      scaleLabels: false,
+      lowLabel: '',
+      highLabel: '',
+      midLabels: [],
+      listPickerLabel: '',
+    },
   }
 }
 
@@ -90,13 +111,12 @@ export const db: { lf: Record<ThemeChannel, Theme[]> } = {
         sys: false,
         def: false,
         ds:  'Quick reply control with scale labels on. Used by the Billing Support program.',
-        description: 'Quick reply buttons with scale labels on OSAT and ASAT, and a short billing-specific invitation.',
+        description: 'Quick reply buttons with scale labels on the 1 to 5 scale question, and a short billing-specific invitation.',
         ch:  'digital',
         q: {
-          osat:     { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
-          asat:     { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
-          csat:     { control: 'quickreply', scaleLabels: false, lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
-          verbatim: { control: 'textarea',   scaleLabels: false, lowLabel: '',                  highLabel: '',               midLabels: ['', '', ''],                             listPickerLabel: '' },
+          scale5:   { control: 'quickreply', scaleLabels: true,  lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
+          scale10:  { control: 'quickreply', scaleLabels: false, lowLabel: 'Not at all likely',  highLabel: 'Extremely likely', midLabels: ['', '', '', '', '', '', '', ''],        listPickerLabel: 'Rate your experience' },
+          verbatim: { control: 'textarea',   scaleLabels: false, lowLabel: '',                  highLabel: '',               midLabels: [],                                        listPickerLabel: '' },
         },
         msg: {
           ...makeMsg(),
@@ -139,15 +159,15 @@ export const db: { lf: Record<ThemeChannel, Theme[]> } = {
       },
       {
         id:  't6',
-        nm:  'Digital - Labelled scale for CSAT',
+        nm:  'Digital - Labelled 1 to 5 scale question',
         sys: false,
         def: false,
-        ds:  'Quick reply with labels on CSAT only.',
-        description: 'Quick reply buttons with the full 5-point label set shown on CSAT. OSAT and ASAT stay unlabelled to keep the chat short.',
+        ds:  'Quick reply with labels on the 1 to 5 scale question.',
+        description: 'Quick reply buttons with the full 5-point label set shown on the 1 to 5 scale question.',
         ch:  'digital',
         q: {
           ...makeQ('digital'),
-          csat: { control: 'quickreply', scaleLabels: true, lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
+          scale5: { control: 'quickreply', scaleLabels: true, lowLabel: 'Very dissatisfied', highLabel: 'Very satisfied', midLabels: ['Dissatisfied', 'Neutral', 'Satisfied'], listPickerLabel: 'Rate your experience' },
         },
         msg: makeMsg(),
         updatedOn: 'Aug 18, 2026 03:40:22 PM',
@@ -197,7 +217,7 @@ export function getThemeById(id: string): Theme | undefined {
   return getAllThemes().find(t => t.id === id)
 }
 
-export function getControlOptions(ch: ThemeChannel, qType: QType): string[] {
+export function getControlOptions(ch: ThemeChannel, qType: QuestionTypeKey): string[] {
   return qType === 'verbatim' ? CONTROL_OPTIONS[ch].verbatim : CONTROL_OPTIONS[ch].scale
 }
 
@@ -328,9 +348,9 @@ export interface ThemeValidationErrors {
 export function validateTheme(theme: Theme): ThemeValidationErrors {
   const errors: ThemeValidationErrors = {}
   if (!theme.nm.trim()) errors.nm = 'Required'
-  if (theme.q.osat.control === 'listpicker' || theme.q.asat.control === 'listpicker' ||
-      theme.q.csat.control === 'listpicker') {
-    const hasEmpty = (['osat', 'asat', 'csat'] as QType[]).some(
+  const scaleTypes: QuestionTypeKey[] = ['scale5', 'scale10']
+  if (scaleTypes.some(qt => theme.q[qt].control === 'listpicker')) {
+    const hasEmpty = scaleTypes.some(
       qt => theme.q[qt].control === 'listpicker' && !theme.q[qt].listPickerLabel.trim()
     )
     if (hasEmpty) errors.listPickerLabel = 'Required'

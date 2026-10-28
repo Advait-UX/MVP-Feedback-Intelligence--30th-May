@@ -285,6 +285,17 @@ Each card shows:
 
 **Title:** [Channel] — [Theme name]
 
+### Presentation panel
+Question types for digital are grouped by **scale shape**, not by metric — any metric that
+shares a scale (ASAT, CSAT, future metrics) shares its one config instead of each metric having
+its own:
+- **1 to 5 Scale question** — shared config for any 1–5 scale metric
+- **1 to 10 Scale question** — shared config for any 1–10 scale metric
+- **Verbatim** — open text comment, always its own type (not a scale)
+
+Each question type's config block (Control style, List picker label, Edit scale labels, the
+low/mid/high scale label fields) applies to the scale type as a whole.
+
 ### Sections
 - **Invitation** — message sent to customer to start survey
 - **Opt-out** — message shown if customer opts out

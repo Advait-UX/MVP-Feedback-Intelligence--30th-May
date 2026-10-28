@@ -2,25 +2,26 @@ import { useState, useEffect, useCallback } from 'react'
 import { Info, Lock, ChevronDown, User, X } from 'lucide-react'
 import { DescriptionField } from '@/components/feedback-management/AlertConditions'
 import {
-  type Theme, type QType, type QuestionConfig, type MessageConfig,
+  type Theme, type QuestionTypeKey, type QuestionConfig, type MessageConfig,
   type ThemeValidationErrors,
-  getThemeById, getControlOptions,
+  getThemeById, getControlOptions, scalePoints,
   syncTheme, sanitizeName, validateTheme, hasValidationErrors,
   makeDraftTheme, saveNewTheme, isThemeNameTaken,
 } from '@/lib/themes'
 
 const F = 'var(--lyra-font-sans, var(--font-sans))'
 
-const Q_TYPES: { key: QType; label: string; subtitle: string }[] = [
-  { key: 'asat',     label: 'ASAT',     subtitle: 'Agent satisfaction — 1–5' },
-  { key: 'csat',     label: 'CSAT',     subtitle: 'Customer satisfaction — 1–5' },
-  { key: 'verbatim', label: 'Verbatim', subtitle: 'Open text comment' },
+// label: the list-row name · heading: the panel title ("Theme - {heading}") · previewLabel: the
+// short form used in "Preview of {control} for {previewLabel}"
+const Q_TYPES: { key: QuestionTypeKey; label: string; heading: string; previewLabel: string; subtitle?: string }[] = [
+  { key: 'scale5',   label: '1 to 5 Scale question',  heading: '1 to 5 Scale Question',  previewLabel: '1-5 scale question' },
+  { key: 'scale10',  label: '1 to 10 Scale question', heading: '1 to 10 Scale Question', previewLabel: '1-10 scale question' },
+  { key: 'verbatim', label: 'Verbatim', heading: 'Verbatim', previewLabel: 'Verbatim', subtitle: 'Open text comment' },
 ]
 
-const Q_TEXT: Record<QType, string> = {
-  osat:     'How satisfied were you with your overall experience?',
-  asat:     'How would you rate the person who helped you today?',
-  csat:     'How satisfied were you with the service you received?',
+const Q_TEXT: Record<QuestionTypeKey, string> = {
+  scale5:   'Rate your experience today',
+  scale10:  'How likely are you to recommend us today?',
   verbatim: 'What could we have done better?',
 } as const
 
@@ -84,13 +85,14 @@ function TypeChip({ sys }: { sys: boolean }) {
 
 /* ─── Preview components ─── */
 
-function ChatPreview({ theme, activeQType }: { theme: Theme; activeQType: QType }) {
+function ChatPreview({ theme, activeQType }: { theme: Theme; activeQType: QuestionTypeKey }) {
   const qConfig  = theme.q[activeQType]
   const control  = qConfig.control
   const isVerb   = activeQType === 'verbatim'
   const qText    = Q_TEXT[activeQType]
   const ctrlLbl  = (CONTROL_LABELS[control] ?? control).toLowerCase()
-  const qLabel   = Q_TYPES.find(q => q.key === activeQType)?.label
+  const qLabel   = Q_TYPES.find(q => q.key === activeQType)?.previewLabel
+  const points   = scalePoints(activeQType)
 
   return (
     <div style={{
@@ -119,8 +121,8 @@ function ChatPreview({ theme, activeQType }: { theme: Theme; activeQType: QType 
             <div style={{ padding: '8px 14px', background: 'var(--lyra-color-bg-surface-canvas)', font: '600 10px/14px ' + F, color: 'var(--lyra-color-fg-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               {qConfig.listPickerLabel || 'Rate your experience'}
             </div>
-            {[1, 2, 3, 4, 5].map((n, i) => {
-              const label = n === 1 ? qConfig.lowLabel : n === 5 ? qConfig.highLabel : qConfig.midLabels[n - 2]
+            {Array.from({ length: points }, (_, i) => i + 1).map((n, i) => {
+              const label = n === 1 ? qConfig.lowLabel : n === points ? qConfig.highLabel : qConfig.midLabels[n - 2]
               return (
                 <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderTop: i > 0 ? '1px solid var(--lyra-color-border-subtle)' : 'none' }}>
                   <span style={{ font: '500 12px/16px ' + F, color: 'var(--lyra-color-fg-secondary)' }}>{n} —</span>
@@ -133,8 +135,8 @@ function ChatPreview({ theme, activeQType }: { theme: Theme; activeQType: QType 
 
         {!isVerb && control === 'quickreply' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[1, 2, 3, 4, 5].map(n => {
-              const label = n === 1 ? qConfig.lowLabel : n === 5 ? qConfig.highLabel : qConfig.midLabels[n - 2]
+            {Array.from({ length: points }, (_, i) => i + 1).map(n => {
+              const label = n === 1 ? qConfig.lowLabel : n === points ? qConfig.highLabel : qConfig.midLabels[n - 2]
               return (
                 <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px', borderRadius: 6, border: '1px solid var(--lyra-color-border-soft)' }}>
                   <span style={{ font: '500 12px/16px ' + F, color: 'var(--lyra-color-fg-default)' }}>{n}</span>
@@ -460,7 +462,7 @@ export function ThemeDetailPage({
     const src = getThemeById(themeId)
     return src ? (JSON.parse(JSON.stringify(src)) as Theme) : null
   })
-  const [activeQType, setActiveQType] = useState<QType>('asat')
+  const [activeQType, setActiveQType] = useState<QuestionTypeKey>('scale5')
   const [saveToast, setSaveToast]     = useState(false)
   const [errors, setErrors]           = useState<ThemeValidationErrors>({})
   const [linkedProgramsOpen, setLinkedProgramsOpen] = useState(false)
@@ -470,7 +472,7 @@ export function ThemeDetailPage({
     if (isCreate) return
     const src = getThemeById(themeId)
     setTheme(src ? (JSON.parse(JSON.stringify(src)) as Theme) : null)
-    setActiveQType('asat')
+    setActiveQType('scale5')
     setSaveToast(false)
     setErrors({})
     setIsDirty(false)
@@ -493,7 +495,7 @@ export function ThemeDetailPage({
     }
   }, [errors])
 
-  const updateQ = useCallback((qType: QType, patch: Partial<QuestionConfig>) => {
+  const updateQ = useCallback((qType: QuestionTypeKey, patch: Partial<QuestionConfig>) => {
     setTheme(prev => {
       if (!prev) return prev
       return { ...prev, q: { ...prev.q, [qType]: { ...prev.q[qType], ...patch } } }
@@ -552,6 +554,7 @@ export function ThemeDetailPage({
   const activeQ  = theme.q[activeQType]
   const isVerb   = activeQType === 'verbatim'
   const ctrlOpts = getControlOptions(theme.ch, activeQType)
+  const points   = scalePoints(activeQType)
   const nameEditable = !locked && (theme.linkedPrograms?.length ?? 0) === 0
   const nameDuplicate = nameEditable && !!theme.nm.trim() && isThemeNameTaken(theme.nm, isCreate ? undefined : theme.id)
 
@@ -683,22 +686,26 @@ export function ThemeDetailPage({
                             background: isActive ? 'var(--lyra-color-bg-active-subtle)' : 'transparent',
                             borderBottom: !isActive && idx < Q_TYPES.length - 1 ? '1px solid var(--lyra-color-border-soft)' : 'none',
                             cursor: 'pointer', outline: 'none',
-                            display: 'flex', flexDirection: 'column', gap: 16,
+                            display: 'flex',
+                            flexDirection: isVerbatimRow ? 'column' : 'row',
+                            alignItems: isVerbatimRow ? 'stretch' : 'center',
+                            justifyContent: isVerbatimRow ? 'flex-start' : 'space-between',
+                            gap: isVerbatimRow ? 2 : 12,
                           }}
                           onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
                           onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = isActive ? 'var(--lyra-color-bg-active-subtle)' : 'transparent' }}
                         >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <div style={{ font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-default)' }}>
-                              {qt.label}
-                            </div>
+                          <div style={{ font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-default)' }}>
+                            {qt.label}
+                          </div>
+                          {isVerbatimRow && qt.subtitle && (
                             <div style={{ font: '400 12px/16px ' + F, color: isActive ? 'var(--lyra-color-fg-default)' : 'var(--lyra-color-fg-secondary)', letterSpacing: '0.2px' }}>
                               {qt.subtitle}
                             </div>
-                          </div>
+                          )}
                           {!isVerbatimRow && (
                             <span style={{
-                              display: 'inline-flex', alignItems: 'center', alignSelf: 'flex-start',
+                              display: 'inline-flex', alignItems: 'center', flexShrink: 0,
                               height: 24, padding: '0 8px',
                               borderRadius: 'var(--radius-sm)',
                               background: 'var(--lyra-color-bg-control-subtle, rgba(0,0,0,0.02))',
@@ -733,7 +740,7 @@ export function ThemeDetailPage({
                   }}>
                     <div style={{ flex: '1 1 0', alignSelf: 'stretch', display: 'flex', alignItems: 'center', gap: 16 }}>
                       <span style={{ font: '500 14px/18px ' + F, color: 'var(--lyra-color-fg-default)' }}>
-                        Theme - {Q_TYPES.find(q => q.key === activeQType)?.label}
+                        Theme - {Q_TYPES.find(q => q.key === activeQType)?.heading}
                       </span>
                     </div>
                   </div>
@@ -943,12 +950,12 @@ export function ThemeDetailPage({
 
                     {/* Scale labels */}
                     {!isVerb && locked && (
-                      <div style={{ alignSelf: 'stretch', display: 'flex', gap: 16 }}>
-                        {[1, 2, 3, 4, 5].map(n => {
-                          const label = n === 1 ? '1: Lowest scale label' : n === 5 ? '5: Highest scale label' : String(n)
-                          const value = n === 1 ? activeQ.lowLabel : n === 5 ? activeQ.highLabel : activeQ.midLabels[n - 2]
+                      <div style={{ alignSelf: 'stretch', display: 'flex', flexWrap: 'wrap', gap: 16, rowGap: 16 }}>
+                        {Array.from({ length: points }, (_, i) => i + 1).map(n => {
+                          const label = n === 1 ? '1: Lowest scale label' : n === points ? `${points}: Highest scale label` : String(n)
+                          const value = n === 1 ? activeQ.lowLabel : n === points ? activeQ.highLabel : activeQ.midLabels[n - 2]
                           return (
-                            <div key={n} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div key={n} style={{ flex: '1 1 120px', minWidth: 120, display: 'flex', flexDirection: 'column', gap: 4 }}>
                               <div style={{ font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {label}
                               </div>
@@ -970,12 +977,12 @@ export function ThemeDetailPage({
 
                     {/* Scale labels — editable (custom themes) */}
                     {!isVerb && !locked && (
-                      <div style={{ alignSelf: 'stretch', display: 'flex', gap: 16 }}>
-                        {[1, 2, 3, 4, 5].map(n => {
-                          const label = n === 1 ? '1: Low scale label' : n === 5 ? '5: High scale label' : String(n)
-                          const currentValue = n === 1 ? activeQ.lowLabel : n === 5 ? activeQ.highLabel : activeQ.midLabels[n - 2]
+                      <div style={{ alignSelf: 'stretch', display: 'flex', flexWrap: 'wrap', gap: 16, rowGap: 16 }}>
+                        {Array.from({ length: points }, (_, i) => i + 1).map(n => {
+                          const label = n === 1 ? '1: Low scale label' : n === points ? `${points}: High scale label` : String(n)
+                          const currentValue = n === 1 ? activeQ.lowLabel : n === points ? activeQ.highLabel : activeQ.midLabels[n - 2]
                           return (
-                            <div key={n} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div key={n} style={{ flex: '1 1 120px', minWidth: 120, display: 'flex', flexDirection: 'column', gap: 4 }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
                                 <span style={{ font: '500 14px/20px ' + F, color: 'var(--lyra-color-fg-default)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                   {label}
@@ -989,7 +996,7 @@ export function ThemeDetailPage({
                                   onChange={v => updateQ(activeQType, { lowLabel: v })}
                                   maxLen={20}
                                 />
-                              ) : n === 5 ? (
+                              ) : n === points ? (
                                 <ValidatedInput
                                   id="scale-high"
                                   value={activeQ.highLabel}
@@ -1001,7 +1008,7 @@ export function ThemeDetailPage({
                                   id={`scale-mid-${n}`}
                                   value={activeQ.midLabels[n - 2]}
                                   onChange={v => {
-                                    const next = [...activeQ.midLabels] as [string, string, string]
+                                    const next = [...activeQ.midLabels]
                                     next[n - 2] = v
                                     updateQ(activeQType, { midLabels: next })
                                   }}
