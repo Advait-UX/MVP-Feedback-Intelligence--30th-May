@@ -637,7 +637,7 @@ button{cursor:pointer;background:none;border:0}
 .verdicts .sep{width:1px;height:20px;background:var(--bd-subtle);margin:0 4px}
 
 /* ===================== Hub & spoke (no stepper) — Nov 1 ===================== */
-.hbody{flex:1;min-height:0;overflow-y:auto;padding:24px 32px 40px;display:flex;flex-direction:column;gap:16px}
+.hbody{flex:1;min-height:0;overflow-y:auto;padding:24px 32px 40px;display:flex;flex-direction:column;gap:24px}
 .hbody .bcard+.bcard{margin-top:0}
 .hbody .bcard.fill{flex:none;min-height:0}
 .hbody .tbl th,.hbody .tbl td{padding-left:12px;padding-right:12px}
@@ -1303,17 +1303,34 @@ mark.hl{background:var(--warn-subtle);color:var(--fg);box-shadow:none;border-rad
 .xguide .xg-open:focus-visible{outline:2px solid var(--fg-active);outline-offset:2px;border-radius:var(--r-xs)}
 
 /* waiting follow-ups card: one quiet chip per person, opens their waiting follow-up */
-.m-go-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.m-go{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px 0 12px;border-radius:var(--r-full);background:var(--bg-base);border:1px solid var(--bd-subtle);color:var(--fg-link);font:500 13px/18px var(--font-sans);cursor:pointer;transition:background .15s,border-color .15s}
-.m-go .ic{color:var(--fg-link)}
-.m-go:hover{background:var(--brand-50);border-color:var(--brand-200)}
-.m-go:focus-visible{outline:2px solid var(--fg-active);outline-offset:2px}
+/* metric cards · compact, action on the right (Nov 2) */
+.mcards{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) minmax(0,1.2fr)}
+@media (max-width:1100px){.mcards{grid-template-columns:1fr}}
+.mcard{align-items:flex-start;gap:12px;padding:14px 16px}
+.m-ic{width:32px;height:32px}
+.m-t{font:500 14px/22px var(--font-sans)}
+.m-t b{font:600 18px/22px var(--font-sans)}
+.m-s{font:400 12px/16px var(--font-sans);margin-top:2px}
+.mcard .segbar{margin-top:8px}
+.m-open,.m-open-one{flex:none;align-self:center}
+.m-open{position:relative}
+.m-open>.btn{gap:4px;padding:0 8px 0 12px}
+.m-open>.btn .ic{color:var(--fg-2);transition:transform .15s}
+.m-open:hover>.btn,.m-open:focus-within>.btn{background:var(--hover)}
+.m-open:hover>.btn .ic,.m-open:focus-within>.btn .ic{transform:rotate(180deg)}
+.m-open-menu{display:none;position:absolute;right:0;top:100%;padding-top:6px;z-index:40;min-width:232px}
+.m-open:hover .m-open-menu,.m-open:focus-within .m-open-menu{display:block}
+.m-open-panel{background:var(--bg-base);border-radius:var(--r-md);box-shadow:0 0 0 1px var(--bd-soft),var(--sh-lg);padding:4px}
+.m-open-item{display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:8px 12px;border-radius:var(--r-sm);text-align:left;cursor:pointer}
+.m-open-item:hover,.m-open-item:focus-visible{background:var(--hover)}
+.m-open-item b{font:500 14px/20px var(--font-sans);color:var(--fg)}
+.m-open-item span{font:400 12px/16px var(--font-sans);color:var(--fg-2)}
 
 /* embedded in the app: no second top bar / sidebar, the pane fills the frame */
 html.embed .top,html.embed .side,html.embed .collapse{display:none}
 html.embed .pane{margin:0;border:0;border-radius:0;box-shadow:none}
-/* the inner top bar is gone, so the scenario switcher moves to the bottom, where it sat before */
-html.embed .demo{top:auto;bottom:12px;left:50%;transform:translateX(-50%);background:#fff;box-shadow:var(--sh-lg),0 0 0 1px var(--bd-subtle)}
+/* embedded in the app, the scenario switcher lives in the host shell's top bar instead */
+html.embed .demo{display:none}
 </style>
 </head>
 <body>
@@ -1969,11 +1986,11 @@ function testHead(){
  return `<div class="phead">
   <div class="crumbs"><button onclick="A.go('program')">Programs</button><span>/</span><button onclick="A.go('program')">${PROG()}</button><span>/</span><span class="cur">Test ${PROG()}</span></div>
   <div class="hbtns">
-   <span class="hastip"><button class="btn out" onclick="A.exit()" aria-describedby="exit-tip">Save and exit</button><span class="tipbox" id="exit-tip" role="tooltip" style="left:auto;right:0;transform:none;width:280px">Your test batch, verdicts, follow-up changes and rules are kept. Nothing goes live. Continue any time from the program page.</span></span>
-   <span class="vdiv"></span>
    <span class="hastip"><button class="btn ghost hb-log" onclick="A.how()" aria-describedby="how-tip">${ic('help',16)}How it works</button><span class="tipbox" id="how-tip" role="tooltip" style="left:auto;right:0;transform:none;width:240px">A quick look at how testing works. Your progress stays as it is.</span></span>
-   <span class="hastip"><button class="btn ghost hb-log" onclick="A.drawer('log')" aria-describedby="log-tip">${ic('history',16)}Decision log</button><span class="tipbox" id="log-tip" role="tooltip" style="left:auto;right:0;transform:none;width:260px">Every verdict, follow-up change and rule in this test, with who did it and when.</span></span>
-   <button class="btn ${c>=RECO&&!pendingList().length?'pri':'out'}" onclick="A.decide()">${ic('zap',16)}Your decision</button>
+   <span class="vdiv"></span>
+   <span class="hastip"><button class="btn out" onclick="A.exit()" aria-describedby="exit-tip">Save and exit</button><span class="tipbox" id="exit-tip" role="tooltip" style="left:auto;right:0;transform:none;width:280px">Your test batch, verdicts, follow-up changes and rules are kept. Nothing goes live. Continue any time from the program page.</span></span>
+   <span class="hastip"><button class="btn out hb-sec" onclick="A.drawer('log')" aria-describedby="log-tip">${ic('history',16)}Decision log</button><span class="tipbox" id="log-tip" role="tooltip" style="left:auto;right:0;transform:none;width:260px">Every verdict, follow-up change and rule in this test, with who did it and when.</span></span>
+   <button class="btn pri" onclick="A.decide()">${ic('zap',16)}Your decision</button>
   </div></div>`;
 }
 
@@ -2020,11 +2037,15 @@ function readiness(){
  const m2=`<div class="mcard"><span class="m-ic">${ic('phone',18)}</span><div class="m-b">
    <div class="m-t">Played <b>${t}</b> out of ${n} as the customer</div>
    <div class="m-s">${n-t?`${n-t} not played yet`:'Everything in your batch is played'}</div></div></div>`;
+ /* follow-ups card: one Open button; with several people it reveals who on hover */
+ const who=[...new Set(pend.map(x=>x.k))];
+ const openItem=k=>{const mine=pend.filter(x=>x.k===k),why=mine.map(x=>`${BL[x.b]} follow-up: ${x.why==='rule'?ruleWhat(breaks(k,x.b)[0],qText(k,x.b),k).is:'change not finished'}`).join(' · ');
+   return `<button class="m-open-item" role="menuitem" title="${esc(why)}" onclick="A.openPend('${k}')"><b>${esc(P(k).name)}</b><span>${mine.length} follow-up${mine.length>1?'s':''} · ${mine.some(x=>x.why==='rule')?'breaks a rule':'change not finished'}</span></button>`};
+ const openCtl=who.length===1?`<button class="btn out sm m-open-one" onclick="A.openPend('${who[0]}')">Open ${esc(P(who[0]).first)}</button>`
+   :`<div class="m-open"><button class="btn out sm" aria-haspopup="menu">Open${ic('cd',14)}</button><div class="m-open-menu"><div class="m-open-panel" role="menu">${who.map(openItem).join('')}</div></div></div>`;
  const m3=pend.length?`<div class="mcard"><span class="m-ic warn">${ic('edit',18)}</span><div class="m-b">
    <div class="m-t"><b class="warn">${pend.length}</b> follow-up${pend.length>1?'s':''} waiting on you</div>
-   <div class="m-s">Finish the change, or decide on the rule, before you go live</div>
-   <div class="m-go-row">${[...new Set(pend.map(x=>x.k))].map(k=>{const mine=pend.filter(x=>x.k===k),why=mine.map(x=>`${BL[x.b]} follow-up: ${x.why==='rule'?ruleWhat(breaks(k,x.b)[0],qText(k,x.b),k).is:'change not finished'}`).join(' · ');
-     return `<button class="m-go" title="${esc(why)}" onclick="A.openPend('${k}')"><span>Open ${esc(P(k).first)}</span>${ic('cr',14)}</button>`}).join('')}</div></div></div>`
+   <div class="m-s">Finish the change, or decide on the rule, before you go live</div></div>${openCtl}</div>`
   :`<div class="mcard"><span class="m-ic ok">${ic('edit',18)}</span><div class="m-b">
    <div class="m-t">No follow-up waiting on a change</div>
    <div class="m-s">All changes finished</div></div></div>`;
@@ -2286,8 +2307,8 @@ function pendLinks(k){const pb=pendBands(k);if(pb.length<2)return `${pendLine(k)
  return `${pb.length} follow-ups need you: ${andList(pb.map(b=>`<button class="textlink xg-open" onclick="A.play('${b}');revealBand()">${BL[b]} follow-up</button>`))}.`}
 function verdictBar(k){
  const s=ST(k),p=P(k),{c2}=stepStates(k),conf=s.status==='confident',n=runHasNext(),inRun=!!S.run&&S.run.ks.length>1;
- const onward=inRun?(n?`<button class="btn pri" onclick="A.runNext()">Next: ${P(S.run.ks[S.run.i+1]).first}${ic('cr',16)}</button>`:`<button class="btn pri" onclick="A.finishRun()">Finish${ic('check',16)}</button>`):`<button class="btn out" onclick="A.go('hub')">Back to batch</button>`;
- if(conf)return `<div class="verdicts"><span class="vstate ok">${okc(16)}<span><b>Marked confident</b> · ${s.confAt}</span></span><button class="btn ghost" onclick="A.askUnconf()">Remove confident mark</button><span class="sep"></span>${onward}${confCount()>=RECO&&!inRun?`<button class="btn pri" onclick="A.decide()">${ic('zap',16)}Your decision</button>`:''}</div>`;
+ const onward=inRun?(n?`<button class="btn pri" onclick="A.runNext()">Next: ${P(S.run.ks[S.run.i+1]).first}${ic('cr',16)}</button>`:`<button class="btn pri" onclick="A.finishRun()">Finish${ic('check',16)}</button>`):'';  /* outside a bulk run, the footer's left "Back to batch" is the only way back */
+ if(conf)return `<div class="verdicts"><span class="vstate ok">${okc(16)}<span><b>Marked confident</b> · ${s.confAt}</span></span><button class="btn ghost" onclick="A.askUnconf()">Remove confident mark</button>${(()=>{const after=onward+(confCount()>=RECO&&!inRun?`<button class="btn pri" onclick="A.decide()">${ic('zap',16)}Your decision</button>`:'');return after?`<span class="sep"></span>${after}`:''})()}</div>`;
  const pw=pendingFor(k)?pendLine(k):'',can=c2&&!pw;
  const confBtn=`<span class="hastip"><button class="btn pri" ${can?'':'disabled'} aria-disabled="${!can}" onclick="A.confident()">I'm confident${ic('check',16)}</button>${can?'':`<span class="tipbox" style="width:260px;left:auto;right:0;transform:none">${pw?`You can be confident once every follow-up is settled. ${esc(pw)}`:`Give a rating as ${p.first} first, then say if you're confident.`}</span>`}</span>`;
  if(s.status==='later')return `<div class="verdicts"><span class="vstate muted">${ic('bookmark',16)}<span><b>Decide later</b> · since ${s.laterAt}</span></span>${inRun?onward:''}<span class="sep"></span>${confBtn}</div>`;
@@ -2526,21 +2547,23 @@ function placeMenu(){const m=document.querySelector('.menuwrap .menu');if(!m)ret
 document.addEventListener('scroll',e=>{if(S.menu&&!(e.target.closest&&e.target.closest('.menu'))){S.menu=null;render()}},true);
 addEventListener('resize',()=>{if(S.menu)placeMenu()});
 /* ===== Embedded in the Feedback Management app (Nov 2) =====
-   Opened as  ?embed=1&mode=new|existing&name=<program name>
+   Opened as  ?embed=1&mode=new|existing|inprog|ready&name=<program name>
    The inner top bar and sidebar are hidden; the app is told when the user leaves the test. */
 (function(){
  const q=new URLSearchParams(location.search);
  if(q.get('embed')!=='1'){A.demo('inprog');return}             /* opened on its own: In progress scenario, as before */
  document.documentElement.classList.add('embed');
- const name=q.get('name'),mode=q.get('mode')==='new'?'new':'existing';
+ const name=q.get('name'),m0=q.get('mode'),mode=['new','existing','inprog','ready'].includes(m0)?m0:'existing';
  const post=t=>{try{parent.postMessage({src:'fi-test-program',type:t},'*')}catch(e){}};
+ const postScenario=s=>{try{parent.postMessage({src:'fi-test-program',type:'fi-test-scenario',scenario:s},'*')}catch(e){}};
  const useName=()=>{if(name)S.prog.name=name};
  /* anything that lands on the inner program page = leave the test and go back to the app's program page */
  const go0=A.go.bind(A);A.go=v=>{if(v==='program'){post('fi-test-close');return}go0(v)};
  const exit0=A.exit.bind(A);A.exit=()=>{exit0();post('fi-test-close')};
  const apply0=A.apply.bind(A);A.apply=()=>{const live=S.dChoice==='live';apply0();post(live?'fi-test-golive':'fi-test-close')};
- /* the scenario switcher stays; every scenario starts inside the test, never on the inner program page */
- const demo0=A.demo.bind(A);A.demo=w=>{demo0(w);useName();if(S.view==='program')A.testProgram()};
+ /* the in-page scenario switcher is hidden when embedded; the host shell's top bar drives it instead */
+ const demo0=A.demo.bind(A);A.demo=w=>{demo0(w);useName();if(S.view==='program')A.testProgram();postScenario(S.scenario)};
+ addEventListener('message',e=>{const d=e.data;if(d&&d.src==='fi-test-program'&&d.type==='fi-test-set-scenario'&&d.scenario)A.demo(d.scenario)});
  A.demo(mode);
 })();
 </script>

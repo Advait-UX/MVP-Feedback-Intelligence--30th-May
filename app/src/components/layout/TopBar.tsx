@@ -84,9 +84,11 @@ interface TopBarProps {
   onAppSwitch?: (appLabel: string) => void
   /** Label shown in the app-switcher pill (defaults to "Feedback Intelligence"). */
   appName?: string
+  /** Optional content centered in the top bar, e.g. the test-flow scenario switcher. */
+  centerSlot?: React.ReactNode
 }
 
-export function TopBar({ onAppSwitch, appName = 'Feedback Management' }: TopBarProps = {}) {
+export function TopBar({ onAppSwitch, appName = 'Feedback Management', centerSlot }: TopBarProps = {}) {
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false)
   const switcherRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLElement>(null)
@@ -115,7 +117,14 @@ export function TopBar({ onAppSwitch, appName = 'Feedback Management' }: TopBarP
   }
 
   return (
-    <header ref={headerRef} className="flex h-12 items-center justify-between px-4 pt-1 flex-shrink-0 w-full" style={{ background: 'rgb(243, 245, 246)' }}>
+    <header ref={headerRef} className="relative flex h-12 items-center justify-between px-4 pt-1 flex-shrink-0 w-full" style={{ background: 'rgb(243, 245, 246)' }}>
+      {/* Center: optional slot (e.g. the test-flow scenario switcher), true-centered regardless of side widths */}
+      {centerSlot && (
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center pointer-events-auto">
+          {centerSlot}
+        </div>
+      )}
+
       {/* Left: logo + app name — clicking opens the App Menu */}
       <div ref={switcherRef} className="relative flex items-center">
         <button

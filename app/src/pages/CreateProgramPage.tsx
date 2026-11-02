@@ -8,6 +8,13 @@ import { ALERTS } from './AlertsListPage'
 import { SURVEY_DESIGNS, DIGITAL_THEMES } from '../lib/campaignWizard'
 import type { Campaign } from '../lib/campaigns'
 import { TestProgramModal } from '../components/test-program/TestProgramModal'
+import { ScenarioSwitcher, type TestScenario } from '../components/layout/ScenarioSwitcher'
+
+// TODO: replace with real copy describing each test program approach.
+const APPROACH_TIPS: Record<1 | 2, string> = {
+  1: 'Placeholder — describe what approach 1 (left stepper) is for.',
+  2: 'Placeholder — describe what approach 2 (hub) is for.',
+}
 
 const ALL_TEAMS_COUNT = 50
 const AGENTS_PER_TEAM = 10
@@ -716,6 +723,8 @@ interface Props {
   onCancel: () => void
   onSave: (status: 'draft' | 'active', data?: { name: string; channels: string[]; editedId?: string }) => void
   editCampaign?: Campaign
+  /** Lets the host shell render the embedded test flow's scenario switcher in its top bar. */
+  onCenterSlotChange?: (slot: React.ReactNode | null) => void
 }
 
 function campaignToForm(c: Campaign): Form {
@@ -734,7 +743,7 @@ function campaignToForm(c: Campaign): Form {
   }
 }
 
-export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
+export function CreateProgramPage({ onCancel, onSave, editCampaign, onCenterSlotChange }: Props) {
   const [form, setForm] = useState<Form>(() => editCampaign ? campaignToForm(editCampaign) : DEFAULT_FORM)
   const [surveyDrawerOpen, setSurveyDrawerOpen] = useState(false)
   const [actionDrawerOpen, setActionDrawerOpen] = useState(false)
@@ -753,6 +762,12 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
   const [testMenuOpen, setTestMenuOpen] = useState(false)
   const [testApproach, setTestApproach] = useState<null | 1 | 2>(null)
   const testMenuRef = useRef<HTMLDivElement>(null)
+  const testFrameRef = useRef<HTMLIFrameElement>(null)
+  // Editing an existing program offers existing/in-progress/ready (opens on In progress);
+  // creating a new one offers new/in-progress/ready (opens on New program).
+  const defaultScenario: TestScenario = editCampaign ? 'inprog' : 'new'
+  const scenarioOptions: TestScenario[] = editCampaign ? ['existing', 'inprog', 'ready'] : ['new', 'inprog', 'ready']
+  const [testScenario, setTestScenario] = useState<TestScenario>(defaultScenario)
   const [testToast, setTestToast] = useState<string | null>(null)
   const [originalForm] = useState<Form>(() => editCampaign ? campaignToForm(editCampaign) : DEFAULT_FORM)
 
@@ -871,13 +886,31 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
           ? `Contextual follow-ups are live for "${form.name}"`
           : `Contextual follow-ups will go live when you activate "${form.name || 'this program'}"`)
       }
+      if (d.type === 'fi-test-scenario' && d.scenario) setTestScenario(d.scenario)
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
   }, [testApproach, isEditActive, form.name])
 
+  // Puts the scenario switcher in the host shell's top bar (centered) while a test flow is embedded.
+  useEffect(() => {
+    if (!onCenterSlotChange) return
+    if (testApproach === null) { onCenterSlotChange(null); return }
+    onCenterSlotChange(
+      <ScenarioSwitcher
+        value={testScenario}
+        options={scenarioOptions}
+        onChange={(scenario) => {
+          setTestScenario(scenario)
+          testFrameRef.current?.contentWindow?.postMessage({ src: 'fi-test-program', type: 'fi-test-set-scenario', scenario }, '*')
+        }}
+      />
+    )
+    return () => onCenterSlotChange(null)
+  }, [testApproach, testScenario, onCenterSlotChange])
+
   const testFlowSrc = testApproach === null ? '' :
-    `${import.meta.env.BASE_URL}test-program-approach-${testApproach}.html?embed=1&mode=${editCampaign ? 'existing' : 'new'}&name=${encodeURIComponent(form.name || 'Untitled program')}`
+    `${import.meta.env.BASE_URL}test-program-approach-${testApproach}.html?embed=1&mode=${defaultScenario}&name=${encodeURIComponent(form.name || 'Untitled program')}`
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--lyra-color-bg-surface-base)', position: 'relative' }}>
@@ -990,21 +1023,30 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
               {testMenuOpen && (
                 <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 60, minWidth: 260, padding: '4px 0', background: 'var(--lyra-color-bg-surface-overlay)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--sol-effect-shadowlg)' }}>
                   {([
-                    { id: 1 as const, label: 'Test program approach 1', sub: 'Left stepper' },
-                    { id: 2 as const, label: 'Test program approach 2', sub: 'Hub' },
+                    { id: 1 as const, label: 'Test program approach 1', sub: 'Left stepper', tip: APPROACH_TIPS[1] },
+                    { id: 2 as const, label: 'Test program approach 2', sub: 'Hub', tip: APPROACH_TIPS[2] },
                   ]).map(o => (
-                    <button key={o.id} role="menuitem" onClick={() => { setTestMenuOpen(false); setTestApproach(o.id) }}
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0, width: '100%', padding: '8px 12px', background: 'none', border: 0, cursor: 'pointer', textAlign: 'left', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
+                    <div key={o.id} role="menuitem"
+                      onClick={() => { setTestMenuOpen(false); setTestApproach(o.id); setTestScenario(defaultScenario) }}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%', padding: '8px 12px', cursor: 'pointer' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
-                    ><span>{o.label}</span><span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>{o.sub}</span></button>
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0, textAlign: 'left', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}>
+                        <span>{o.label}</span>
+                        <span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>{o.sub}</span>
+                      </div>
+                      <span onClick={e => e.stopPropagation()}>
+                        <InfoTooltip text={o.tip} />
+                      </span>
+                    </div>
                   ))}
                   <div style={{ height: 1, margin: '4px 0', background: 'var(--lyra-color-border-subtle)' }} />
                   <button role="menuitem" onClick={() => { setTestMenuOpen(false); setShowTestProgram(true) }}
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', padding: '8px 12px', background: 'none', border: 0, cursor: 'pointer', textAlign: 'left', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
-                  ><span>Test program (current flow)</span><span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>Built 27 Oct</span></button>
+                  ><span>Test program (old flow)</span><span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>Built 27 Oct</span></button>
                 </div>
               )}
             </div>
@@ -1787,6 +1829,7 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
       {testApproach !== null && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'var(--lyra-color-bg-surface-base)' }}>
           <iframe
+            ref={testFrameRef}
             key={testFlowSrc}
             src={testFlowSrc}
             title={`Test program approach ${testApproach}`}

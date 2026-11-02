@@ -17,15 +17,17 @@ interface AppShellProps {
   onNavSelect?: (id: string) => void
   /** Set true when content has its own pane-head (e.g. iframes or pages with inline headers). */
   hidePageHeader?: boolean
+  /** Optional content centered in the top bar, e.g. a test-flow scenario switcher. */
+  topBarCenterSlot?: React.ReactNode
 }
 
-export function AppShell({ children, title = 'Dashboard', breadcrumb = ['Feedback Intelligence'], onAppSwitch, navItems, activeNav, onNavSelect, hidePageHeader = false }: AppShellProps) {
+export function AppShell({ children, title = 'Dashboard', breadcrumb = ['Feedback Intelligence'], onAppSwitch, navItems, activeNav, onNavSelect, hidePageHeader = false, topBarCenterSlot }: AppShellProps) {
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [panelOpen, setPanelOpen] = useState(true)
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden" style={{ background: 'rgb(243, 245, 246)' }}>
-      <TopBar onAppSwitch={onAppSwitch} />
+      <TopBar onAppSwitch={onAppSwitch} centerSlot={topBarCenterSlot} />
 
       {/* Body row — sidebar blends into canvas; main content is a white card */}
       <div className="relative flex flex-1 overflow-hidden gap-0">

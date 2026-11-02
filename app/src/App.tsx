@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useState, type ReactNode } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { TopBar } from './components/layout/TopBar'
 import { TrendingUp, Minus, ChevronRight, Sparkles, AlertTriangle, Megaphone, Library, LayoutGrid } from 'lucide-react'
@@ -429,6 +429,8 @@ export default function App() {
   const [activatedAlert2, setActivatedAlert2] = useState<Alert2FormData | null>(null)
   const [editingAlert2, setEditingAlert2] = useState<Alert2 | null>(null)
   const [savedAlert2, setSavedAlert2] = useState<(Alert2FormData & { id: string }) | null>(null)
+  // The embedded test flow's scenario switcher, rendered centered in the shell's top bar while active.
+  const [topBarCenterSlot, setTopBarCenterSlot] = useState<ReactNode>(null)
 
   // App-switcher routing (nice_world TopBar dropdown).
   const handleAppSwitch = (appLabel: string) => {
@@ -581,6 +583,7 @@ export default function App() {
       navItems={FI_NAV_ITEMS}
       activeNav={fiSection}
       hidePageHeader={true}
+      topBarCenterSlot={topBarCenterSlot}
       onNavSelect={(id) => {
         if (id === 'old-dashboards' || id === 'library') return
         setFiSection(id as typeof fiSection)
@@ -620,6 +623,7 @@ export default function App() {
           <CreateProgramPage
             key="create-program-new"
             onCancel={() => setShowWizard(false)}
+            onCenterSlotChange={setTopBarCenterSlot}
             onSave={(status, data) => {
               if (status === 'active' && data) {
                 setActivatedProgram({ id: `new-${Date.now()}`, name: data.name, channels: data.channels })
@@ -634,6 +638,7 @@ export default function App() {
             key={`edit-program-${editCampaign.id}`}
             editCampaign={editCampaign}
             onCancel={() => setEditCampaignId(null)}
+            onCenterSlotChange={setTopBarCenterSlot}
             onSave={(status, data) => {
               if (data?.editedId) {
                 setSavedProgram({ id: data.editedId, name: data.name, editedBy: 'Jaden Smith', action: status === 'draft' ? 'deactivated' : undefined })
