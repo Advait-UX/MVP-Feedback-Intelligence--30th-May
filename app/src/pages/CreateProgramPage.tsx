@@ -10,10 +10,11 @@ import type { Campaign } from '../lib/campaigns'
 import { TestProgramModal } from '../components/test-program/TestProgramModal'
 import { ScenarioSwitcher, type TestScenario } from '../components/layout/ScenarioSwitcher'
 
-// TODO: replace with real copy describing each test program approach.
+// Shown in the info icon next to each option in the Test program dropdown,
+// so a PM knows what they're about to open before they click in.
 const APPROACH_TIPS: Record<1 | 2, string> = {
-  1: 'Placeholder — describe what approach 1 (left stepper) is for.',
-  2: 'Placeholder — describe what approach 2 (hub) is for.',
+  1: "Works like today's flow: a stepper on the left walks you through find interactions, test them, then decide. Pick interactions straight from the program instead of copy-pasting, and test one at a time or several together.",
+  2: "A simpler single-page view. There's no stepper until you're inside the actual test — finding interactions and reviewing your decision are quick one-step actions, so only the test itself needs a stepper.",
 }
 
 const ALL_TEAMS_COUNT = 50
