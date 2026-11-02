@@ -748,6 +748,11 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showDeactivateModal, setShowDeactivateModal] = useState(false)
   const [showTestProgram, setShowTestProgram] = useState(false)
+  // Test program dropdown: approach 1 (left stepper) and approach 2 (hub) open a full test flow
+  // inside this page; the current flow (Oct 27) stays as a third option.
+  const [testMenuOpen, setTestMenuOpen] = useState(false)
+  const [testApproach, setTestApproach] = useState<null | 1 | 2>(null)
+  const testMenuRef = useRef<HTMLDivElement>(null)
   const [testToast, setTestToast] = useState<string | null>(null)
   const [originalForm] = useState<Form>(() => editCampaign ? campaignToForm(editCampaign) : DEFAULT_FORM)
 
@@ -843,8 +848,39 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
     return () => clearTimeout(t)
   }, [testToast])
 
+  // Close the Test program menu on an outside click or Escape
+  useEffect(() => {
+    if (!testMenuOpen) return
+    const onDown = (e: MouseEvent) => { if (testMenuRef.current && !testMenuRef.current.contains(e.target as Node)) setTestMenuOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setTestMenuOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [testMenuOpen])
+
+  // The embedded test flow tells us when the user leaves it (Save and exit, Programs, Not now) or goes live
+  useEffect(() => {
+    if (testApproach === null) return
+    const onMessage = (e: MessageEvent) => {
+      const d = e.data
+      if (!d || d.src !== 'fi-test-program') return
+      if (d.type === 'fi-test-close') setTestApproach(null)
+      if (d.type === 'fi-test-golive') {
+        setTestApproach(null)
+        setTestToast(isEditActive
+          ? `Contextual follow-ups are live for "${form.name}"`
+          : `Contextual follow-ups will go live when you activate "${form.name || 'this program'}"`)
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [testApproach, isEditActive, form.name])
+
+  const testFlowSrc = testApproach === null ? '' :
+    `${import.meta.env.BASE_URL}test-program-approach-${testApproach}.html?embed=1&mode=${editCampaign ? 'existing' : 'new'}&name=${encodeURIComponent(form.name || 'Untitled program')}`
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--lyra-color-bg-surface-base)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--lyra-color-bg-surface-base)', position: 'relative' }}>
 
       {/* ── Header ── */}
       <div style={{
@@ -940,14 +976,38 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
 
         {/* Right: action buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Test program — always first */}
+          {/* Test program — always first. A dropdown: approach 1 (left stepper), approach 2 (hub), current flow */}
           {canTest ? (
-            <button
-              onClick={() => setShowTestProgram(true)}
-              style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--lyra-color-border-soft)', background: 'var(--lyra-color-bg-surface-base)', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', cursor: 'pointer', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
-            ><FlaskConical size={16} style={{ color: 'var(--lyra-color-fg-secondary)' }} />Test program</button>
+            <div ref={testMenuRef} style={{ position: 'relative' }}>
+              <button
+                aria-haspopup="menu"
+                aria-expanded={testMenuOpen}
+                onClick={() => setTestMenuOpen(o => !o)}
+                style={{ height: 36, padding: '0 12px 0 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--lyra-color-border-soft)', background: testMenuOpen ? 'var(--lyra-color-state-bg-hover-opacity)' : 'var(--lyra-color-bg-surface-base)', font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)', cursor: 'pointer', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                onMouseLeave={e => { if (!testMenuOpen) (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-bg-surface-base)' }}
+              ><FlaskConical size={16} style={{ color: 'var(--lyra-color-fg-secondary)' }} />Test program<ChevronDown size={16} style={{ color: 'var(--lyra-color-fg-secondary)', marginLeft: 2 }} /></button>
+              {testMenuOpen && (
+                <div role="menu" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 60, minWidth: 260, padding: '4px 0', background: 'var(--lyra-color-bg-surface-overlay)', border: '1px solid var(--lyra-color-border-soft)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--sol-effect-shadowlg)' }}>
+                  {([
+                    { id: 1 as const, label: 'Test program approach 1', sub: 'Left stepper' },
+                    { id: 2 as const, label: 'Test program approach 2', sub: 'Hub' },
+                  ]).map(o => (
+                    <button key={o.id} role="menuitem" onClick={() => { setTestMenuOpen(false); setTestApproach(o.id) }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0, width: '100%', padding: '8px 12px', background: 'none', border: 0, cursor: 'pointer', textAlign: 'left', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
+                    ><span>{o.label}</span><span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>{o.sub}</span></button>
+                  ))}
+                  <div style={{ height: 1, margin: '4px 0', background: 'var(--lyra-color-border-subtle)' }} />
+                  <button role="menuitem" onClick={() => { setTestMenuOpen(false); setShowTestProgram(true) }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', padding: '8px 12px', background: 'none', border: 0, cursor: 'pointer', textAlign: 'left', font: '400 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-default)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--lyra-color-state-bg-hover-opacity)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
+                  ><span>Test program (current flow)</span><span style={{ font: '400 12px/16px var(--font-sans)', color: 'var(--lyra-color-fg-secondary)' }}>Built 27 Oct</span></button>
+                </div>
+              )}
+            </div>
           ) : (
             <div title={testDisabledReason} aria-disabled="true" style={{ height: 36, padding: '0 16px', borderRadius: 'var(--radius-md)', background: 'var(--lyra-color-bg-disabled)', display: 'inline-flex', alignItems: 'center', gap: 6, font: '500 14px/20px var(--font-sans)', color: 'var(--lyra-color-fg-disabled)', cursor: 'not-allowed' }}>
               <FlaskConical size={16} />Test program
@@ -1723,7 +1783,19 @@ export function CreateProgramPage({ onCancel, onSave, editCampaign }: Props) {
         />
       )}
 
-      {/* Test program flow */}
+      {/* Test program approach 1 / 2: the full flow, embedded over this page */}
+      {testApproach !== null && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'var(--lyra-color-bg-surface-base)' }}>
+          <iframe
+            key={testFlowSrc}
+            src={testFlowSrc}
+            title={`Test program approach ${testApproach}`}
+            style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
+          />
+        </div>
+      )}
+
+      {/* Test program (current flow) */}
       {showTestProgram && (
         <TestProgramModal
           programName={form.name || 'Untitled program'}
