@@ -1983,19 +1983,18 @@ function viewIntro(){
  const d=i=>`style="animation-delay:${(i*0.7).toFixed(1)}s"`,e=i=>`style="animation-delay:${(i*90)}ms"`,back=!!(S.introSeen&&S.howFrom);
  const head=`<div class="phead">
   <div class="crumbs"><button onclick="A.go('program')">Programs</button><span>/</span><button onclick="A.go('program')">${PROG()}</button><span>/</span><span class="cur">Test ${PROG()}</span></div>
-  <div class="hbtns">${back?`<span class="t-13 sec">How testing works</span>`:`<button class="btn out" onclick="A.go('program')">Not now</button>`}</div></div>`;
+  <div class="hbtns"><button class="btn out" onclick="${back?'A.exit()':"A.go('program')"}">Exit test</button></div></div>`;
  const body=`<div class="intro">
   <div class="intro-l">
    <h1 class="iin" ${e(0)}>Rehearse the survey before your customers see it</h1>
-   <p class="lead iin" ${e(1)}>For ${PROG()}. You play the customer, check what the AI asks, and nothing here reaches a real customer.</p>
+   <p class="lead iin" ${e(1)}>For ${PROG()}. Nothing here reaches a customer.</p>
    <div class="isteps">
-    <div class="istep iin" ${e(2)}><span class="inum">1</span><span>Pick a few real conversations from ${PROG()}</span></div>
-    <div class="istep iin" ${e(3)}><span class="inum">2</span><span>Watch each one get read, then answer the survey as the customer</span></div>
-    <div class="istep iin" ${e(4)}><span class="inum">3</span><span>Check the follow-up question for every rating, and fix any you don't like</span></div>
-    <div class="istep iin" ${e(5)}><span class="inum">4</span><span>Say I'm confident, then decide when to go live</span></div>
+    <div class="istep iin" ${e(2)}><span class="inum">1</span><span>Watch a real chat get read</span></div>
+    <div class="istep iin" ${e(3)}><span class="inum">2</span><span>Answer as the customer</span></div>
+    <div class="istep iin" ${e(4)}><span class="inum">3</span><span>Say I'm confident, then decide</span></div>
    </div>
-   <div class="col iin" style="gap:16px;align-items:flex-start;animation-delay:540ms">${back?`<button class="btn pri" onclick="A.howBack()">Back to testing${ic('arrow',16)}</button>`:`<button class="btn pri" onclick="A.start()">Start testing${ic('arrow',16)}</button>`}
-   <span class="t-sm sec row">${ic('lock',14)}Nothing goes live until you decide.</span></div>
+   <div class="col iin" style="gap:16px;align-items:flex-start;animation-delay:540ms">${back?`<button class="btn pri" onclick="A.howBack()">Back to the test${ic('arrow',16)}</button>`:`<button class="btn pri" onclick="A.start()">Start testing${ic('arrow',16)}</button>`}
+   <span class="t-sm sec row">${ic('lock',14)}Nothing goes live until you sign off.</span></div>
   </div>
   <div class="intro-r"><div class="pcard" aria-hidden="true"><div class="ph-h">Billing team</div><div class="pbd">
     <div class="bub b an" ${d(0)}>How would you rate your experience today?</div>
